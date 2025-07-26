@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
-import { Loader2, UserCircle } from 'lucide-react';
+import { Loader2, UserCircle, KeyRound } from 'lucide-react';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
@@ -72,6 +72,15 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
         setOpen(false);
     }, 1000);
   };
+  
+  const handleResetPassword = () => {
+    // In a real app, this would trigger a password reset flow.
+    // Here, we just notify the admin what the password is.
+    toast({
+        title: "Password Reset",
+        description: `Password for ${user.name} has been reset to "password".`,
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -135,12 +144,18 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+            <DialogFooter className="sm:justify-between">
+              <Button type="button" variant="outline" onClick={handleResetPassword}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                Reset Password
               </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>
