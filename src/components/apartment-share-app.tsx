@@ -71,6 +71,7 @@ import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { AddUserDialog } from '@/components/add-user-dialog';
 import { EditUserDialog } from '@/components/edit-user-dialog';
+import { SelectApartmentDialog } from '@/components/select-apartment-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterval, subMonths } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
@@ -106,6 +107,14 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const [userSearch, setUserSearch] = React.useState('');
   const [announcementMessage, setAnnouncementMessage] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
+
+  const [showApartmentDialog, setShowApartmentDialog] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user && !user.apartment) {
+        setShowApartmentDialog(true);
+    }
+  }, [user]);
 
 
   const role = user?.role || 'user';
@@ -633,6 +642,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
+                            <TableHead>Apartment</TableHead>
                             <TableHead>Phone</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -650,6 +660,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                                 <span>{u.name}</span>
                                 </div>
                             </TableCell>
+                            <TableCell>{u.apartment || 'N/A'}</TableCell>
                             <TableCell>{u.phone || 'N/A'}</TableCell>
                             <TableCell>
                                 <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
@@ -922,6 +933,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   };
 
   return (
+    <>
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
@@ -984,6 +996,18 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         </div>
       </SidebarInset>
     </SidebarProvider>
+    {user && (
+        <SelectApartmentDialog 
+            open={showApartmentDialog} 
+            onOpenChange={setShowApartmentDialog}
+            user={user}
+            onSave={(apartment) => {
+                handleUpdateUser({...user, apartment});
+                setShowApartmentDialog(false);
+            }}
+        />
+    )}
+    </>
   );
 }
 

@@ -6,6 +6,7 @@ export type User = {
   phone?: string;
   role?: 'user' | 'admin';
   fcmToken?: string; // For push notifications
+  apartment?: string;
 };
 
 export type Category = {

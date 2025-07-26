@@ -24,12 +24,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const apartmentList = ['F1', 'F2', 'S1', 'S2', 'T1', 'T2', 'G1'];
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   role: z.enum(['user', 'admin']),
+  apartment: z.string().optional(),
   avatar: z.any()
     .optional()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
@@ -58,6 +60,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       email: user.email,
       phone: user.phone || '',
       role: user.role || 'user',
+      apartment: user.apartment || '',
       avatar: undefined,
     },
   });
@@ -69,6 +72,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
             email: user.email,
             phone: user.phone || '',
             role: user.role || 'user',
+            apartment: user.apartment || '',
         })
     }
   }, [user, form]);
@@ -93,6 +97,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
         email: data.email,
         phone: data.phone,
         role: data.role,
+        apartment: data.apartment,
         avatar: avatarDataUrl 
     };
     onUpdateUser(updatedUser);
@@ -183,27 +188,53 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                     </FormItem>
                 )}
             />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="apartment"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Apartment</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select an apartment" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {apartmentList.map(apt => (
+                                    <SelectItem key={apt} value={apt}>
+                                    {apt}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            </div>
             <DialogFooter className="sm:justify-between">
               <Button type="button" variant="outline" onClick={handleResetPassword}>
                 <KeyRound className="mr-2 h-4 w-4" />
