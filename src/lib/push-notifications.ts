@@ -2,10 +2,18 @@ import { getMessaging, getToken } from "firebase/messaging";
 import { app } from "./firebase-client"; // Using a client-side initialized app
 import * as firestore from './firestore';
 
-const VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // You need to generate this in Firebase Console
+// IMPORTANT: Replace this with your actual VAPID key from the Firebase console
+const VAPID_KEY = "YOUR_VAPID_KEY_HERE";
 
 export const requestNotificationPermission = async (userId: string) => {
   if (typeof window === 'undefined') return;
+
+  // Ensure you have a valid VAPID key before proceeding.
+  // In a real app, you might fetch this from an environment variable.
+  if (!VAPID_KEY || VAPID_KEY === "YOUR_VAPID_KEY_HERE") {
+    console.warn("VAPID key not set. Push notifications will not work. Please generate a key in your Firebase project settings.");
+    return;
+  }
 
   try {
     const messaging = getMessaging(app);
