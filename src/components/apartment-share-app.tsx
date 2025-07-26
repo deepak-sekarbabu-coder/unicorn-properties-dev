@@ -24,7 +24,6 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
-  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +36,7 @@ import { Separator } from '@/components/ui/separator';
 
 import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
+import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
@@ -50,7 +50,7 @@ interface ApartmentShareAppProps {
 }
 
 export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses }: ApartmentShareAppProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [view, setView] = React.useState<View>('dashboard');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
@@ -79,6 +79,22 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     };
     setExpenses(prev => [newExpense, ...prev]);
   };
+  
+  const handleUpdateUser = (updatedUser: User) => {
+    // This function will be called from the profile settings dialog.
+    // First, we update the auth context.
+    updateUser(updatedUser);
+    
+    // Then, we update the local 'users' state.
+    setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+    
+    // We also need to update the user in the initialUsers array if they are there
+    const userIndex = initialUsers.findIndex(u => u.id === updatedUser.id);
+    if(userIndex !== -1){
+        initialUsers[userIndex] = updatedUser;
+    }
+  };
+
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
@@ -245,26 +261,33 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </AddExpenseDialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                 <UserCircle className="h-8 w-8" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>
-                <p>{user?.name}</p>
-                <p className="font-normal text-muted-foreground">{user?.email}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <UserCircle className="h-8 w-8" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>
+                  <p>{user.name}</p>
+                  <p className="font-normal text-muted-foreground">{user.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <UserProfileDialog user={user} onUpdateUser={handleUpdateUser}>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                    </DropdownMenuItem>
+                </UserProfileDialog>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
     )
@@ -291,9 +314,6 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <SidebarMenuButton onClick={() => setView('expenses')} isActive={view === 'expenses'} tooltip="All Expenses">
                 <LineChart />
                 All Expenses
-                <SidebarMenuBadge>
-                  {expenses.length}
-                </SidebarMenuBadge>
               </SidebarMenuButton>
             </SidebarMenuItem>
             {role === 'admin' && (
