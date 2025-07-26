@@ -16,7 +16,10 @@ import {
   FileDown,
   Search,
   Paperclip,
+  PieChart,
 } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+
 import {
   SidebarProvider,
   Sidebar,
@@ -34,8 +37,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import {
@@ -49,6 +50,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
 import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
@@ -58,11 +60,11 @@ import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { AddUserDialog } from '@/components/add-user-dialog';
 import { EditUserDialog } from '@/components/edit-user-dialog';
 import { CategoryIcon } from '@/components/category-icon';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterval, subMonths } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 
-type View = 'dashboard' | 'expenses' | 'admin';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
 interface ApartmentShareAppProps {
   initialUsers: User[];
@@ -217,6 +219,26 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       user.email?.toLowerCase().includes(userSearch.toLowerCase())
     );
   }, [users, userSearch]);
+  
+  const analyticsData = React.useMemo(() => {
+    const categorySpending = categories.map(category => {
+      const total = expenses
+        .filter(e => e.categoryId === category.id)
+        .reduce((sum, e) => sum + e.amount, 0);
+      return { name: category.name, total, fill: `hsl(var(--chart-${(categories.indexOf(category) % 5) + 1}))` };
+    });
+
+    const monthlySpending = Array.from({ length: 6 }).map((_, i) => {
+      const monthDate = subMonths(new Date(), i);
+      const total = expenses
+        .filter(e => format(new Date(e.date), 'yyyy-MM') === format(monthDate, 'yyyy-MM'))
+        .reduce((sum, e) => sum + e.amount, 0);
+      return { name: format(monthDate, 'MMM'), total };
+    }).reverse();
+
+    return { categorySpending, monthlySpending };
+  }, [expenses, categories]);
+
 
   React.useEffect(() => {
     if (role === 'user' && view === 'admin') {
@@ -231,6 +253,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         return <AdminView />;
       case 'expenses':
         return <ExpensesView />;
+      case 'analytics':
+        return <AnalyticsView />;
       default:
         return <DashboardView />;
     }
@@ -322,6 +346,48 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         <ExpensesTable expenses={filteredExpenses} />
       </CardContent>
     </Card>
+  );
+
+  const AnalyticsView = () => (
+    <div className="grid gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Spending by Category</CardTitle>
+          <CardDescription>A breakdown of expenses by category for the current month.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={{}} className="h-[300px] w-full">
+            <BarChart data={analyticsData.categorySpending} accessibilityLayer>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+              <YAxis />
+              <RechartsTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <Bar dataKey="total" radius={8} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Spending Over Time</CardTitle>
+          <CardDescription>Total expenses over the last 6 months.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={{}} className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={analyticsData.monthlySpending}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
+                </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   const AdminView = () => (
@@ -515,6 +581,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     let title = "Dashboard";
     if (view === 'expenses') title = "All Expenses";
     if (view === 'admin') title = "Admin Panel";
+    if (view === 'analytics') title = "Analytics";
     return (
       <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
         <SidebarTrigger className="md:hidden" />
@@ -578,6 +645,12 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <SidebarMenuButton onClick={() => setView('expenses')} isActive={view === 'expenses'} tooltip="All Expenses">
                 <LineChart />
                 All Expenses
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => setView('analytics')} isActive={view === 'analytics'} tooltip="Analytics">
+                <PieChart />
+                Analytics
               </SidebarMenuButton>
             </SidebarMenuItem>
             {role === 'admin' && (
