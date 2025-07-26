@@ -2,6 +2,11 @@ import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import type { User, Category, Expense } from './types';
 
+const removeUndefined = (obj: Record<string, any>) => {
+    Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
+    return obj;
+}
+
 // Users
 export const getUsers = async (): Promise<User[]> => {
   const usersCol = collection(db, 'users');
@@ -31,13 +36,15 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 
 export const addUser = async (user: Omit<User, 'id'>): Promise<User> => {
     const usersCol = collection(db, 'users');
-    const docRef = await addDoc(usersCol, user);
-    return { id: docRef.id, ...user };
+    const cleanUser = removeUndefined(user);
+    const docRef = await addDoc(usersCol, cleanUser);
+    return { id: docRef.id, ...cleanUser } as User;
 };
 
 export const updateUser = async (id: string, user: Partial<User>): Promise<void> => {
     const userDoc = doc(db, 'users', id);
-    await updateDoc(userDoc, user);
+    const cleanUser = removeUndefined(user);
+    await updateDoc(userDoc, cleanUser);
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
@@ -54,13 +61,15 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const addCategory = async (category: Omit<Category, 'id'>): Promise<Category> => {
     const categoriesCol = collection(db, 'categories');
-    const docRef = await addDoc(categoriesCol, category);
-    return { id: docRef.id, ...category };
+    const cleanCategory = removeUndefined(category);
+    const docRef = await addDoc(categoriesCol, cleanCategory);
+    return { id: docRef.id, ...cleanCategory } as Category;
 };
 
 export const updateCategory = async (id: string, category: Partial<Category>): Promise<void> => {
     const categoryDoc = doc(db, 'categories', id);
-    await updateDoc(categoryDoc, category);
+    const cleanCategory = removeUndefined(category);
+    await updateDoc(categoryDoc, cleanCategory);
 };
 
 export const deleteCategory = async (id: string): Promise<void> => {
@@ -82,8 +91,9 @@ export const addExpense = async (expense: Omit<Expense, 'id'|'date'>): Promise<E
         date: new Date().toISOString()
     }
     const expensesCol = collection(db, 'expenses');
-    const docRef = await addDoc(expensesCol, newExpense);
-    return { id: docRef.id, ...newExpense };
+    const cleanExpense = removeUndefined(newExpense);
+    const docRef = await addDoc(expensesCol, cleanExpense);
+    return { id: docRef.id, ...cleanExpense } as Expense;
 };
 
 export const deleteExpense = async (id: string): Promise<void> => {
