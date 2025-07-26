@@ -5,6 +5,7 @@ export type User = {
   email?: string;
   phone?: string;
   role?: 'user' | 'admin';
+  fcmToken?: string; // For push notifications
 };
 
 export type Category = {

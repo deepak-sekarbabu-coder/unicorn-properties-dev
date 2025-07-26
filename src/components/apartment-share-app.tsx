@@ -75,6 +75,7 @@ import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterva
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import * as firestore from '@/lib/firestore';
+import { requestNotificationPermission } from '@/lib/push-notifications';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
@@ -104,6 +105,25 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
   const perUserShare = users.length > 0 ? totalExpenses / users.length : 0;
+
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Service Worker registration successful, scope is:', registration.scope);
+        })
+        .catch((err) => {
+          console.log('Service Worker registration failed, error:', err);
+        });
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (user && !user.fcmToken) {
+      requestNotificationPermission(user.id);
+    }
+  }, [user]);
 
   const userBalances = React.useMemo(() => {
     return users.map(u => {
