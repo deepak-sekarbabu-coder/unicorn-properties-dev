@@ -1,5 +1,4 @@
-import { init, App, getApps } from "firebase-admin/app";
-import { credential } from "firebase-admin";
+import { init, App, getApps, credential } from "firebase-admin/app";
 
 const FIREBASE_SERVICE_ACCOUNT_JSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 

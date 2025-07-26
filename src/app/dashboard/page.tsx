@@ -1,9 +1,9 @@
 
 import { ApartmentShareApp } from '@/components/apartment-share-app';
-import { getCategories, getAnnouncements, getUser, getUsers, getExpenses } from '@/lib/firestore';
+import { getCategories, getAnnouncements, getUser } from '@/lib/firestore';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from 'firebase-admin';
+import { auth as adminAuth } from 'firebase-admin/lib/auth';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 
 async function getAuthenticatedUser() {
@@ -11,8 +11,8 @@ async function getAuthenticatedUser() {
     if (!sessionCookie) return null;
 
     try {
-        getFirebaseAdminApp(); // Initialize admin app if not already
-        const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
+        const adminApp = getFirebaseAdminApp(); // Initialize admin app if not already
+        const decodedClaims = await adminAuth(adminApp).verifySessionCookie(sessionCookie, true);
         const user = await getUser(decodedClaims.uid);
         if (!user) return null;
         
