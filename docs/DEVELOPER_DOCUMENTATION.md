@@ -52,7 +52,7 @@ The codebase is organized into the following key directories:
 -   `src/components/`: Reusable React components.
     -   `ui/`: Auto-generated UI components from ShadCN (e.g., `Button`, `Card`, `Dialog`).
     -   `apartment-share-app.tsx`: The main stateful component that orchestrates the entire application UI and logic.
-    -   Dialog components (e.g., `add-expense-dialog.tsx`, `edit-user-dialog.tsx`): Self-contained dialogs for specific actions.
+    -   Dialog components (e.g., `add-expense-dialog.tsx`, `edit-user-dialog.tsx`, `select-apartment-dialog.tsx`): Self-contained dialogs for specific actions.
 -   `src/lib/`: Core utilities, type definitions, and backend communication logic.
     -   `firebase.ts`: Initializes and exports Firebase services (Firestore, Auth, Messaging).
     -   `firestore.ts`: Contains all functions for interacting with the Firestore database (CRUD operations for users, expenses, etc.).
@@ -73,9 +73,11 @@ The codebase is organized into the following key directories:
 -   **Global State**: The primary global state is authentication, managed in `AuthContext`. It stores the currently logged-in user and handles login/logout logic.
 -   **Local/Component State**: The core application state (users, expenses, categories) is managed within the `ApartmentShareApp` component using `React.useState`. Data is passed down to child components via props, and updates are handled by callback functions (e.g., `onAddExpense`, `onUpdateUser`). This keeps the data flow predictable.
 
-### Authentication
+### Authentication and Onboarding
 
 Authentication is handled by **Firebase Authentication**. The `AuthContext` (`src/context/auth-context.tsx`) wraps the Firebase SDK to provide a simplified authentication flow, supporting both email/password and Google Sign-In. The `onAuthStateChanged` listener keeps the app's user state in sync with Firebase. User session is persisted using `browserLocalPersistence`.
+
+A key feature is the **new user onboarding flow**. When a user logs in for the first time and their profile is missing an `apartment` value, the `ApartmentShareApp` component will automatically present the `SelectApartmentDialog`. This ensures all users have an apartment assigned to their profile.
 
 ### Data Flow & Backend
 

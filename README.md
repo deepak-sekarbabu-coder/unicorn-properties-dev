@@ -8,8 +8,8 @@ ApartmentShare is a modern web application designed to help roommates and apartm
 - **User Balances**: A clear dashboard view shows who owes money and who is owed money at a glance.
 - **Admin Management**: An admin role allows for managing users, expense categories, and all expenses.
 - **Announcement System**: Users can submit announcements for the group, which admins can approve. Approved announcements are visible to all users.
+- **User Profiles**: Users can manage their own profile information, including their name, phone number, and apartment selection. First-time users are prompted to select their apartment upon sign-in.
 - **Push Notifications**: Integrated with Firebase Cloud Messaging to allow for push notifications on supported devices.
-- **User Profiles**: Users can manage their own profile information, including their name and phone number.
 - **Data Export**: Export all expense data to a CSV file.
 
 ## Tech Stack

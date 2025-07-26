@@ -15,6 +15,7 @@ To begin using the application, you need to log in.
     -   You can sign in using a Google account or with an email and password.
     -   New accounts can be created by the **Admin** user.
     -   When an admin creates an account, the default password is `password`.
+-   **First-Time Sign-In**: The first time you sign in, you will be prompted to select your apartment number from a list. This is a one-time setup step to complete your profile.
 
 ## 3. User Roles
 
@@ -31,7 +32,7 @@ This is the standard role for most members of the apartment.
     -   **Submit announcements** for admin review.
     -   Export expense data.
     -   View spending analytics.
-    -   Update their own profile information (name, phone number, and profile picture).
+    -   Update their own profile information (name, phone number, and profile picture). Their assigned apartment is also visible in their settings.
     -   Receive push notifications for important updates.
 
 ### 3.2. Admin
@@ -40,7 +41,7 @@ The Admin role has all the permissions of a standard user, plus additional admin
 
 -   **Additional Permissions**:
     -   Access the **Admin Panel**.
-    -   **Manage Users**: Add new users, edit existing user details (including their role), and delete users.
+    -   **Manage Users**: Add new users, edit existing user details (including their role and apartment), and delete users.
     -   **Manage Categories**: Create new expense categories, edit their names, and delete them.
     -   **Manage Expenses**: Delete any expense from the log.
     -   **Manage Announcements**: Approve or reject announcements submitted by other users.
@@ -82,7 +83,7 @@ All users can contribute to group communication.
 
 You can manage your personal information from the user menu in the top-right corner.
 
--   **Update Profile**: Click "Settings" to open a dialog where you can change your name, phone number, and upload a new profile picture.
+-   **Update Profile**: Click "Settings" to open a dialog where you can change your name, phone number, and upload a new profile picture. You can also view your assigned apartment here.
 -   **Reset Password**: You can reset your own password from the Settings dialog.
 -   **Logout**: Securely log out of the application.
 
@@ -90,7 +91,7 @@ You can manage your personal information from the user menu in the top-right cor
 
 Administrators have access to a special panel for managing the application's core data.
 
--   **User Management**: View, add, edit, or delete users. You can also view user phone numbers here.
+-   **User Management**: View, add, edit, or delete users. You can also view user phone numbers and their assigned apartment.
 -   **Category Management**: Create, edit, and delete expense categories.
 -   **Pending Announcements**: Review and act on announcements submitted by users.
 
