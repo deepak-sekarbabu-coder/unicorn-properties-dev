@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -134,19 +135,27 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                        <Input type="email" placeholder="your@email.com" {...field} disabled />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                 <FormItem>
+                    <FormLabel>Apartment</FormLabel>
+                    <FormControl>
+                        <Input value={user.apartment || 'Not Assigned'} disabled />
+                    </FormControl>
                 </FormItem>
-              )}
-            />
+            </div>
             <FormField
               control={form.control}
               name="phone"
