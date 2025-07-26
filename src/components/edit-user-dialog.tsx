@@ -28,6 +28,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
   role: z.enum(['user', 'admin']),
   avatar: z.any()
     .optional()
@@ -55,6 +56,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
     defaultValues: {
       name: user.name,
       email: user.email,
+      phone: user.phone || '',
       role: user.role || 'user',
       avatar: undefined,
     },
@@ -65,6 +67,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
         form.reset({
             name: user.name,
             email: user.email,
+            phone: user.phone || '',
             role: user.role || 'user',
         })
     }
@@ -88,6 +91,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
         ...user, 
         name: data.name,
         email: data.email,
+        phone: data.phone,
         role: data.role,
         avatar: avatarDataUrl 
     };
@@ -148,6 +152,19 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="e.g., john.doe@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., +91 98765 43210" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

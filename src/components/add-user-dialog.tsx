@@ -24,6 +24,7 @@ import { Loader2 } from 'lucide-react';
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
   role: z.enum(['user', 'admin']),
 });
 
@@ -43,6 +44,7 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     defaultValues: {
       name: '',
       email: '',
+      phone: '',
       role: 'user',
     },
   });
@@ -95,6 +97,19 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="e.g., john.doe@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., +91 98765 43210" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

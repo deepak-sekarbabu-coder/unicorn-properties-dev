@@ -450,7 +450,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Phone</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -467,7 +467,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                                 <span>{u.name}</span>
                                 </div>
                             </TableCell>
-                            <TableCell>{u.email}</TableCell>
+                            <TableCell>{u.phone || 'N/A'}</TableCell>
                             <TableCell>
                                 <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
                                     {u.role}
@@ -675,7 +675,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>
                   <p>{user.name}</p>
-                  <p className="font-normal text-muted-foreground">{user.email}</p>
+                  <p className="font-normal text-muted-foreground">{user.phone || user.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <UserProfileDialog user={user} onUpdateUser={handleUpdateUser}>

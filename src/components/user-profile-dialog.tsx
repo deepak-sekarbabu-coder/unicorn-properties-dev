@@ -27,6 +27,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email(),
+  phone: z.string().optional(),
   avatar: z.any()
     .optional()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
@@ -53,6 +54,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
     defaultValues: {
       name: user.name,
       email: user.email,
+      phone: user.phone || '',
       avatar: undefined,
     },
   });
@@ -62,6 +64,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
         form.reset({
             name: user.name,
             email: user.email,
+            phone: user.phone || '',
         })
     }
   }, [user, form])
@@ -81,7 +84,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
         });
     }
 
-    const updatedUser = { ...user, name: data.name, avatar: avatarDataUrl };
+    const updatedUser = { ...user, name: data.name, phone: data.phone, avatar: avatarDataUrl };
     onUpdateUser(updatedUser);
     toast({
       title: 'Profile Updated',
@@ -139,6 +142,19 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="your@email.com" {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., +91 98765 43210" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
