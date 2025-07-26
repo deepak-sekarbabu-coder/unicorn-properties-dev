@@ -12,6 +12,8 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   User as FirebaseUser,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 
 interface AuthContextType {
@@ -31,30 +33,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      if (firebaseUser) {
-        // User is signed in, see if they are in our DB
-        let appUser = await getUserByEmail(firebaseUser.email!);
-        if (!appUser) {
-          // New user, create them in our DB
-          const newUser: Omit<User, 'id'> = {
-            name: firebaseUser.displayName || 'New User',
-            email: firebaseUser.email!,
-            avatar: firebaseUser.photoURL || undefined,
-            role: 'user',
-          };
-          appUser = await addUser(newUser);
+    const initializeAuth = async () => {
+      await setPersistence(auth, browserLocalPersistence);
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        if (firebaseUser) {
+          // User is signed in, see if they are in our DB
+          let appUser = await getUserByEmail(firebaseUser.email!);
+          if (!appUser) {
+            // New user, create them in our DB
+            const newUser: Omit<User, 'id'> = {
+              name: firebaseUser.displayName || 'New User',
+              email: firebaseUser.email!,
+              avatar: firebaseUser.photoURL || undefined,
+              role: 'user',
+            };
+            appUser = await addUser(newUser);
+          }
+          setUser(appUser);
+        } else {
+          // User is signed out
+          setUser(null);
         }
-        setUser(appUser);
-      } else {
-        // User is signed out
-        setUser(null);
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
+      return unsubscribe;
+    };
+
+    const unsubscribePromise = initializeAuth();
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      unsubscribePromise.then(unsub => unsub && unsub());
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
