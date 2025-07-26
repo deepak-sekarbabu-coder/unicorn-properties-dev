@@ -54,7 +54,7 @@ import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from './hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 type View = 'dashboard' | 'expenses' | 'admin';
 
@@ -415,5 +415,3 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </SidebarProvider>
   );
 }
-
-    
