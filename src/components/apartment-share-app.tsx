@@ -66,6 +66,7 @@ import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterval, subMonths } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import * as firestore from '@/lib/firestore';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
@@ -76,7 +77,7 @@ interface ApartmentShareAppProps {
 }
 
 export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses }: ApartmentShareAppProps) {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
   const [view, setView] = React.useState<View>('dashboard');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
@@ -101,16 +102,13 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     });
   }, [users, expenses, perUserShare]);
 
-  const handleAddExpense = (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
-    const newExpense: Expense = {
-      ...newExpenseData,
-      id: `exp-${Date.now()}`,
-      date: new Date().toISOString(),
-    };
+  const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
+    const newExpense = await firestore.addExpense(newExpenseData);
     setExpenses(prev => [newExpense, ...prev]);
   };
 
-  const handleDeleteExpense = (expenseId: string) => {
+  const handleDeleteExpense = async (expenseId: string) => {
+    await firestore.deleteExpense(expenseId);
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
     toast({
         title: 'Expense Deleted',
@@ -118,29 +116,24 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     });
   };
   
-  const handleUpdateUser = (updatedUser: User) => {
-    updateUser(updatedUser);
+  const handleUpdateUser = async (updatedUser: User) => {
+    await firestore.updateUser(updatedUser.id, updatedUser);
+    updateAuthUser(updatedUser);
     setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
-    
-    const userIndex = initialUsers.findIndex(u => u.id === updatedUser.id);
-    if(userIndex !== -1){
-        initialUsers[userIndex] = updatedUser;
-    }
   };
   
-  const handleUpdateCategory = (updatedCategory: Category) => {
+  const handleUpdateCategory = async (updatedCategory: Category) => {
+    await firestore.updateCategory(updatedCategory.id, updatedCategory);
     setCategories(currentCategories => currentCategories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
   };
   
-  const handleAddCategory = (newCategoryData: Omit<Category, 'id'>) => {
-    const newCategory: Category = {
-      ...newCategoryData,
-      id: `cat-${Date.now()}`,
-    };
+  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
+    const newCategory = await firestore.addCategory(newCategoryData);
     setCategories(prev => [...prev, newCategory]);
   };
   
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
+    await firestore.deleteCategory(categoryId);
     setCategories(prev => prev.filter(c => c.id !== categoryId));
     toast({
       title: 'Category Deleted',
@@ -148,20 +141,17 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     });
   };
   
-  const handleAddUser = (newUserData: Omit<User, 'id'>) => {
-    const newUser: User = {
-        ...newUserData,
-        id: `user-${Date.now()}`,
-    };
+  const handleAddUser = async (newUserData: Omit<User, 'id'>) => {
+    const newUser = await firestore.addUser(newUserData);
     setUsers(prev => [...prev, newUser]);
   };
 
-  const handleUpdateUserFromAdmin = (updatedUser: User) => {
+  const handleUpdateUserFromAdmin = async (updatedUser: User) => {
+     await firestore.updateUser(updatedUser.id, updatedUser);
      setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
-  const handleDeleteUser = (userId: string) => {
-    // Prevent deleting the currently logged in user
+  const handleDeleteUser = async (userId: string) => {
     if (user?.id === userId) {
       toast({
         title: 'Action Prohibited',
@@ -170,6 +160,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       });
       return;
     }
+    await firestore.deleteUser(userId);
     setUsers(prev => prev.filter(u => u.id !== userId));
     toast({
       title: 'User Deleted',

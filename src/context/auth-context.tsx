@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
-import { users } from '@/lib/data'; // We'll use this for mock auth
+import { getUserByEmail } from '@/lib/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -14,23 +14,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// A mock authentication function
-const authenticate = (email: string): User | null => {
-    if (email === 'admin@apartment.com') {
-        return {
-            id: 'user-1',
-            name: 'Alex Martin (Admin)',
-            email: 'admin@apartment.com',
-            role: 'admin'
-        }
-    }
-    const foundUser = users.find(u => u.name.toLowerCase().replace(' ', '.') + '@apartment.com' === email);
-    if(foundUser) {
-        return {...foundUser, email: email, role: 'user'}
-    }
-    return null;
-};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -52,21 +35,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        const authenticatedUser = authenticate(email);
-        if (authenticatedUser && password === 'password') { // Dummy password check
-          setUser(authenticatedUser);
-          localStorage.setItem('apartment-user', JSON.stringify(authenticatedUser));
-          resolve();
-        } else {
-          reject(new Error('Invalid email or password.'));
+      if (password === 'password') { // Dummy password check for all users
+        const authenticatedUser = await getUserByEmail(email);
+        if (authenticatedUser) {
+            setUser(authenticatedUser);
+            localStorage.setItem('apartment-user', JSON.stringify(authenticatedUser));
+            setLoading(false);
+            return Promise.resolve();
         }
-        setLoading(false);
-      }, 1000);
-    });
+      }
+      setLoading(false);
+      return Promise.reject(new Error('Invalid email or password.'));
   };
 
   const logout = () => {
