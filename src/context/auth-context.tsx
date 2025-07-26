@@ -37,14 +37,18 @@ async function setSessionCookie(firebaseUser: FirebaseUser) {
     });
 
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to set session cookie' }));
+        const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from server.' }));
         console.error("Error setting session cookie:", errorData);
-        throw new Error(errorData.message || 'Failed to set session cookie');
+        throw new Error(errorData.message || 'An unknown error occurred while setting the session.');
     }
 }
 
 async function clearSessionCookie() {
-    await fetch('/api/auth/session', { method: 'DELETE' });
+    try {
+        await fetch('/api/auth/session', { method: 'DELETE' });
+    } catch (error) {
+        console.error("Error clearing session cookie:", error);
+    }
 }
 
 
@@ -73,8 +77,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
             
             setUser(appUser);
-            // We set the cookie here after we have the user
-            await setSessionCookie(firebaseUser);
+            try {
+                // We set the cookie here after we have the user
+                await setSessionCookie(firebaseUser);
+            } catch (error) {
+                console.error("Critical: Could not set session cookie.", error);
+                // Decide how to handle this - maybe log out the user?
+                await signOut(auth); // Log out if session can't be set
+                setUser(null);
+            }
+
 
              if (appUser && (appUser.apartment && appUser.role)) {
                router.replace('/dashboard');
@@ -107,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle the rest
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -119,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle the rest
     } catch(error) {
       const errorCode = (error as any).code;
       if (errorCode === 'auth/popup-closed-by-user') {
@@ -134,8 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
-    await clearSessionCookie();
+    // onAuthStateChanged will handle clearing user and cookie
     router.push('/login');
   };
   
