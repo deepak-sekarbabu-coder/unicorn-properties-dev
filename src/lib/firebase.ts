@@ -16,9 +16,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
-const auth = getAuth(app, {
-    persistence: undefined,
-    popupRedirectResolver: undefined,
-});
+const auth = getAuth(app);
 
 export { db, auth };
