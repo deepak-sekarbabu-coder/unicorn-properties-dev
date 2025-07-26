@@ -23,6 +23,7 @@ export type Expense = {
   paidBy: string; // User ID
   categoryId: string; // Category ID
   receipt?: string; // Optional: data URI for the receipt image
+  apartment: string; // Apartment ID
 };
 
 export type Announcement = {

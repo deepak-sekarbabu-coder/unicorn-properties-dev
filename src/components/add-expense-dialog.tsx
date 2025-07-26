@@ -44,9 +44,10 @@ interface AddExpenseDialogProps {
   categories: Category[];
   users: User[];
   onAddExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
+  currentUser: User;
 }
 
-export function AddExpenseDialog({ children, categories, users, onAddExpense }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ children, categories, users, onAddExpense, currentUser }: AddExpenseDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<ExpenseFormValues>({
@@ -72,6 +73,15 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
             reader.onload = () => resolve(reader.result as string);
         });
     }
+    
+    if (!currentUser.apartment) {
+        toast({
+            title: 'Error',
+            description: 'You must belong to an apartment to add an expense.',
+            variant: 'destructive',
+        });
+        return;
+    }
 
     const expenseData: Omit<Expense, 'id' | 'date'> = {
         description: data.description,
@@ -79,6 +89,7 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
         paidBy: data.paidBy,
         categoryId: data.categoryId,
         receipt: receiptDataUrl,
+        apartment: currentUser.apartment,
     };
 
     onAddExpense(expenseData);

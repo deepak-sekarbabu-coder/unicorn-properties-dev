@@ -1,23 +1,26 @@
 
 import { ApartmentShareApp } from '@/components/apartment-share-app';
-import { getUsers, getCategories, getExpenses, getAnnouncements } from '@/lib/firestore';
+import { getCategories, getAnnouncements, getUser, getUsers, getExpenses } from '@/lib/firestore';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { auth } from 'firebase-admin';
+import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 
 async function getAuthenticatedUser() {
-    const cookieStore = await cookies();
-    const userRoleCookie = cookieStore.get('user-role');
+    const sessionCookie = cookies().get('session')?.value;
+    if (!sessionCookie) return null;
 
-    // In a real production app, you'd likely have a more robust session check,
-    // possibly verifying a session token with a backend.
-    // For this app, the presence of the 'user-role' cookie serves as our
-    // indicator of an authenticated session on the server.
-    if (!userRoleCookie) {
+    try {
+        getFirebaseAdminApp(); // Initialize admin app if not already
+        const decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
+        const user = await getUser(decodedClaims.uid);
+        if (!user) return null;
+        
+        return user;
+    } catch (error) {
+        console.error("Session verification failed:", error);
         return null;
     }
-    return {
-        role: userRoleCookie.value as 'admin' | 'user'
-    };
 }
 
 
@@ -28,12 +31,14 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
-    // In a real application, this data would be fetched from a database.
-    // We pass it to a client component to allow for interactive state management.
-    const initialUsers = await getUsers();
     const initialCategories = await getCategories();
-    const initialExpenses = await getExpenses();
-    const initialAnnouncements = await getAnnouncements(user.role);
+    const initialAnnouncements = await getAnnouncements(user.role || 'tenant');
+
+    // Data fetching will now be handled client-side based on user's apartment
+    // We pass empty arrays to avoid prop-drilling large initial datasets
+    const initialUsers = [];
+    const initialExpenses = [];
+    
 
     return <ApartmentShareApp
         initialUsers={initialUsers}

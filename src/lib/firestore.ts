@@ -8,9 +8,12 @@ const removeUndefined = (obj: Record<string, any>) => {
 }
 
 // Users
-export const getUsers = async (): Promise<User[]> => {
-  const usersCol = collection(db, 'users');
-  const userSnapshot = await getDocs(usersCol);
+export const getUsers = async (apartment?: string): Promise<User[]> => {
+  let usersQuery = query(collection(db, 'users'));
+  if (apartment) {
+      usersQuery = query(usersQuery, where('apartment', '==', apartment));
+  }
+  const userSnapshot = await getDocs(usersQuery);
   return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
 };
 
@@ -79,9 +82,12 @@ export const deleteCategory = async (id: string): Promise<void> => {
 
 
 // Expenses
-export const getExpenses = async (): Promise<Expense[]> => {
-  const expensesCol = collection(db, 'expenses');
-  const expenseSnapshot = await getDocs(expensesCol);
+export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
+  let expensesQuery = query(collection(db, 'expenses'));
+    if (apartment) {
+        expensesQuery = query(expensesQuery, where('apartment', '==', apartment));
+    }
+  const expenseSnapshot = await getDocs(expensesQuery);
   return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
 };
 

@@ -78,6 +78,7 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
+import { Skeleton } from './ui/skeleton';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
@@ -93,11 +94,14 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const { toast } = useToast();
   const router = useRouter();
   const [view, setView] = React.useState<View>('dashboard');
-  const [users, setUsers] = React.useState<User[]>(initialUsers);
+  
+  const [users, setUsers] = React.useState<User[]>([]);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
-  const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
+  const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [announcements, setAnnouncements] = React.useState<Announcement[]>(initialAnnouncements);
   
+  const [isLoadingData, setIsLoadingData] = React.useState(true);
+
   // State for search and filters
   const [expenseSearch, setExpenseSearch] = React.useState('');
   const [filterCategory, setFilterCategory] = React.useState('all');
@@ -115,6 +119,28 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         setShowApartmentDialog(true);
     }
   }, [user]);
+
+  React.useEffect(() => {
+    const fetchDataForApartment = async () => {
+        if (user?.apartment) {
+            setIsLoadingData(true);
+            const apartmentUsers = await firestore.getUsers(user.apartment);
+            const apartmentExpenses = await firestore.getExpenses(user.apartment);
+            setUsers(apartmentUsers);
+            setExpenses(apartmentExpenses);
+            setIsLoadingData(false);
+        } else if (user && !showApartmentDialog) {
+            // If user has no apartment but dialog is not shown (e.g. admin without apartment), fetch all
+             setIsLoadingData(true);
+             const allUsers = await firestore.getUsers();
+             const allExpenses = await firestore.getExpenses();
+             setUsers(allUsers);
+             setExpenses(allExpenses);
+             setIsLoadingData(false);
+        }
+    };
+    fetchDataForApartment();
+  }, [user, showApartmentDialog]);
 
 
   const role = user?.role || 'tenant';
@@ -165,7 +191,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     const newExpense = await firestore.addExpense(newExpenseData);
-    setExpenses(prev => [newExpense, ...prev]);
+    if (newExpense.apartment === user?.apartment) {
+        setExpenses(prev => [newExpense, ...prev]);
+    }
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
@@ -180,7 +208,11 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const handleUpdateUser = async (updatedUser: User) => {
     await firestore.updateUser(updatedUser.id, updatedUser);
     updateAuthUser(updatedUser);
-    setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+    // If the user's apartment changed, we need to refetch data, which the useEffect will handle.
+    // Otherwise, just update the state locally.
+    if (updatedUser.apartment === user?.apartment) {
+        setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+    }
   };
   
   const handleUpdateCategory = async (updatedCategory: Category) => {
@@ -204,7 +236,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   
   const handleAddUser = async (newUserData: Omit<User, 'id'>) => {
     const newUser = await firestore.addUser(newUserData);
-    setUsers(prev => [...prev, newUser]);
+    if (newUser.apartment === user?.apartment || role === 'admin') {
+      setUsers(prev => [...prev, newUser]);
+    }
   };
 
   const handleUpdateUserFromAdmin = async (updatedUser: User) => {
@@ -277,7 +311,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const handleExportCSV = () => {
     const csvRows = [];
-    const headers = ['ID', 'Description', 'Amount', 'Date', 'Paid By', 'Category', 'Receipt URL'];
+    const headers = ['ID', 'Description', 'Amount', 'Date', 'Paid By', 'Category', 'Receipt URL', 'Apartment'];
     csvRows.push(headers.join(','));
 
     for (const expense of expenses) {
@@ -291,7 +325,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             formattedDate,
             paidBy,
             category,
-            expense.receipt || ''
+            expense.receipt || '',
+            expense.apartment
         ].join(',');
         csvRows.push(values);
     }
@@ -370,6 +405,18 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   }, [role, view]);
 
   const MainContent = () => {
+    if (isLoadingData) {
+        return <div className="grid gap-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => <Card key={i}><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/2" /></CardContent></Card>)}
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+            </div>
+        </div>
+    }
+
     switch (view) {
       case 'admin':
         if (role !== 'admin') return <DashboardView />;
@@ -410,7 +457,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
          <Card>
             <CardHeader>
               <CardTitle>Recent Expenses</CardTitle>
-              <CardDescription>The last 5 expenses added to the group.</CardDescription>
+              <CardDescription>The last 5 expenses added to your apartment.</CardDescription>
             </CardHeader>
             <CardContent>
               <ExpensesTable expenses={expenses} limit={5} showPayer />
@@ -508,7 +555,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <CardTitle>All Expenses</CardTitle>
-                        <CardDescription>A complete log of all shared expenses.</CardDescription>
+                        <CardDescription>A complete log of all shared expenses for your apartment.</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="relative">
@@ -572,7 +619,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       <Card>
         <CardHeader>
           <CardTitle>Spending by Category</CardTitle>
-          <CardDescription>A breakdown of expenses by category for the current month.</CardDescription>
+          <CardDescription>A breakdown of expenses by category for your apartment.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-[300px] w-full">
@@ -589,7 +636,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       <Card>
         <CardHeader>
           <CardTitle>Spending Over Time</CardTitle>
-          <CardDescription>Total expenses over the last 6 months.</CardDescription>
+          <CardDescription>Total expenses over the last 6 months for your apartment.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-[300px] w-full">
@@ -892,11 +939,11 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         <SidebarTrigger className="md:hidden" />
         <h1 className="text-xl font-semibold">{title}</h1>
         <div className="ml-auto flex items-center gap-4">
-          <AddExpenseDialog categories={categories} users={users} onAddExpense={handleAddExpense}>
+          {user && <AddExpenseDialog categories={categories} users={users} onAddExpense={handleAddExpense} currentUser={user}>
             <Button className="bg-accent hover:bg-accent/90">
               <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
             </Button>
-          </AddExpenseDialog>
+          </AddExpenseDialog>}
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -979,7 +1026,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
           <Card className="m-2">
              <CardHeader className="p-3">
               <CardTitle>Total This Month</CardTitle>
-              <CardDescription>Sum of all shared expenses.</CardDescription>
+              <CardDescription>Sum of all shared expenses in your apartment.</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-0">
                <div className="text-2xl font-bold">₹{totalExpenses.toFixed(2)}</div>
@@ -1002,7 +1049,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             onOpenChange={setShowApartmentDialog}
             user={user}
             onSave={(data) => {
-                handleUpdateUser({...user, apartment: data.apartment, role: data.role });
+                const updatedUser = {...user, apartment: data.apartment, role: data.role };
+                handleUpdateUser(updatedUser);
                 setShowApartmentDialog(false);
             }}
         />

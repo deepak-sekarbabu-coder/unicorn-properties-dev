@@ -28,18 +28,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function setCookie(name: string, value: string, days: number) {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
-        expires = "; expires=" + date.toUTCString();
+async function setSessionCookie(firebaseUser: FirebaseUser) {
+    const idToken = await firebaseUser.getIdToken();
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, expiresIn }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to set session cookie');
     }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
 }
 
-function eraseCookie(name: string) {   
-    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+async function clearSessionCookie() {
+    await fetch('/api/auth/session', { method: 'DELETE' });
 }
 
 
@@ -54,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
           if (firebaseUser && firebaseUser.email) {
+            await setSessionCookie(firebaseUser);
             let appUser = await getUserByEmail(firebaseUser.email);
             
             if (!appUser) {
@@ -61,21 +66,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 name: firebaseUser.displayName || 'New User',
                 email: firebaseUser.email,
                 avatar: firebaseUser.photoURL || undefined,
-                // Role and apartment will be set during onboarding
+                role: 'tenant', // Default role
               };
               appUser = await addUser(newUser);
             }
             
             setUser(appUser);
-            if (appUser?.role) {
-                setCookie('user-role', appUser.role, 7);
-            }
-            if (appUser && (appUser.apartment && appUser.role)) {
-              router.replace('/dashboard');
-            }
+             if (appUser && (appUser.apartment && appUser.role)) {
+               router.replace('/dashboard');
+             }
           } else {
             setUser(null);
-            eraseCookie('user-role');
+            await clearSessionCookie();
           }
           setLoading(false);
         });
@@ -129,16 +131,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
-    eraseCookie('user-role');
+    await clearSessionCookie();
     router.push('/login');
   };
   
   const updateUser = (updatedUser: User) => {
     if (user && user.id === updatedUser.id) {
       setUser(updatedUser);
-      if (updatedUser.role) {
-          setCookie('user-role', updatedUser.role, 7);
-      }
+       // The session cookie doesn't need role, so no need to update it here.
     }
   };
 
