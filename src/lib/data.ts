@@ -1,13 +1,13 @@
 import type { User, Category, Expense } from './types';
 
 export const users: User[] = [
-  { id: 'user-1', name: 'Alex Martin' },
-  { id: 'user-2', name: 'Ben Carter' },
-  { id: 'user-3', name: 'Chloe Davis' },
-  { id: 'user-4', name: 'Dana Evans' },
-  { id: 'user-5', name: 'Eva Foster' },
-  { id: 'user-6', name: 'Frank Green' },
-  { id: 'user-7', name: 'Grace Hill' },
+  { id: 'user-1', name: 'Alex Martin', email: 'alex.martin@apartment.com', role: 'admin' },
+  { id: 'user-2', name: 'Ben Carter', email: 'ben.carter@apartment.com', role: 'user' },
+  { id: 'user-3', name: 'Chloe Davis', email: 'chloe.davis@apartment.com', role: 'user' },
+  { id: 'user-4', name: 'Dana Evans', email: 'dana.evans@apartment.com', role: 'user' },
+  { id: 'user-5', name: 'Eva Foster', email: 'eva.foster@apartment.com', role: 'user' },
+  { id: 'user-6', name: 'Frank Green', email: 'frank.green@apartment.com', role: 'user' },
+  { id: 'user-7', name: 'Grace Hill', email: 'grace.hill@apartment.com', role: 'user' },
 ];
 
 export const categories: Category[] = [

@@ -51,6 +51,8 @@ import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { EditCategoryDialog } from '@/components/edit-category-dialog';
+import { AddUserDialog } from '@/components/add-user-dialog';
+import { EditUserDialog } from '@/components/edit-user-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
@@ -75,7 +77,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const role = user?.role || 'user';
 
   const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
-  const perUserShare = totalExpenses / users.length;
+  const perUserShare = users.length > 0 ? totalExpenses / users.length : 0;
 
   const userBalances = React.useMemo(() => {
     return users.map(u => {
@@ -123,6 +125,35 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     toast({
       title: 'Category Deleted',
       description: 'The category has been successfully removed.',
+    });
+  };
+  
+  const handleAddUser = (newUserData: Omit<User, 'id'>) => {
+    const newUser: User = {
+        ...newUserData,
+        id: `user-${Date.now()}`,
+    };
+    setUsers(prev => [...prev, newUser]);
+  };
+
+  const handleUpdateUserFromAdmin = (updatedUser: User) => {
+     setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    // Prevent deleting the currently logged in user
+    if (user?.id === userId) {
+      toast({
+        title: 'Action Prohibited',
+        description: "You cannot delete your own account.",
+        variant: 'destructive',
+      });
+      return;
+    }
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    toast({
+      title: 'User Deleted',
+      description: 'The user has been successfully removed.',
     });
   };
 
@@ -218,63 +249,131 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   );
 
   const AdminView = () => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Admin Panel</CardTitle>
-          <CardDescription>Manage categories and view system logs.</CardDescription>
-        </div>
-        <AddCategoryDialog onAddCategory={handleAddCategory}>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
-            </Button>
-        </AddCategoryDialog>
-      </CardHeader>
-      <CardContent className="grid gap-6">
-        <div>
-          <h3 className="text-lg font-medium mb-2">Manage Categories</h3>
-          <ul className="space-y-2">
-            {categories.map(cat => (
-              <li key={cat.id} className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-3">
-                  <CategoryIcon name={cat.icon as any} />
-                  <span>{cat.name}</span>
+    <div className="grid gap-6">
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Add, edit, or remove users from the system.</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
-                    <Button variant="ghost" size="sm">Edit</Button>
-                  </EditCategoryDialog>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the <strong>{cat.name}</strong> category.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteCategory(cat.id)}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+                <AddUserDialog onAddUser={handleAddUser}>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add User
+                    </Button>
+                </AddUserDialog>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {users.map(u => (
+                        <TableRow key={u.id}>
+                            <TableCell className="font-medium">{u.name}</TableCell>
+                            <TableCell>{u.email}</TableCell>
+                            <TableCell>
+                                <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                                    {u.role}
+                                </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <EditUserDialog user={u} onUpdateUser={handleUpdateUserFromAdmin}>
+                                    <Button variant="ghost" size="sm">Edit</Button>
+                                </EditUserDialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete <strong>{u.name}</strong>'s account.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                        onClick={() => handleDeleteUser(u.id)}
+                                        className="bg-destructive hover:bg-destructive/90"
+                                        >
+                                        Delete User
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+        <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+            <CardTitle>Category Management</CardTitle>
+            <CardDescription>Manage expense categories for the group.</CardDescription>
+            </div>
+            <AddCategoryDialog onAddCategory={handleAddCategory}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Category
+                </Button>
+            </AddCategoryDialog>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+            <div>
+            <ul className="space-y-2">
+                {categories.map(cat => (
+                <li key={cat.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="flex items-center gap-3">
+                    <CategoryIcon name={cat.icon as any} />
+                    <span>{cat.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                    <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
+                        <Button variant="ghost" size="sm">Edit</Button>
+                    </EditCategoryDialog>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the <strong>{cat.name}</strong> category.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                            onClick={() => handleDeleteCategory(cat.id)}
+                            className="bg-destructive hover:bg-destructive/90"
+                            >
+                            Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    </div>
+                </li>
+                ))}
+            </ul>
+            </div>
+        </CardContent>
+        </Card>
+    </div>
   );
   
   const ExpensesTable = ({ limit }: { limit?: number }) => (
