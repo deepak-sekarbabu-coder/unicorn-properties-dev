@@ -12,6 +12,7 @@ import {
   ChevronDown,
   UserCircle,
   LogOut,
+  Trash2,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -33,14 +34,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
+import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
+import { useToast } from './hooks/use-toast';
 
 type View = 'dashboard' | 'expenses' | 'admin';
 
@@ -52,6 +66,7 @@ interface ApartmentShareAppProps {
 
 export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses }: ApartmentShareAppProps) {
   const { user, logout, updateUser } = useAuth();
+  const { toast } = useToast();
   const [view, setView] = React.useState<View>('dashboard');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
@@ -93,6 +108,22 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   
   const handleUpdateCategory = (updatedCategory: Category) => {
     setCategories(currentCategories => currentCategories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
+  };
+  
+  const handleAddCategory = (newCategoryData: Omit<Category, 'id'>) => {
+    const newCategory: Category = {
+      ...newCategoryData,
+      id: `cat-${Date.now()}`,
+    };
+    setCategories(prev => [...prev, newCategory]);
+  };
+  
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategories(prev => prev.filter(c => c.id !== categoryId));
+    toast({
+      title: 'Category Deleted',
+      description: 'The category has been successfully removed.',
+    });
   };
 
 
@@ -188,9 +219,16 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const AdminView = () => (
     <Card>
-      <CardHeader>
-        <CardTitle>Admin Panel</CardTitle>
-        <CardDescription>Manage categories and view system logs.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Admin Panel</CardTitle>
+          <CardDescription>Manage categories and view system logs.</CardDescription>
+        </div>
+        <AddCategoryDialog onAddCategory={handleAddCategory}>
+            <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
+            </Button>
+        </AddCategoryDialog>
       </CardHeader>
       <CardContent className="grid gap-6">
         <div>
@@ -202,9 +240,35 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                   <CategoryIcon name={cat.icon as any} />
                   <span>{cat.name}</span>
                 </div>
-                <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
-                  <Button variant="ghost" size="sm">Edit</Button>
-                </EditCategoryDialog>
+                <div className="flex items-center gap-2">
+                  <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
+                    <Button variant="ghost" size="sm">Edit</Button>
+                  </EditCategoryDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the <strong>{cat.name}</strong> category.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteCategory(cat.id)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </li>
             ))}
           </ul>
@@ -351,3 +415,5 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </SidebarProvider>
   );
 }
+
+    
