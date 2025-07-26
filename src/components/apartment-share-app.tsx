@@ -14,6 +14,7 @@ import {
   LogOut,
   Trash2,
   FileDown,
+  Search,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -35,6 +36,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +76,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
+  const [expenseSearch, setExpenseSearch] = React.useState('');
+  const [userSearch, setUserSearch] = React.useState('');
+
 
   const role = user?.role || 'user';
 
@@ -198,6 +203,19 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     });
   };
 
+  const filteredExpenses = React.useMemo(() => {
+    return expenses.filter(expense =>
+      expense.description.toLowerCase().includes(expenseSearch.toLowerCase())
+    );
+  }, [expenses, expenseSearch]);
+
+  const filteredUsers = React.useMemo(() => {
+    return users.filter(user =>
+      user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+      user.email?.toLowerCase().includes(userSearch.toLowerCase())
+    );
+  }, [users, userSearch]);
+
   React.useEffect(() => {
     if (role === 'user' && view === 'admin') {
       setView('dashboard');
@@ -243,7 +261,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <CardDescription>The last 5 expenses added to the group.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ExpensesTable limit={5} />
+              <ExpensesTable expenses={expenses} limit={5} />
             </CardContent>
           </Card>
         <Card>
@@ -275,17 +293,31 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const ExpensesView = () => (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-            <CardTitle>All Expenses</CardTitle>
-            <CardDescription>A complete log of all shared expenses.</CardDescription>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-4">
+            <div>
+                <CardTitle>All Expenses</CardTitle>
+                <CardDescription>A complete log of all shared expenses.</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search expenses..."
+                        className="pl-8 sm:w-[300px]"
+                        value={expenseSearch}
+                        onChange={(e) => setExpenseSearch(e.target.value)}
+                    />
+                </div>
+                <Button onClick={handleExportCSV} variant="outline">
+                    <FileDown className="mr-2 h-4 w-4" /> Export
+                </Button>
+            </div>
         </div>
-        <Button onClick={handleExportCSV}>
-            <FileDown className="mr-2 h-4 w-4" /> Export to CSV
-        </Button>
       </CardHeader>
       <CardContent>
-        <ExpensesTable />
+        <ExpensesTable expenses={filteredExpenses} />
       </CardContent>
     </Card>
   );
@@ -293,16 +325,30 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const AdminView = () => (
     <div className="grid gap-6">
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Add, edit, or remove users from the system.</CardDescription>
-                </div>
-                <AddUserDialog onAddUser={handleAddUser}>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add User
-                    </Button>
-                </AddUserDialog>
+            <CardHeader>
+                 <div className="flex items-center justify-between gap-4">
+                    <div>
+                        <CardTitle>User Management</CardTitle>
+                        <CardDescription>Add, edit, or remove users from the system.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                             <Input
+                                type="search"
+                                placeholder="Search users..."
+                                className="pl-8 sm:w-[300px]"
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                             />
+                        </div>
+                        <AddUserDialog onAddUser={handleAddUser}>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add User
+                            </Button>
+                        </AddUserDialog>
+                    </div>
+                 </div>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -315,7 +361,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map(u => (
+                        {filteredUsers.map(u => (
                         <TableRow key={u.id}>
                             <TableCell className="font-medium">{u.name}</TableCell>
                             <TableCell>{u.email}</TableCell>
@@ -418,7 +464,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </div>
   );
   
-  const ExpensesTable = ({ limit }: { limit?: number }) => (
+  const ExpensesTable = ({ expenses, limit }: { expenses: Expense[], limit?: number }) => (
      <Table>
       <TableHeader>
         <TableRow>
