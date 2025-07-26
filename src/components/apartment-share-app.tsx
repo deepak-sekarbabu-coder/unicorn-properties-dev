@@ -11,6 +11,7 @@ import {
   PlusCircle,
   ChevronDown,
   UserCircle,
+  LogOut,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -38,9 +39,9 @@ import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/context/auth-context';
 
 type View = 'dashboard' | 'expenses' | 'admin';
-type Role = 'user' | 'admin';
 
 interface ApartmentShareAppProps {
   initialUsers: User[];
@@ -49,22 +50,24 @@ interface ApartmentShareAppProps {
 }
 
 export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses }: ApartmentShareAppProps) {
+  const { user, logout } = useAuth();
   const [view, setView] = React.useState<View>('dashboard');
-  const [role, setRole] = React.useState<Role>('user');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
+
+  const role = user?.role || 'user';
 
   const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
   const perUserShare = totalExpenses / users.length;
 
   const userBalances = React.useMemo(() => {
-    return users.map(user => {
+    return users.map(u => {
       const totalPaid = expenses
-        .filter(e => e.paidBy === user.id)
+        .filter(e => e.paidBy === u.id)
         .reduce((acc, e) => acc + e.amount, 0);
       const balance = totalPaid - perUserShare;
-      return { ...user, balance };
+      return { ...u, balance };
     });
   }, [users, expenses, perUserShare]);
 
@@ -79,6 +82,12 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
+
+  React.useEffect(() => {
+    if (role === 'user' && view === 'admin') {
+      setView('dashboard');
+    }
+  }, [role, view]);
 
   const MainContent = () => {
     switch (view) {
@@ -239,29 +248,21 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <UserCircle className="h-8 w-8" />
+                 <UserCircle className="h-8 w-8" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel>
-                <p>Logged in as</p>
-                <p className="font-normal text-muted-foreground">{role === 'admin' ? 'Admin' : 'User'}</p>
+                <p>{user?.name}</p>
+                <p className="font-normal text-muted-foreground">{user?.email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center justify-between" onSelect={(e) => e.preventDefault()}>
-                <Label htmlFor="role-switch">Admin Mode</Label>
-                <Switch
-                  id="role-switch"
-                  checked={role === 'admin'}
-                  onCheckedChange={checked => {
-                    setRole(checked ? 'admin' : 'user')
-                    if (!checked && view === 'admin') setView('dashboard')
-                  }}
-                />
-              </DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

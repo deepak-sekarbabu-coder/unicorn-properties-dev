@@ -2,6 +2,8 @@ export type User = {
   id: string;
   name: string;
   avatar?: string;
+  email?: string;
+  role?: 'user' | 'admin';
 };
 
 export type Category = {
