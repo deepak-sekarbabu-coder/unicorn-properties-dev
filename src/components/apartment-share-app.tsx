@@ -13,6 +13,7 @@ import {
   UserCircle,
   LogOut,
   Trash2,
+  FileDown,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -157,9 +158,45 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     });
   };
 
-
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
+
+  const handleExportCSV = () => {
+    const csvRows = [];
+    const headers = ['ID', 'Description', 'Amount', 'Date', 'Paid By', 'Category'];
+    csvRows.push(headers.join(','));
+
+    for (const expense of expenses) {
+        const paidBy = getUserById(expense.paidBy)?.name || 'N/A';
+        const category = getCategoryById(expense.categoryId)?.name || 'N/A';
+        const formattedDate = format(new Date(expense.date), 'yyyy-MM-dd');
+        const values = [
+            expense.id,
+            `"${expense.description}"`,
+            expense.amount,
+            formattedDate,
+            paidBy,
+            category
+        ].join(',');
+        csvRows.push(values);
+    }
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'expenses.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+        title: "Export Successful",
+        description: "Your expenses have been exported to expenses.csv.",
+    });
+  };
 
   React.useEffect(() => {
     if (role === 'user' && view === 'admin') {
@@ -238,9 +275,14 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const ExpensesView = () => (
     <Card>
-      <CardHeader>
-        <CardTitle>All Expenses</CardTitle>
-        <CardDescription>A complete log of all shared expenses.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>All Expenses</CardTitle>
+            <CardDescription>A complete log of all shared expenses.</CardDescription>
+        </div>
+        <Button onClick={handleExportCSV}>
+            <FileDown className="mr-2 h-4 w-4" /> Export to CSV
+        </Button>
       </CardHeader>
       <CardContent>
         <ExpensesTable />
