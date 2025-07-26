@@ -19,12 +19,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
-import { Loader2, UserCircle, KeyRound } from 'lucide-react';
+import { Loader2, KeyRound } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   role: z.enum(['user', 'admin']),
+  avatar: z.any()
+    .optional()
+    .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -45,6 +56,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       name: user.name,
       email: user.email,
       role: user.role || 'user',
+      avatar: undefined,
     },
   });
 
@@ -58,19 +70,34 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
     }
   }, [user, form]);
 
-  const onSubmit = (data: UserFormValues) => {
+  const fileRef = form.register("avatar");
+
+  const onSubmit = async (data: UserFormValues) => {
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-        const updatedUser = { ...user, ...data };
-        onUpdateUser(updatedUser);
-        toast({
-          title: 'User Updated',
-          description: `Information for ${data.name} has been updated.`,
+    let avatarDataUrl: string | undefined = user.avatar;
+    if (data.avatar && data.avatar.length > 0) {
+        const file = data.avatar[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        avatarDataUrl = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result as string);
         });
-        setIsSaving(false);
-        setOpen(false);
-    }, 1000);
+    }
+
+    const updatedUser: User = { 
+        ...user, 
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        avatar: avatarDataUrl 
+    };
+    onUpdateUser(updatedUser);
+    toast({
+      title: 'User Updated',
+      description: `Information for ${data.name} has been updated.`,
+    });
+    setIsSaving(false);
+    setOpen(false);
   };
   
   const handleResetPassword = () => {
@@ -88,7 +115,10 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-                <UserCircle className="h-10 w-10 text-muted-foreground" />
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
                 <DialogTitle>Edit User</DialogTitle>
             </div>
           <DialogDescription>
@@ -122,6 +152,19 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                   <FormMessage />
                 </FormItem>
               )}
+            />
+             <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Profile Picture</FormLabel>
+                        <FormControl>
+                            <Input type="file" accept="image/*" {...fileRef} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
             />
             <FormField
               control={form.control}

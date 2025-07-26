@@ -51,6 +51,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
@@ -271,18 +273,21 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const DashboardView = () => (
     <div className="grid gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {userBalances.map(user => (
-          <Card key={user.id}>
+        {userBalances.map(u => (
+          <Card key={u.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{user.name}</CardTitle>
-              <UserCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">{u.name}</CardTitle>
+               <Avatar className="h-6 w-6">
+                <AvatarImage src={u.avatar} alt={u.name} />
+                <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+              </Avatar>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${user.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {user.balance >= 0 ? `+${user.balance.toFixed(2)}` : user.balance.toFixed(2)}
+              <div className={`text-2xl font-bold ${u.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {u.balance >= 0 ? `+${u.balance.toFixed(2)}` : u.balance.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {user.balance >= 0 ? 'is owed' : 'owes'}
+                {u.balance >= 0 ? 'is owed' : 'owes'}
               </p>
             </CardContent>
           </Card>
@@ -439,7 +444,15 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                     <TableBody>
                         {filteredUsers.map(u => (
                         <TableRow key={u.id}>
-                            <TableCell className="font-medium">{u.name}</TableCell>
+                            <TableCell className="font-medium">
+                                <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={u.avatar} alt={u.name} />
+                                    <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{u.name}</span>
+                                </div>
+                            </TableCell>
                             <TableCell>{u.email}</TableCell>
                             <TableCell>
                                 <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
@@ -633,7 +646,10 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <UserCircle className="h-8 w-8" />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">

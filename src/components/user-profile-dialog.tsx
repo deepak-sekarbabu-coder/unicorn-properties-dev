@@ -19,10 +19,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email(),
+  avatar: z.any()
+    .optional()
+    .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -42,6 +53,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
     defaultValues: {
       name: user.name,
       email: user.email,
+      avatar: undefined,
     },
   });
   
@@ -49,25 +61,34 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
     if(user){
         form.reset({
             name: user.name,
-            email: user.email
+            email: user.email,
         })
     }
   }, [user, form])
 
-  const onSubmit = (data: ProfileFormValues) => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-        const updatedUser = { ...user, name: data.name };
-        onUpdateUser(updatedUser);
-        toast({
-          title: 'Profile Updated',
-          description: 'Your profile information has been successfully updated.',
-        });
-        setIsSaving(false);
-        setOpen(false);
-    }, 1000);
+  const fileRef = form.register("avatar");
 
+  const onSubmit = async (data: ProfileFormValues) => {
+    setIsSaving(true);
+    
+    let avatarDataUrl: string | undefined = user.avatar;
+    if (data.avatar && data.avatar.length > 0) {
+        const file = data.avatar[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        avatarDataUrl = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result as string);
+        });
+    }
+
+    const updatedUser = { ...user, name: data.name, avatar: avatarDataUrl };
+    onUpdateUser(updatedUser);
+    toast({
+      title: 'Profile Updated',
+      description: 'Your profile information has been successfully updated.',
+    });
+    setIsSaving(false);
+    setOpen(false);
   };
 
   return (
@@ -80,6 +101,12 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
             Manage your account settings and profile information.
           </DialogDescription>
         </DialogHeader>
+        <div className="flex justify-center">
+            <Avatar className="h-24 w-24">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -107,6 +134,19 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                   <FormMessage />
                 </FormItem>
               )}
+            />
+             <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Change Profile Picture</FormLabel>
+                        <FormControl>
+                            <Input type="file" accept="image/*" {...fileRef} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
