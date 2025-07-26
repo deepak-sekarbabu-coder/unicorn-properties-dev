@@ -53,11 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-          if (firebaseUser) {
-            let appUser = await getUserByEmail(firebaseUser.email!);
-            // If user does not exist in Firestore, create them.
-            // This handles first-time Google Sign-In.
-            if (!appUser && firebaseUser.email) {
+          if (firebaseUser && firebaseUser.email) {
+            // A user is signed in.
+            let appUser = await getUserByEmail(firebaseUser.email);
+            
+            // If the user doesn't exist in Firestore, create them.
+            // This is for first-time Google Sign-In users.
+            if (!appUser) {
               const newUser: Omit<User, 'id'> = {
                 name: firebaseUser.displayName || 'New User',
                 email: firebaseUser.email,
@@ -71,10 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (appUser?.role) {
                 setCookie('user-role', appUser.role, 7);
             }
-            // Instead of relying on src/app/page.tsx, we can push here
-            // This can be more reliable as it's tied directly to auth state change
-            router.push('/dashboard');
+            // The redirection logic in `src/app/page.tsx` will handle moving the user to the dashboard.
           } else {
+            // No user is signed in.
             setUser(null);
             eraseCookie('user-role');
           }
@@ -96,13 +97,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
     };
-  }, [router]);
+  }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
         // onAuthStateChanged will handle the user state update and redirection.
+        router.push('/dashboard');
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -112,20 +114,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const loginWithGoogle = async (): Promise<void> => {
     setLoading(true);
-    const provider = new new GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener will handle the user creation, state update, and redirection.
+      router.push('/dashboard');
     } catch(error) {
       const errorCode = (error as any).code;
       if (errorCode === 'auth/popup-closed-by-user') {
         console.log("Google Sign-In popup closed by user.");
-        // This is not a critical error, just the user cancelling the action.
-        // We set loading to false and let the user try again if they wish.
         setLoading(false);
         return;
       }
-      // For other errors, we log them and show a message.
       console.error("Google sign-in error:", error);
       setLoading(false);
       throw new Error("Failed to sign in with Google. Please try again.");
