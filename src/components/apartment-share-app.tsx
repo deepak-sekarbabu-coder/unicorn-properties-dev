@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 import type { User, Category, Expense, Announcement } from '@/lib/types';
@@ -95,7 +96,13 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
   const [announcements, setAnnouncements] = React.useState<Announcement[]>(initialAnnouncements);
+  
+  // State for search and filters
   const [expenseSearch, setExpenseSearch] = React.useState('');
+  const [filterCategory, setFilterCategory] = React.useState('');
+  const [filterPaidBy, setFilterPaidBy] = React.useState('');
+  const [filterMonth, setFilterMonth] = React.useState('');
+
   const [userSearch, setUserSearch] = React.useState('');
   const [announcementMessage, setAnnouncementMessage] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
@@ -296,12 +303,29 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         description: "Your expenses have been exported to expenses.csv.",
     });
   };
-
+  
   const filteredExpenses = React.useMemo(() => {
-    return expenses.filter(expense =>
-      expense.description.toLowerCase().includes(expenseSearch.toLowerCase())
-    );
-  }, [expenses, expenseSearch]);
+    return expenses
+      .filter(expense => expense.description.toLowerCase().includes(expenseSearch.toLowerCase()))
+      .filter(expense => !filterCategory || expense.categoryId === filterCategory)
+      .filter(expense => !filterPaidBy || expense.paidBy === filterPaidBy)
+      .filter(expense => !filterMonth || format(new Date(expense.date), 'yyyy-MM') === filterMonth);
+  }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
+
+  const expenseMonths = React.useMemo(() => {
+    const months = new Set<string>();
+    expenses.forEach(e => {
+        months.add(format(new Date(e.date), 'yyyy-MM'));
+    });
+    return Array.from(months).sort().reverse();
+  }, [expenses]);
+
+  const handleClearFilters = () => {
+    setExpenseSearch('');
+    setFilterCategory('');
+    setFilterPaidBy('');
+    setFilterMonth('');
+  }
 
   const filteredUsers = React.useMemo(() => {
     return users.filter(user =>
@@ -470,34 +494,69 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const ExpensesView = () => (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-4">
-            <div>
-                <CardTitle>All Expenses</CardTitle>
-                <CardDescription>A complete log of all shared expenses.</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-                <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search expenses..."
-                        className="pl-8 sm:w-[300px]"
-                        value={expenseSearch}
-                        onChange={(e) => setExpenseSearch(e.target.value)}
-                    />
+        <CardHeader>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <CardTitle>All Expenses</CardTitle>
+                        <CardDescription>A complete log of all shared expenses.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search expenses..."
+                                className="pl-8 sm:w-[200px] lg:w-[300px]"
+                                value={expenseSearch}
+                                onChange={(e) => setExpenseSearch(e.target.value)}
+                            />
+                        </div>
+                        <Button onClick={handleExportCSV} variant="outline">
+                            <FileDown className="mr-2 h-4 w-4" /> Export
+                        </Button>
+                    </div>
                 </div>
-                <Button onClick={handleExportCSV} variant="outline">
-                    <FileDown className="mr-2 h-4 w-4" /> Export
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select value={filterCategory} onValueChange={setFilterCategory}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">All Categories</SelectItem>
+                            {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                     <Select value={filterPaidBy} onValueChange={setFilterPaidBy}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by paid by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                             <SelectItem value="">All Users</SelectItem>
+                             {users.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={filterMonth} onValueChange={setFilterMonth}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                             <SelectItem value="">All Months</SelectItem>
+                             {expenseMonths.map(month => (
+                                <SelectItem key={month} value={month}>{format(new Date(month), 'MMMM yyyy')}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button variant="ghost" onClick={handleClearFilters}>Clear Filters</Button>
+                </div>
             </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ExpensesTable expenses={filteredExpenses} />
-      </CardContent>
+        </CardHeader>
+        <CardContent>
+            <ExpensesTable expenses={filteredExpenses} />
+        </CardContent>
     </Card>
-  );
+);
+
 
   const AnalyticsView = () => (
     <div className="grid gap-6">
@@ -727,9 +786,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   
   const ExpensesTable = ({ expenses, limit, showPayer = false }: { expenses: Expense[], limit?: number, showPayer?: boolean }) => {
     
-    const relevantExpenses = expenses
-        .slice(0, limit)
-        .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const relevantExpenses = limit 
+        ? expenses.slice(0, limit).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        : expenses.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     return (
      <Table>
@@ -744,63 +803,70 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         </TableRow>
       </TableHeader>
       <TableBody>
-        {relevantExpenses.map(expense => {
-          const category = getCategoryById(expense.categoryId);
-          const expenseUser = getUserById(expense.paidBy);
-          return (
-            <TableRow key={expense.id}>
-              <TableCell className="hidden sm:table-cell">
-                <div className="flex items-center gap-2">
-                  {category && <CategoryIcon name={category.icon as any} className="h-9 w-9" />}
-                   <div>
-                      <p className="font-medium">{category?.name}</p>
-                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  {expense.description}
-                  {expense.receipt && (
-                    <a href={expense.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      <Paperclip className="h-4 w-4" />
-                    </a>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>{expenseUser?.name}</TableCell>
-              <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
-              <TableCell className="text-right font-medium">₹{expense.amount.toFixed(2)}</TableCell>
-              {role === 'admin' && !showPayer && (
-                <TableCell className="text-right">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the expense: <strong>"{expense.description}"</strong>.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            className="bg-destructive hover:bg-destructive/90"
-                            >
-                            Delete Expense
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+        {relevantExpenses.length > 0 ? (
+          relevantExpenses.map(expense => {
+            const category = getCategoryById(expense.categoryId);
+            const expenseUser = getUserById(expense.paidBy);
+            return (
+              <TableRow key={expense.id}>
+                <TableCell className="hidden sm:table-cell">
+                  <div className="flex items-center gap-2">
+                    {category && <CategoryIcon name={category.icon as any} className="h-9 w-9" />}
+                     <div>
+                        <p className="font-medium">{category?.name}</p>
+                     </div>
+                  </div>
                 </TableCell>
-              )}
-            </TableRow>
-          );
-        })}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {expense.description}
+                    {expense.receipt && (
+                      <a href={expense.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        <Paperclip className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>{expenseUser?.name}</TableCell>
+                <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
+                <TableCell className="text-right font-medium">₹{expense.amount.toFixed(2)}</TableCell>
+                {role === 'admin' && !showPayer && (
+                  <TableCell className="text-right">
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the expense: <strong>"{expense.description}"</strong>.
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              className="bg-destructive hover:bg-destructive/90"
+                              >
+                              Delete Expense
+                              </AlertDialogAction>
+                          </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+        })) : (
+          <TableRow>
+            <TableCell colSpan={6} className="text-center h-24">
+              No expenses found.
+            </TableCell>
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   )};
@@ -920,3 +986,5 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </SidebarProvider>
   );
 }
+
+    
