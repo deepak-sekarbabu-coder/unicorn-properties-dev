@@ -99,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle the rest
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
