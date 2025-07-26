@@ -26,6 +26,8 @@ export type Expense = {
 export type Announcement = {
     id: string;
     message: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdBy: string; // User ID
     createdAt: string; // ISO date string
     expiresAt: string; // ISO date string
 };

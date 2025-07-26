@@ -21,6 +21,9 @@ import {
   TrendingUp,
   Wallet,
   Megaphone,
+  CheckCircle,
+  XCircle,
+  Send,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -111,6 +114,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   }, [users, expenses, perUserShare]);
   
   const loggedInUserBalance = user ? userBalances.find(b => b.id === user.id)?.balance : 0;
+  const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
+  const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     const newExpense = await firestore.addExpense(newExpenseData);
@@ -179,16 +184,23 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   };
 
   const handleSendAnnouncement = async () => {
-    if (!announcementMessage.trim()) return;
+    if (!announcementMessage.trim() || !user) return;
     setIsSending(true);
     try {
-        const newAnnouncement = await firestore.addAnnouncement(announcementMessage);
-        setAnnouncements(prev => [newAnnouncement, ...prev]);
+        const newAnnouncement = await firestore.addAnnouncement(announcementMessage, user.id, role);
+        if (newAnnouncement.status === 'approved') {
+            setAnnouncements(prev => [newAnnouncement, ...prev]);
+            toast({
+                title: "Announcement Sent!",
+                description: "Your message has been sent to all users."
+            });
+        } else {
+             toast({
+                title: "Announcement Submitted!",
+                description: "Your message has been sent for admin review."
+            });
+        }
         setAnnouncementMessage('');
-        toast({
-            title: "Announcement Sent!",
-            description: "Your message has been sent to all users."
-        });
     } catch (error) {
         toast({
             title: "Error",
@@ -199,6 +211,20 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         setIsSending(false);
     }
   };
+
+  const handleAnnouncementDecision = async (announcementId: string, decision: 'approved' | 'rejected') => {
+    await firestore.updateAnnouncementStatus(announcementId, decision);
+    if (decision === 'approved') {
+        const approvedAnnouncement = announcements.find(a => a.id === announcementId)!;
+        setAnnouncements(prev => prev.map(a => a.id === announcementId ? {...approvedAnnouncement, status: 'approved'} : a));
+    } else {
+        setAnnouncements(prev => prev.filter(a => a.id !== announcementId));
+    }
+     toast({
+        title: `Announcement ${decision === 'approved' ? 'Approved' : 'Rejected'}`,
+        description: `The announcement has been ${decision}.`,
+    });
+  }
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
@@ -333,7 +359,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             <CardDescription>Your personal reminders and balance status.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            {announcements.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(ann => (
+            {approvedAnnouncements.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(ann => (
                 <React.Fragment key={ann.id}>
                     <div className="flex items-start gap-4">
                        <Megaphone className="h-6 w-6 text-primary mt-1" />
@@ -382,6 +408,33 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
           </CardContent>
         </Card>
       </div>
+      <Card>
+        <CardHeader>
+            <CardTitle>Submit an Announcement</CardTitle>
+            <CardDescription>
+              {role === 'admin' ? "Send a notification to all users. It will disappear after 2 days." : "Submit an announcement for admin approval. It will be reviewed shortly."}
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid w-full gap-2">
+                <Textarea 
+                    placeholder="Type your message here..." 
+                    maxLength={500}
+                    value={announcementMessage}
+                    onChange={(e) => setAnnouncementMessage(e.target.value)}
+                />
+                <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                        {announcementMessage.length} / 500
+                    </p>
+                    <Button onClick={handleSendAnnouncement} disabled={isSending || !announcementMessage.trim()}>
+                        {role === 'admin' ? <Megaphone className="mr-2 h-4 w-4" /> : <Send className="mr-2 h-4 w-4" />}
+                        {isSending ? 'Sending...' : (role === 'admin' ? 'Send Announcement' : 'Submit for Review')}
+                    </Button>
+                </div>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -549,31 +602,40 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                 </Table>
             </CardContent>
         </Card>
-        <Card>
+        
+        {pendingAnnouncements.length > 0 && (
+          <Card>
             <CardHeader>
-                <CardTitle>Send Announcement</CardTitle>
-                <CardDescription>Send a notification to all users. It will disappear after 2 days.</CardDescription>
+                <CardTitle>Pending Announcements</CardTitle>
+                <CardDescription>Review and approve or reject announcements submitted by users.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid w-full gap-2">
-                    <Textarea 
-                        placeholder="Type your message here..." 
-                        maxLength={500}
-                        value={announcementMessage}
-                        onChange={(e) => setAnnouncementMessage(e.target.value)}
-                    />
-                    <div className="flex justify-between items-center">
-                        <p className="text-sm text-muted-foreground">
-                            {announcementMessage.length} / 500
-                        </p>
-                        <Button onClick={handleSendAnnouncement} disabled={isSending || !announcementMessage.trim()}>
-                            <Megaphone className="mr-2 h-4 w-4" />
-                            {isSending ? 'Sending...' : 'Send Announcement'}
-                        </Button>
+              <ul className="space-y-4">
+                {pendingAnnouncements.map(ann => (
+                  <li key={ann.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                                From: <span className="font-medium text-foreground">{getUserById(ann.createdBy)?.name || 'Unknown User'}</span>
+                            </p>
+                             <p className="text-sm">{ann.message}</p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                            <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleAnnouncementDecision(ann.id, 'approved')}>
+                                <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                            </Button>
+                             <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleAnnouncementDecision(ann.id, 'rejected')}>
+                                <XCircle className="mr-2 h-4 w-4" /> Reject
+                            </Button>
+                        </div>
                     </div>
-                </div>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
-        </Card>
+          </Card>
+        )}
+
         <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>

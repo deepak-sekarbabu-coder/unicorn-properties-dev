@@ -27,6 +27,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function setCookie(name: string, value: string, days: number) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+function eraseCookie(name: string) {   
+    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,8 +64,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               appUser = await addUser(newUser);
             }
             setUser(appUser);
+            if (appUser.role) {
+                setCookie('user-role', appUser.role, 7);
+            }
           } else {
             setUser(null);
+            eraseCookie('user-role');
           }
           setLoading(false);
         });
@@ -100,12 +119,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
+    eraseCookie('user-role');
     router.push('/login');
   };
   
   const updateUser = (updatedUser: User) => {
     if (user && user.id === updatedUser.id) {
       setUser(updatedUser);
+      if (updatedUser.role) {
+          setCookie('user-role', updatedUser.role, 7);
+      }
     }
   };
 
