@@ -1,7 +1,6 @@
 import {
   Zap,
   Sparkles,
-  Wifi,
   Droplets,
   FileText,
   type LucideIcon,
@@ -10,7 +9,6 @@ import {
 export const Icons = {
   Zap,
   Sparkles,
-  Wifi,
   Droplets,
   FileText,
 };
