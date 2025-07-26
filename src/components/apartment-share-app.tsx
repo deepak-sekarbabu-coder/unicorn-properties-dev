@@ -15,6 +15,7 @@ import {
   Trash2,
   FileDown,
   Search,
+  Paperclip,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -168,7 +169,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const handleExportCSV = () => {
     const csvRows = [];
-    const headers = ['ID', 'Description', 'Amount', 'Date', 'Paid By', 'Category'];
+    const headers = ['ID', 'Description', 'Amount', 'Date', 'Paid By', 'Category', 'Receipt URL'];
     csvRows.push(headers.join(','));
 
     for (const expense of expenses) {
@@ -181,7 +182,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             expense.amount,
             formattedDate,
             paidBy,
-            category
+            category,
+            expense.receipt || ''
         ].join(',');
         csvRows.push(values);
     }
@@ -489,7 +491,16 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                    </div>
                 </div>
               </TableCell>
-              <TableCell>{expense.description}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {expense.description}
+                  {expense.receipt && (
+                    <a href={expense.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      <Paperclip className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
               <TableCell>{user?.name}</TableCell>
               <TableCell className="text-right font-medium">${expense.amount.toFixed(2)}</TableCell>

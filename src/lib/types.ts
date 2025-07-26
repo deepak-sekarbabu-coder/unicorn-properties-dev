@@ -19,4 +19,5 @@ export type Expense = {
   date: string; // ISO date string
   paidBy: string; // User ID
   categoryId: string; // Category ID
+  receipt?: string; // Optional: data URI for the receipt image
 };

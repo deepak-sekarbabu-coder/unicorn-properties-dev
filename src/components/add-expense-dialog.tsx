@@ -20,11 +20,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import type { Category, User, Expense } from '@/lib/types';
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   paidBy: z.string().min(1, 'Please select who paid'),
   categoryId: z.string().min(1, 'Please select a category'),
+  receipt: z.any()
+    .optional()
+    .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
 });
 
 type ExpenseFormValues = z.infer<typeof expenseSchema>;
@@ -46,11 +56,32 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
       amount: 0,
       paidBy: '',
       categoryId: '',
+      receipt: undefined,
     },
   });
 
-  const onSubmit = (data: ExpenseFormValues) => {
-    onAddExpense(data);
+  const fileRef = form.register("receipt");
+
+  const onSubmit = async (data: ExpenseFormValues) => {
+    let receiptDataUrl: string | undefined = undefined;
+    if (data.receipt && data.receipt.length > 0) {
+        const file = data.receipt[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        receiptDataUrl = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result as string);
+        });
+    }
+
+    const expenseData: Omit<Expense, 'id' | 'date'> = {
+        description: data.description,
+        amount: data.amount,
+        paidBy: data.paidBy,
+        categoryId: data.categoryId,
+        receipt: receiptDataUrl,
+    };
+
+    onAddExpense(expenseData);
     toast({
       title: 'Expense Added!',
       description: `"${data.description}" for $${data.amount} has been logged.`,
@@ -92,7 +123,7 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="120.50" {...field} />
+                    <Input type="number" step="0.01" placeholder="120.50" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,6 +179,19 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
                 )}
               />
             </div>
+             <FormField
+                control={form.control}
+                name="receipt"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Receipt (Optional)</FormLabel>
+                        <FormControl>
+                            <Input type="file" accept="image/*" {...fileRef} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
             <DialogFooter>
               <Button type="submit">Add Expense</Button>
             </DialogFooter>
