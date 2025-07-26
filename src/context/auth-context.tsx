@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (appUser?.role) {
                 setCookie('user-role', appUser.role, 7);
             }
-            // The redirection logic in `src/app/page.tsx` will handle moving the user to the dashboard.
+            router.replace('/dashboard');
           } else {
             // No user is signed in.
             setUser(null);
@@ -97,14 +97,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
     };
-  }, []);
+  }, [router]);
 
   const login = async (email: string, password: string): Promise<void> => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
         // onAuthStateChanged will handle the user state update and redirection.
-        router.push('/dashboard');
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -118,7 +117,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener will handle the user creation, state update, and redirection.
-      router.push('/dashboard');
     } catch(error) {
       const errorCode = (error as any).code;
       if (errorCode === 'auth/popup-closed-by-user') {
