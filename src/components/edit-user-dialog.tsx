@@ -30,7 +30,7 @@ const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
-  role: z.enum(['user', 'admin']),
+  role: z.enum(['owner', 'tenant', 'admin']),
   apartment: z.string().optional(),
   avatar: z.any()
     .optional()
@@ -59,7 +59,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       name: user.name,
       email: user.email,
       phone: user.phone || '',
-      role: user.role || 'user',
+      role: user.role || 'tenant',
       apartment: user.apartment || '',
       avatar: undefined,
     },
@@ -71,7 +71,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
             name: user.name,
             email: user.email,
             phone: user.phone || '',
-            role: user.role || 'user',
+            role: user.role || 'tenant',
             apartment: user.apartment || '',
         })
     }
@@ -202,7 +202,8 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="owner">Owner</SelectItem>
+                            <SelectItem value="tenant">Tenant</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>
                     </Select>

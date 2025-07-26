@@ -54,17 +54,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
           if (firebaseUser && firebaseUser.email) {
-            // A user is signed in.
             let appUser = await getUserByEmail(firebaseUser.email);
             
-            // If the user doesn't exist in Firestore, create them.
-            // This is for first-time Google Sign-In users.
             if (!appUser) {
               const newUser: Omit<User, 'id'> = {
                 name: firebaseUser.displayName || 'New User',
                 email: firebaseUser.email,
                 avatar: firebaseUser.photoURL || undefined,
-                role: 'user', // Default role for new sign-ups
+                // Role and apartment will be set during onboarding
               };
               appUser = await addUser(newUser);
             }
@@ -73,9 +70,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (appUser?.role) {
                 setCookie('user-role', appUser.role, 7);
             }
-            router.replace('/dashboard');
+            if (appUser && (appUser.apartment && appUser.role)) {
+              router.replace('/dashboard');
+            }
           } else {
-            // No user is signed in.
             setUser(null);
             eraseCookie('user-role');
           }
@@ -103,7 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle the user state update and redirection.
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -116,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle the user creation, state update, and redirection.
     } catch(error) {
       const errorCode = (error as any).code;
       if (errorCode === 'auth/popup-closed-by-user') {

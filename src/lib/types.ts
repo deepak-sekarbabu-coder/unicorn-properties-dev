@@ -4,7 +4,7 @@ export type User = {
   avatar?: string;
   email?: string;
   phone?: string;
-  role?: 'user' | 'admin';
+  role?: 'owner' | 'tenant' | 'admin';
   fcmToken?: string; // For push notifications
   apartment?: string;
 };

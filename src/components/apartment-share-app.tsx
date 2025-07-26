@@ -111,13 +111,13 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const [showApartmentDialog, setShowApartmentDialog] = React.useState(false);
 
   React.useEffect(() => {
-    if (user && !user.apartment) {
+    if (user && (!user.apartment || !user.role || !['owner', 'tenant', 'admin'].includes(user.role))) {
         setShowApartmentDialog(true);
     }
   }, [user]);
 
 
-  const role = user?.role || 'user';
+  const role = user?.role || 'tenant';
 
   const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
   const perUserShare = users.length > 0 ? totalExpenses / users.length : 0;
@@ -364,7 +364,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
 
   React.useEffect(() => {
-    if (role === 'user' && view === 'admin') {
+    if (role !== 'admin' && view === 'admin') {
       setView('dashboard');
     }
   }, [role, view]);
@@ -663,7 +663,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                             <TableCell>{u.apartment || 'N/A'}</TableCell>
                             <TableCell>{u.phone || 'N/A'}</TableCell>
                             <TableCell>
-                                <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                                <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="capitalize">
                                     {u.role}
                                 </Badge>
                             </TableCell>
@@ -1001,8 +1001,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             open={showApartmentDialog} 
             onOpenChange={setShowApartmentDialog}
             user={user}
-            onSave={(apartment) => {
-                handleUpdateUser({...user, apartment});
+            onSave={(data) => {
+                handleUpdateUser({...user, apartment: data.apartment, role: data.role });
                 setShowApartmentDialog(false);
             }}
         />
@@ -1010,5 +1010,3 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </>
   );
 }
-
-    

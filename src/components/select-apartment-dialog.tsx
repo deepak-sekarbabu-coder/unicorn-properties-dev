@@ -16,15 +16,19 @@ import {
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
-const apartmentSchema = z.object({
+const onboardingSchema = z.object({
   apartment: z.string().min(1, 'Please select an apartment.'),
+  role: z.enum(['owner', 'tenant'], {
+    required_error: "You need to select a role.",
+  }),
 });
 
-type ApartmentFormValues = z.infer<typeof apartmentSchema>;
+type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
 const apartmentList = ['F1', 'F2', 'S1', 'S2', 'T1', 'T2', 'G1'];
 
@@ -32,21 +36,21 @@ interface SelectApartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User;
-  onSave: (apartment: string) => void;
+  onSave: (data: { apartment: string; role: 'owner' | 'tenant' }) => void;
 }
 
 export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: SelectApartmentDialogProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
-  const form = useForm<ApartmentFormValues>({
-    resolver: zodResolver(apartmentSchema),
+  const form = useForm<OnboardingFormValues>({
+    resolver: zodResolver(onboardingSchema),
   });
 
-  const onSubmit = (data: ApartmentFormValues) => {
+  const onSubmit = (data: OnboardingFormValues) => {
     setIsSaving(true);
-    onSave(data.apartment);
+    onSave(data);
     toast({
-      title: 'Apartment Saved!',
+      title: 'Profile Setup Complete!',
       description: `Welcome to apartment ${data.apartment}, ${user.name}!`,
     });
     setIsSaving(false);
@@ -58,11 +62,11 @@ export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: Sele
         <DialogHeader>
           <DialogTitle>Welcome, {user.name}!</DialogTitle>
           <DialogDescription>
-            Please select your apartment number to complete your profile setup.
+            Please complete your profile setup. This is a one-time process.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="apartment"
@@ -87,8 +91,42 @@ export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: Sele
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>What is your role?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex space-x-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="owner" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Owner
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="tenant" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Tenant
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" disabled={isSaving} className="w-full">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save and Continue
               </Button>
