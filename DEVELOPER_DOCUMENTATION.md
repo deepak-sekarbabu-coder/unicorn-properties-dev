@@ -82,7 +82,22 @@ Authentication is mocked for simplicity. The `AuthContext` (`src/context/auth-co
 
 The UI is built with **ShadCN UI** components, which are styled using **Tailwind CSS**. The theme (colors, fonts, etc.) is configured in `tailwind.config.ts` and the global CSS variables are defined in `src/app/globals.css`. To modify the look and feel, start by adjusting the CSS variables in `globals.css`.
 
-## 5. Adding New Features
+## 5. Database / Data Management
+
+This application currently operates **without a traditional database**. For development and demonstration purposes, it uses a mock data source.
+
+-   **Mock Data File**: All initial data for users, expenses, and categories is hardcoded in `src/lib/data.ts`. This file exports arrays of objects that simulate records you would typically find in a database.
+-   **Data Types**: The TypeScript types that define the structure of this data (e.g., `User`, `Expense`) are located in `src/lib/types.ts`.
+-   **Data Persistence**: The application's state is held in memory within the `ApartmentShareApp` component. Any changes made during a user session (like adding an expense) are **not saved** and will be reset when the page is reloaded. The only exception is the logged-in user's session, which is persisted in the browser's `localStorage`.
+
+### Transitioning to a Real Database
+
+To connect this application to a real backend database (like Firestore, PostgreSQL, etc.), you would need to:
+1.  Set up a backend service or API endpoints that perform CRUD (Create, Read, Update, Delete) operations on your database.
+2.  In the `DashboardPage` (`src/app/dashboard/page.tsx`), replace the import of mock data from `src/lib/data.ts` with an asynchronous fetch call to your API to get the initial data.
+3.  In the `ApartmentShareApp` component, modify the handler functions (e.g., `handleAddExpense`, `handleDeleteUser`) to make API calls to your backend instead of just updating the local React state.
+
+## 6. Adding New Features
 
 -   **New Component**: Create the component file in `src/components/`. If it's a UI primitive, consider if ShadCN already has a suitable component.
 -   **New Page**: Add a new folder with a `page.tsx` file inside `src/app/`.
