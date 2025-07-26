@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Bell,
   Home,
@@ -87,6 +88,7 @@ interface ApartmentShareAppProps {
 export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses, initialAnnouncements }: ApartmentShareAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [view, setView] = React.useState<View>('dashboard');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
@@ -116,6 +118,14 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const loggedInUserBalance = user ? userBalances.find(b => b.id === user.id)?.balance : 0;
   const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
   const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
+
+  const handleLogoClick = () => {
+    if (user) {
+      setView('dashboard');
+    } else {
+      router.push('/login');
+    }
+  };
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     const newExpense = await firestore.addExpense(newExpenseData);
@@ -829,7 +839,10 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
+          <div 
+            className="flex items-center gap-2 p-2 cursor-pointer"
+            onClick={handleLogoClick}
+          >
             <Package2 className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold">ApartmentShare</span>
           </div>
