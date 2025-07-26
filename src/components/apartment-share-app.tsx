@@ -99,9 +99,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   
   // State for search and filters
   const [expenseSearch, setExpenseSearch] = React.useState('');
-  const [filterCategory, setFilterCategory] = React.useState('');
-  const [filterPaidBy, setFilterPaidBy] = React.useState('');
-  const [filterMonth, setFilterMonth] = React.useState('');
+  const [filterCategory, setFilterCategory] = React.useState('all');
+  const [filterPaidBy, setFilterPaidBy] = React.useState('all');
+  const [filterMonth, setFilterMonth] = React.useState('all');
 
   const [userSearch, setUserSearch] = React.useState('');
   const [announcementMessage, setAnnouncementMessage] = React.useState('');
@@ -307,9 +307,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   const filteredExpenses = React.useMemo(() => {
     return expenses
       .filter(expense => expense.description.toLowerCase().includes(expenseSearch.toLowerCase()))
-      .filter(expense => !filterCategory || expense.categoryId === filterCategory)
-      .filter(expense => !filterPaidBy || expense.paidBy === filterPaidBy)
-      .filter(expense => !filterMonth || format(new Date(expense.date), 'yyyy-MM') === filterMonth);
+      .filter(expense => filterCategory === 'all' || expense.categoryId === filterCategory)
+      .filter(expense => filterPaidBy === 'all' || expense.paidBy === filterPaidBy)
+      .filter(expense => filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth);
   }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
 
   const expenseMonths = React.useMemo(() => {
@@ -322,9 +322,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
 
   const handleClearFilters = () => {
     setExpenseSearch('');
-    setFilterCategory('');
-    setFilterPaidBy('');
-    setFilterMonth('');
+    setFilterCategory('all');
+    setFilterPaidBy('all');
+    setFilterMonth('all');
   }
 
   const filteredUsers = React.useMemo(() => {
@@ -523,7 +523,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                             <SelectValue placeholder="Filter by category" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Categories</SelectItem>
+                            <SelectItem value="all">All Categories</SelectItem>
                             {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
@@ -532,7 +532,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                             <SelectValue placeholder="Filter by paid by" />
                         </SelectTrigger>
                         <SelectContent>
-                             <SelectItem value="">All Users</SelectItem>
+                             <SelectItem value="all">All Users</SelectItem>
                              {users.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
@@ -541,9 +541,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                             <SelectValue placeholder="Filter by month" />
                         </SelectTrigger>
                         <SelectContent>
-                             <SelectItem value="">All Months</SelectItem>
+                             <SelectItem value="all">All Months</SelectItem>
                              {expenseMonths.map(month => (
-                                <SelectItem key={month} value={month}>{format(new Date(month), 'MMMM yyyy')}</SelectItem>
+                                <SelectItem key={month} value={month}>{format(new Date(`${month}-02`), 'MMMM yyyy')}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
