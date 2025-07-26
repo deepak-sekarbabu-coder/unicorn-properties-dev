@@ -22,3 +22,10 @@ export type Expense = {
   categoryId: string; // Category ID
   receipt?: string; // Optional: data URI for the receipt image
 };
+
+export type Announcement = {
+    id: string;
+    message: string;
+    createdAt: string; // ISO date string
+    expiresAt: string; // ISO date string
+};

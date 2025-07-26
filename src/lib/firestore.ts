@@ -1,6 +1,6 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
-import type { User, Category, Expense } from './types';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from 'firebase/firestore';
+import type { User, Category, Expense, Announcement } from './types';
 
 const removeUndefined = (obj: Record<string, any>) => {
     Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
@@ -99,4 +99,42 @@ export const addExpense = async (expense: Omit<Expense, 'id'|'date'>): Promise<E
 export const deleteExpense = async (id: string): Promise<void> => {
     const expenseDoc = doc(db, 'expenses', id);
     await deleteDoc(expenseDoc);
+};
+
+// Announcements
+export const getAnnouncements = async (): Promise<Announcement[]> => {
+    const announcementsCol = collection(db, 'announcements');
+    const now = Timestamp.now();
+    const q = query(announcementsCol, where("expiresAt", ">", now));
+    const snapshot = await getDocs(q);
+    
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            message: data.message,
+            createdAt: (data.createdAt.toDate()).toISOString(),
+            expiresAt: (data.expiresAt.toDate()).toISOString(),
+        }
+    });
+};
+
+export const addAnnouncement = async (message: string): Promise<Announcement> => {
+    const now = new Date();
+    const expires = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+
+    const newAnnouncement = {
+        message,
+        createdAt: Timestamp.fromDate(now),
+        expiresAt: Timestamp.fromDate(expires),
+    };
+    const announcementsCol = collection(db, 'announcements');
+    const docRef = await addDoc(announcementsCol, newAnnouncement);
+    
+    return {
+        id: docRef.id,
+        message: newAnnouncement.message,
+        createdAt: now.toISOString(),
+        expiresAt: expires.toISOString(),
+    };
 };

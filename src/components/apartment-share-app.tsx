@@ -20,6 +20,7 @@ import {
   PieChart,
   TrendingUp,
   Wallet,
+  Megaphone,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -42,6 +43,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +59,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
-import type { User, Category, Expense } from '@/lib/types';
+import type { User, Category, Expense, Announcement } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
@@ -76,17 +78,21 @@ interface ApartmentShareAppProps {
   initialUsers: User[];
   initialCategories: Category[];
   initialExpenses: Expense[];
+  initialAnnouncements: Announcement[];
 }
 
-export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses }: ApartmentShareAppProps) {
+export function ApartmentShareApp({ initialUsers, initialCategories, initialExpenses, initialAnnouncements }: ApartmentShareAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
   const [view, setView] = React.useState<View>('dashboard');
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
+  const [announcements, setAnnouncements] = React.useState<Announcement[]>(initialAnnouncements);
   const [expenseSearch, setExpenseSearch] = React.useState('');
   const [userSearch, setUserSearch] = React.useState('');
+  const [announcementMessage, setAnnouncementMessage] = React.useState('');
+  const [isSending, setIsSending] = React.useState(false);
 
 
   const role = user?.role || 'user';
@@ -170,6 +176,28 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       title: 'User Deleted',
       description: 'The user has been successfully removed.',
     });
+  };
+
+  const handleSendAnnouncement = async () => {
+    if (!announcementMessage.trim()) return;
+    setIsSending(true);
+    try {
+        const newAnnouncement = await firestore.addAnnouncement(announcementMessage);
+        setAnnouncements(prev => [newAnnouncement, ...prev]);
+        setAnnouncementMessage('');
+        toast({
+            title: "Announcement Sent!",
+            description: "Your message has been sent to all users."
+        });
+    } catch (error) {
+        toast({
+            title: "Error",
+            description: "Failed to send announcement.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsSending(false);
+    }
   };
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
@@ -305,6 +333,19 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             <CardDescription>Your personal reminders and balance status.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            {announcements.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(ann => (
+                <React.Fragment key={ann.id}>
+                    <div className="flex items-start gap-4">
+                       <Megaphone className="h-6 w-6 text-primary mt-1" />
+                      <div className="grid gap-1">
+                        <p className="text-sm font-medium">New Announcement</p>
+                        <p className="text-sm text-muted-foreground">{ann.message}</p>
+                         <p className="text-xs text-muted-foreground/80 pt-1">{formatDistanceToNow(new Date(ann.createdAt), { addSuffix: true })}</p>
+                      </div>
+                    </div>
+                    <Separator />
+                </React.Fragment>
+            ))}
             <div className="flex items-center gap-4">
                <Bell className="h-6 w-6 text-accent" />
               <div className="grid gap-1">
@@ -506,6 +547,31 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                         ))}
                     </TableBody>
                 </Table>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Send Announcement</CardTitle>
+                <CardDescription>Send a notification to all users. It will disappear after 2 days.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid w-full gap-2">
+                    <Textarea 
+                        placeholder="Type your message here..." 
+                        maxLength={500}
+                        value={announcementMessage}
+                        onChange={(e) => setAnnouncementMessage(e.target.value)}
+                    />
+                    <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                            {announcementMessage.length} / 500
+                        </p>
+                        <Button onClick={handleSendAnnouncement} disabled={isSending || !announcementMessage.trim()}>
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            {isSending ? 'Sending...' : 'Send Announcement'}
+                        </Button>
+                    </div>
+                </div>
             </CardContent>
         </Card>
         <Card>

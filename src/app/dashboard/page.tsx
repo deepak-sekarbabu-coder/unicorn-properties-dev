@@ -1,5 +1,5 @@
 import { ApartmentShareApp } from '@/components/apartment-share-app';
-import { getUsers, getCategories, getExpenses } from '@/lib/firestore';
+import { getUsers, getCategories, getExpenses, getAnnouncements } from '@/lib/firestore';
 
 export default async function DashboardPage() {
   // In a real application, this data would be fetched from a database.
@@ -7,6 +7,12 @@ export default async function DashboardPage() {
   const initialUsers = await getUsers();
   const initialCategories = await getCategories();
   const initialExpenses = await getExpenses();
+  const initialAnnouncements = await getAnnouncements();
 
-  return <ApartmentShareApp initialUsers={initialUsers} initialCategories={initialCategories} initialExpenses={initialExpenses} />;
+  return <ApartmentShareApp 
+            initialUsers={initialUsers} 
+            initialCategories={initialCategories} 
+            initialExpenses={initialExpenses}
+            initialAnnouncements={initialAnnouncements} 
+        />;
 }

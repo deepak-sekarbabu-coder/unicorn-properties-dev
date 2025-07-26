@@ -4,6 +4,7 @@ import {
   Droplets,
   FileText,
   type LucideIcon,
+  Megaphone,
 } from 'lucide-react';
 
 export const Icons = {
@@ -11,6 +12,7 @@ export const Icons = {
   Sparkles,
   Droplets,
   FileText,
+  Megaphone,
 };
 
 export type IconName = keyof typeof Icons;
