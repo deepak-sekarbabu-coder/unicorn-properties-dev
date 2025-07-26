@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, KeyRound } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -90,6 +90,15 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
     setIsSaving(false);
     setOpen(false);
   };
+  
+  const handleResetPassword = () => {
+    // In a real app, this would trigger a password reset flow.
+    // Here, we just notify the user what the password is.
+    toast({
+        title: "Password Reset",
+        description: `Your password has been reset to "password".`,
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -148,12 +157,18 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                     </FormItem>
                 )}
             />
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+            <DialogFooter className="sm:justify-between">
+              <Button type="button" variant="outline" onClick={handleResetPassword}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                Reset Password
               </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>
