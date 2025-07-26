@@ -34,36 +34,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      await setPersistence(auth, browserLocalPersistence);
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        if (firebaseUser) {
-          // User is signed in, see if they are in our DB
-          let appUser = await getUserByEmail(firebaseUser.email!);
-          if (!appUser) {
-            // New user, create them in our DB
-            const newUser: Omit<User, 'id'> = {
-              name: firebaseUser.displayName || 'New User',
-              email: firebaseUser.email!,
-              avatar: firebaseUser.photoURL || undefined,
-              role: 'user',
-            };
-            appUser = await addUser(newUser);
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+          if (firebaseUser) {
+            let appUser = await getUserByEmail(firebaseUser.email!);
+            if (!appUser) {
+              const newUser: Omit<User, 'id'> = {
+                name: firebaseUser.displayName || 'New User',
+                email: firebaseUser.email!,
+                avatar: firebaseUser.photoURL || undefined,
+                role: 'user',
+              };
+              appUser = await addUser(newUser);
+            }
+            setUser(appUser);
+          } else {
+            setUser(null);
           }
-          setUser(appUser);
-        } else {
-          // User is signed out
-          setUser(null);
-        }
+          setLoading(false);
+        });
+        return unsubscribe;
+      } catch (error) {
+        console.error("Error setting auth persistence:", error);
         setLoading(false);
-      });
-      return unsubscribe;
+      }
     };
 
     const unsubscribePromise = initializeAuth();
 
-    // Cleanup subscription on unmount
     return () => {
-      unsubscribePromise.then(unsub => unsub && unsub());
+      unsubscribePromise.then(unsub => {
+        if (unsub) {
+          unsub();
+        }
+      });
     };
   }, []);
 
@@ -71,7 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle setting the user
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -84,21 +88,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle the rest
     } catch(error) {
       console.error("Google sign-in error:", error);
       setLoading(false);
-      throw new Error("Failed to sign in with Google.");
+      if ((error as any).code !== 'auth/popup-closed-by-user') {
+        throw new Error("Failed to sign in with Google.");
+      }
     }
   }
 
   const logout = async () => {
     await signOut(auth);
+    setUser(null);
     router.push('/login');
   };
   
   const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
+    if (user && user.id === updatedUser.id) {
+      setUser(updatedUser);
+    }
   };
 
   const value = { user, loading, login, loginWithGoogle, logout, updateUser };
