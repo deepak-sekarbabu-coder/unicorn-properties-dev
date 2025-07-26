@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -54,17 +55,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
           if (firebaseUser) {
             let appUser = await getUserByEmail(firebaseUser.email!);
-            if (!appUser) {
+            // If user does not exist in Firestore, create them.
+            // This handles first-time Google Sign-In.
+            if (!appUser && firebaseUser.email) {
               const newUser: Omit<User, 'id'> = {
                 name: firebaseUser.displayName || 'New User',
-                email: firebaseUser.email!,
+                email: firebaseUser.email,
                 avatar: firebaseUser.photoURL || undefined,
-                role: 'user',
+                role: 'user', // Default role for new sign-ups
               };
               appUser = await addUser(newUser);
             }
+            
             setUser(appUser);
-            if (appUser.role) {
+            if (appUser?.role) {
                 setCookie('user-role', appUser.role, 7);
             }
           } else {
@@ -107,12 +111,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener will handle the user creation and state update.
     } catch(error) {
       console.error("Google sign-in error:", error);
-      setLoading(false);
-      if ((error as any).code !== 'auth/popup-closed-by-user') {
-        throw new Error("Failed to sign in with Google.");
+      // Don't throw an error if the user closes the popup
+      if ((error as any).code === 'auth/popup-closed-by-user') {
+        setLoading(false);
+        return;
       }
+      setLoading(false);
+      throw new Error("Failed to sign in with Google.");
     }
   }
 
