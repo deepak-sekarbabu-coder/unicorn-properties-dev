@@ -18,6 +18,8 @@ import {
   Search,
   Paperclip,
   PieChart,
+  TrendingUp,
+  Wallet,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -101,6 +103,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
       return { ...u, balance };
     });
   }, [users, expenses, perUserShare]);
+  
+  const loggedInUserBalance = user ? userBalances.find(b => b.id === user.id)?.balance : 0;
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     const newExpense = await firestore.addExpense(newExpenseData);
@@ -276,7 +280,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${u.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {u.balance >= 0 ? `+${u.balance.toFixed(2)}` : u.balance.toFixed(2)}
+                {u.balance >= 0 ? `+$${u.balance.toFixed(2)}` : `-$${Math.abs(u.balance).toFixed(2)}`}
               </div>
               <p className="text-xs text-muted-foreground">
                 {u.balance >= 0 ? 'is owed' : 'owes'}
@@ -298,24 +302,42 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         <Card>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
-            <CardDescription>Upcoming due dates and payment reminders.</CardDescription>
+            <CardDescription>Your personal reminders and balance status.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="flex items-center gap-4">
                <Bell className="h-6 w-6 text-accent" />
               <div className="grid gap-1">
-                <p className="text-sm font-medium">Electricity Bill Due</p>
-                <p className="text-sm text-muted-foreground">Due in 3 days. Please settle your balances.</p>
+                <p className="text-sm font-medium">Welcome back, {user?.name}!</p>
+                <p className="text-sm text-muted-foreground">Here is a summary of your account.</p>
               </div>
             </div>
              <Separator />
             <div className="flex items-center gap-4">
-              <Bell className="h-6 w-6 text-accent" />
+              <Wallet className={`h-6 w-6 ${loggedInUserBalance && loggedInUserBalance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
               <div className="grid gap-1">
-                <p className="text-sm font-medium">Settle up with Alex</p>
-                <p className="text-sm text-muted-foreground">Alex covered the last grocery run.</p>
+                <p className="text-sm font-medium">
+                  Your balance is {loggedInUserBalance && loggedInUserBalance >= 0 ? `+$${loggedInUserBalance.toFixed(2)}` : `-$${Math.abs(loggedInUserBalance || 0).toFixed(2)}`}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                   {loggedInUserBalance && loggedInUserBalance >= 0 ? 'You are all settled up.' : 'You have outstanding balances.'}
+                </p>
               </div>
             </div>
+            {loggedInUserBalance && loggedInUserBalance < 0 && (
+                <>
+                <Separator />
+                <div className="flex items-center gap-4">
+                    <TrendingUp className="h-6 w-6 text-blue-500" />
+                    <div className="grid gap-1">
+                        <p className="text-sm font-medium">Settle Up Reminder</p>
+                        <p className="text-sm text-muted-foreground">
+                            Please pay your outstanding balance to keep the records updated.
+                        </p>
+                    </div>
+                </div>
+                </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -545,20 +567,26 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </div>
   );
   
-  const ExpensesTable = ({ expenses, limit, showPayer = false }: { expenses: Expense[], limit?: number, showPayer?: boolean }) => (
+  const ExpensesTable = ({ expenses, limit, showPayer = false }: { expenses: Expense[], limit?: number, showPayer?: boolean }) => {
+    
+    const relevantExpenses = expenses
+        .slice(0, limit)
+        .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    return (
      <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="hidden sm:table-cell">Category</TableHead>
           <TableHead>Description</TableHead>
-          {showPayer && <TableHead>Paid by</TableHead>}
+          <TableHead>Paid by</TableHead>
           <TableHead>Date</TableHead>
           <TableHead className="text-right">Amount</TableHead>
            {role === 'admin' && !showPayer && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {expenses.slice(0, limit).map(expense => {
+        {relevantExpenses.map(expense => {
           const category = getCategoryById(expense.categoryId);
           const expenseUser = getUserById(expense.paidBy);
           return (
@@ -581,9 +609,8 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                   )}
                 </div>
               </TableCell>
-              {showPayer && <TableCell>{expenseUser?.name}</TableCell>}
+              <TableCell>{expenseUser?.name}</TableCell>
               <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
-              {!showPayer && <TableCell>{expenseUser?.name}</TableCell>}
               <TableCell className="text-right font-medium">${expense.amount.toFixed(2)}</TableCell>
               {role === 'admin' && !showPayer && (
                 <TableCell className="text-right">
@@ -618,7 +645,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
         })}
       </TableBody>
     </Table>
-  );
+  )};
 
   const PageHeader = () => {
     let title = "Dashboard";
