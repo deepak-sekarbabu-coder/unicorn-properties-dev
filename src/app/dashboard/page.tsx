@@ -3,7 +3,7 @@ import { ApartmentShareApp } from '@/components/apartment-share-app';
 import { getCategories, getAnnouncements, getUser } from '@/lib/firestore';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth as adminAuth } from 'firebase-admin/lib/auth';
+import { auth as adminAuth } from 'firebase-admin';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 
 async function getAuthenticatedUser() {
