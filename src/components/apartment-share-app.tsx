@@ -37,6 +37,7 @@ import { Separator } from '@/components/ui/separator';
 import type { User, Category, Expense } from '@/lib/types';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
+import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
@@ -81,18 +82,17 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
   };
   
   const handleUpdateUser = (updatedUser: User) => {
-    // This function will be called from the profile settings dialog.
-    // First, we update the auth context.
     updateUser(updatedUser);
-    
-    // Then, we update the local 'users' state.
     setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
     
-    // We also need to update the user in the initialUsers array if they are there
     const userIndex = initialUsers.findIndex(u => u.id === updatedUser.id);
     if(userIndex !== -1){
         initialUsers[userIndex] = updatedUser;
     }
+  };
+  
+  const handleUpdateCategory = (updatedCategory: Category) => {
+    setCategories(currentCategories => currentCategories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
   };
 
 
@@ -202,7 +202,9 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                   <CategoryIcon name={cat.icon as any} />
                   <span>{cat.name}</span>
                 </div>
-                <Button variant="ghost" size="sm">Edit</Button>
+                <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
+                  <Button variant="ghost" size="sm">Edit</Button>
+                </EditCategoryDialog>
               </li>
             ))}
           </ul>
