@@ -11,7 +11,7 @@ export default function LoginPage() {
                 Welcome back
             </h1>
             <p className="text-sm text-muted-foreground">
-                Enter your credentials to access your account
+                Sign in to your account
             </p>
         </div>
         <LoginForm />

@@ -3,12 +3,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
-import { getUserByEmail } from '@/lib/firestore';
+import { getUserByEmail, addUser } from '@/lib/firestore';
+import { auth } from '@/lib/firebase';
+import { 
+  onAuthStateChanged,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  User as FirebaseUser,
+} from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -21,47 +31,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for a logged-in user in localStorage
-    try {
-      const storedUser = localStorage.getItem('apartment-user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        // User is signed in, see if they are in our DB
+        let appUser = await getUserByEmail(firebaseUser.email!);
+        if (!appUser) {
+          // New user, create them in our DB
+          const newUser: Omit<User, 'id'> = {
+            name: firebaseUser.displayName || 'New User',
+            email: firebaseUser.email!,
+            avatar: firebaseUser.photoURL || undefined,
+            role: 'user',
+          };
+          appUser = await addUser(newUser);
+        }
+        setUser(appUser);
+      } else {
+        // User is signed out
+        setUser(null);
       }
-    } catch (error) {
-        console.error("Could not parse user from local storage", error)
-        localStorage.removeItem('apartment-user');
-    }
-    setLoading(false);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
       setLoading(true);
-      if (password === 'password') { // Dummy password check for all users
-        const authenticatedUser = await getUserByEmail(email);
-        if (authenticatedUser) {
-            setUser(authenticatedUser);
-            localStorage.setItem('apartment-user', JSON.stringify(authenticatedUser));
-            setLoading(false);
-            return Promise.resolve();
-        }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle setting the user
+      } catch (error) {
+        console.error("Firebase login error:", error);
+        setLoading(false);
+        throw new Error('Invalid email or password.');
       }
-      setLoading(false);
-      return Promise.reject(new Error('Invalid email or password.'));
   };
+  
+  const loginWithGoogle = async (): Promise<void> => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle the rest
+    } catch(error) {
+      console.error("Google sign-in error:", error);
+      setLoading(false);
+      throw new Error("Failed to sign in with Google.");
+    }
+  }
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('apartment-user');
+  const logout = async () => {
+    await signOut(auth);
     router.push('/login');
   };
   
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
-    localStorage.setItem('apartment-user', JSON.stringify(updatedUser));
   };
 
-
-  const value = { user, loading, login, logout, updateUser };
+  const value = { user, loading, login, loginWithGoogle, logout, updateUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
