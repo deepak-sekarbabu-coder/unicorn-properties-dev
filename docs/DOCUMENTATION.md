@@ -12,9 +12,9 @@ To begin using the application, you need to log in.
 
 -   **URL**: Access the application through its main URL, which will redirect you to the login page.
 -   **Credentials**:
-    -   **Admin User**: To access administrative features, use the email `admin@apartment.com`.
-    -   **Regular Users**: User emails are generated from their names (e.g., `ben.carter@apartment.com`).
-    -   **Password**: For all accounts, the default password is `password`.
+    -   You can sign in using a Google account or with an email and password.
+    -   New accounts can be created by the **Admin** user.
+    -   When an admin creates an account, the default password is `password`.
 
 ## 3. User Roles
 
@@ -28,9 +28,11 @@ This is the standard role for most members of the apartment.
     -   View the main dashboard, including all user balances and recent expenses.
     -   Add new expenses for the group.
     -   View a complete history of all expenses.
+    -   **Submit announcements** for admin review.
     -   Export expense data.
     -   View spending analytics.
-    -   Update their own profile information (name, profile picture) and reset their password.
+    -   Update their own profile information (name, phone number, and profile picture).
+    -   Receive push notifications for important updates.
 
 ### 3.2. Admin
 
@@ -41,7 +43,8 @@ The Admin role has all the permissions of a standard user, plus additional admin
     -   **Manage Users**: Add new users, edit existing user details (including their role), and delete users.
     -   **Manage Categories**: Create new expense categories, edit their names, and delete them.
     -   **Manage Expenses**: Delete any expense from the log.
-    -   Reset passwords for any user.
+    -   **Manage Announcements**: Approve or reject announcements submitted by other users.
+    -   Send announcements that are instantly visible to all users.
 
 ## 4. Core Features
 
@@ -49,9 +52,9 @@ The Admin role has all the permissions of a standard user, plus additional admin
 
 The Dashboard is the first screen you see after logging in. It provides a quick overview of the apartment's financial status.
 
--   **User Balances**: See at a glance who owes money and who is owed money. Positive balances mean the user is owed, while negative balances indicate they owe.
+-   **User Balances**: See at a glance who owes money and who is owed money. Balances are shown in Indian Rupees (₹).
 -   **Recent Expenses**: A list of the most recently added expenses.
--   **Notifications**: Reminders for upcoming bills or payments.
+-   **Notifications**: This section displays announcements from the admin or other users. You may also be prompted here to enable push notifications to get alerts on your device.
 
 ### 4.2. All Expenses
 
@@ -66,56 +69,48 @@ This page provides a detailed log of every expense recorded in the app.
 The Analytics page offers visual insights into the group's spending.
 
 -   **Spending by Category**: A bar chart showing the total amount spent in each category.
--   **Spending Over Time**: A chart illustrating total expenses over the last six months, helping you identify trends.
+-   **Spending Over Time**: A chart illustrating total expenses over the last six months.
 
-### 4.4. User Profile & Settings
+### 4.4. Announcements
+
+All users can contribute to group communication.
+
+-   **Submit for Review**: On the dashboard, you can type a message and submit it. An admin will review it before it's sent to everyone.
+-   **Admin Approval**: Admins will see pending announcements in their Admin Panel and can choose to approve or reject them.
+
+### 4.5. User Profile & Settings
 
 You can manage your personal information from the user menu in the top-right corner.
 
--   **Update Profile**: Click "Settings" to open a dialog where you can change your name and upload a new profile picture.
--   **Reset Password**: You can reset your own password back to the default (`password`) from the Settings dialog.
+-   **Update Profile**: Click "Settings" to open a dialog where you can change your name, phone number, and upload a new profile picture.
+-   **Reset Password**: You can reset your own password from the Settings dialog.
 -   **Logout**: Securely log out of the application.
 
-### 4.5. Admin Panel (Admin Users Only)
+### 4.6. Admin Panel (Admin Users Only)
 
 Administrators have access to a special panel for managing the application's core data.
 
--   **User Management**:
-    -   View a list of all users.
-    -   Add new users to the system.
-    -   Edit existing users' details (name, email, role, avatar).
-    -   Delete users.
-    -   Reset any user's password.
--   **Category Management**:
-    -   View all expense categories.
-    -   Add new categories with a name and icon.
-    -   Edit the names of existing categories.
-    -   Delete categories.
+-   **User Management**: View, add, edit, or delete users. You can also view user phone numbers here.
+-   **Category Management**: Create, edit, and delete expense categories.
+-   **Pending Announcements**: Review and act on announcements submitted by users.
 
 ## 5. How to Use the Application
 
 ### 5.1. Adding a New Expense
 
 1.  Click the **"Add Expense"** button, available on the main header.
-2.  Fill in the expense details:
-    -   **Description**: What the expense was for (e.g., "Monthly electricity bill").
-    -   **Amount**: The total cost.
-    -   **Paid By**: Select the user who paid for it.
-    -   **Category**: Assign it to the appropriate category.
-    -   **Receipt (Optional)**: Upload an image of the receipt.
-3.  Click **"Add Expense"** to save it. The expense will be split evenly among all users.
+2.  Fill in the expense details (Description, Amount in ₹, who paid, category).
+3.  Click **"Add Expense"**. The expense will be split evenly among all users.
 
-### 5.2. Managing Users (Admin)
+### 5.2. Submitting an Announcement
 
-1.  Navigate to the **Admin** panel from the sidebar.
-2.  In the **User Management** section:
-    -   To add a user, click **"Add User"** and fill in their details.
-    -   To edit a user, find them in the list and click **"Edit"**.
-    -   To delete a user, click the trash can icon next to their name and confirm the action.
+1.  On the main dashboard, find the **"Submit an Announcement"** section.
+2.  Type your message (up to 500 characters).
+3.  Click **"Submit for Review"**. An admin will be notified to approve it.
 
 ### 5.3. Updating Your Profile
 
 1.  Click your avatar in the top-right corner of the header.
 2.  Select **"Settings"** from the dropdown menu.
-3.  In the dialog, you can change your name or upload a new profile picture.
+3.  In the dialog, you can change your name, phone number, or upload a new profile picture.
 4.  Click **"Save Changes"**.
