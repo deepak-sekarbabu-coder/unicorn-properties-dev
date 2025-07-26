@@ -13,17 +13,21 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Wait until the loading state is settled
     if (!loading) {
+      // If there is a user, go to the dashboard
       if (user) {
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
-        router.push('/login');
+        // If there is no user, go to the login page
+        router.replace('/login');
       }
     }
   }, [user, loading, router]);
 
+  // Display a loading skeleton while we determine the auth status
   return (
-    <div className="flex h-screen w-full items-center justify-center">
+    <div className="flex h-screen w-full items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <Skeleton className="h-12 w-12 rounded-full" />
         <div className="space-y-2">
