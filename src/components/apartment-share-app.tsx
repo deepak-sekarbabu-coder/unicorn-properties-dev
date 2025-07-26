@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -300,7 +301,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <CardDescription>The last 5 expenses added to the group.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ExpensesTable expenses={expenses} limit={5} />
+              <ExpensesTable expenses={expenses} limit={5} showPayer />
             </CardContent>
           </Card>
         <Card>
@@ -553,16 +554,16 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     </div>
   );
   
-  const ExpensesTable = ({ expenses, limit }: { expenses: Expense[], limit?: number }) => (
+  const ExpensesTable = ({ expenses, limit, showPayer = false }: { expenses: Expense[], limit?: number, showPayer?: boolean }) => (
      <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="hidden sm:table-cell">Category</TableHead>
           <TableHead>Description</TableHead>
+          {showPayer && <TableHead>Paid by</TableHead>}
           <TableHead>Date</TableHead>
-          <TableHead>Paid by</TableHead>
           <TableHead className="text-right">Amount</TableHead>
-           {role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
+           {role === 'admin' && !showPayer && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -589,10 +590,11 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                   )}
                 </div>
               </TableCell>
+              {showPayer && <TableCell>{expenseUser?.name}</TableCell>}
               <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
-              <TableCell>{expenseUser?.name}</TableCell>
+              {!showPayer && <TableCell>{expenseUser?.name}</TableCell>}
               <TableCell className="text-right font-medium">${expense.amount.toFixed(2)}</TableCell>
-              {role === 'admin' && (
+              {role === 'admin' && !showPayer && (
                 <TableCell className="text-right">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
