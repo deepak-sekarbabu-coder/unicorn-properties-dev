@@ -71,6 +71,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (appUser?.role) {
                 setCookie('user-role', appUser.role, 7);
             }
+            // Instead of relying on src/app/page.tsx, we can push here
+            // This can be more reliable as it's tied directly to auth state change
+            router.push('/dashboard');
           } else {
             setUser(null);
             eraseCookie('user-role');
@@ -93,13 +96,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
     };
-  }, []);
+  }, [router]);
 
   const login = async (email: string, password: string): Promise<void> => {
       setLoading(true);
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle the rest
+        // onAuthStateChanged will handle the user state update and redirection.
       } catch (error) {
         console.error("Firebase login error:", error);
         setLoading(false);
@@ -109,19 +112,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const loginWithGoogle = async (): Promise<void> => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
+    const provider = new new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle the user creation and state update.
+      // The onAuthStateChanged listener will handle the user creation, state update, and redirection.
     } catch(error) {
-      console.error("Google sign-in error:", error);
-      // Don't throw an error if the user closes the popup
-      if ((error as any).code === 'auth/popup-closed-by-user') {
+      const errorCode = (error as any).code;
+      if (errorCode === 'auth/popup-closed-by-user') {
+        console.log("Google Sign-In popup closed by user.");
+        // This is not a critical error, just the user cancelling the action.
+        // We set loading to false and let the user try again if they wish.
         setLoading(false);
         return;
       }
+      // For other errors, we log them and show a message.
+      console.error("Google sign-in error:", error);
       setLoading(false);
-      throw new Error("Failed to sign in with Google.");
+      throw new Error("Failed to sign in with Google. Please try again.");
     }
   }
 
