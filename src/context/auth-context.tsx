@@ -30,15 +30,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function setSessionCookie(firebaseUser: FirebaseUser) {
     const idToken = await firebaseUser.getIdToken();
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
     const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, expiresIn }),
+        body: JSON.stringify({ idToken }),
     });
 
     if (!response.ok) {
-        throw new Error('Failed to set session cookie');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to set session cookie' }));
+        console.error("Error setting session cookie:", errorData);
+        throw new Error(errorData.message || 'Failed to set session cookie');
     }
 }
 
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
           if (firebaseUser && firebaseUser.email) {
-            await setSessionCookie(firebaseUser);
+            
             let appUser = await getUserByEmail(firebaseUser.email);
             
             if (!appUser) {
@@ -72,6 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
             
             setUser(appUser);
+            // We set the cookie here after we have the user
+            await setSessionCookie(firebaseUser);
+
              if (appUser && (appUser.apartment && appUser.role)) {
                router.replace('/dashboard');
              }
