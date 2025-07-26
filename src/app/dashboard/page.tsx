@@ -5,9 +5,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 async function getAuthenticatedUser() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userRoleCookie = cookieStore.get('user-role');
-    
+
     // In a real production app, you'd likely have a more robust session check,
     // possibly verifying a session token with a backend.
     // For this app, the presence of the 'user-role' cookie serves as our
@@ -22,23 +22,23 @@ async function getAuthenticatedUser() {
 
 
 export default async function DashboardPage() {
-  const user = await getAuthenticatedUser();
+    const user = await getAuthenticatedUser();
 
-  if (!user) {
-    redirect('/login');
-  }
+    if (!user) {
+        redirect('/login');
+    }
 
-  // In a real application, this data would be fetched from a database.
-  // We pass it to a client component to allow for interactive state management.
-  const initialUsers = await getUsers();
-  const initialCategories = await getCategories();
-  const initialExpenses = await getExpenses();
-  const initialAnnouncements = await getAnnouncements(user.role);
+    // In a real application, this data would be fetched from a database.
+    // We pass it to a client component to allow for interactive state management.
+    const initialUsers = await getUsers();
+    const initialCategories = await getCategories();
+    const initialExpenses = await getExpenses();
+    const initialAnnouncements = await getAnnouncements(user.role);
 
-  return <ApartmentShareApp 
-            initialUsers={initialUsers} 
-            initialCategories={initialCategories} 
-            initialExpenses={initialExpenses}
-            initialAnnouncements={initialAnnouncements} 
-        />;
+    return <ApartmentShareApp
+        initialUsers={initialUsers}
+        initialCategories={initialCategories}
+        initialExpenses={initialExpenses}
+        initialAnnouncements={initialAnnouncements}
+    />;
 }

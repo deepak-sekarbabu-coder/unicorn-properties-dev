@@ -3,7 +3,7 @@ import { app } from "./firebase-client"; // Using a client-side initialized app
 import * as firestore from './firestore';
 
 // IMPORTANT: Replace this with your actual VAPID key from the Firebase console
-const VAPID_KEY = "YOUR_VAPID_KEY_HERE";
+const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || "YOUR_VAPID_KEY_HERE";
 
 export const requestNotificationPermission = async (userId: string) => {
   if (typeof window === 'undefined') return;
