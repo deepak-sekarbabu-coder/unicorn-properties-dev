@@ -16,9 +16,36 @@ To begin using the application, you need to log in.
     -   **Regular Users**: User emails are generated from their names (e.g., `ben.carter@apartment.com`).
     -   **Password**: For all accounts, the default password is `password`.
 
-## 3. Core Features
+## 3. User Roles
 
-### 3.1. Dashboard
+The application has two distinct roles with different levels of access:
+
+### 3.1. User
+
+This is the standard role for most members of the apartment.
+
+-   **Permissions**:
+    -   View the main dashboard, including all user balances and recent expenses.
+    -   Add new expenses for the group.
+    -   View a complete history of all expenses.
+    -   Export expense data.
+    -   View spending analytics.
+    -   Update their own profile information (name, profile picture) and reset their password.
+
+### 3.2. Admin
+
+The Admin role has all the permissions of a standard user, plus additional administrative capabilities.
+
+-   **Additional Permissions**:
+    -   Access the **Admin Panel**.
+    -   **Manage Users**: Add new users, edit existing user details (including their role), and delete users.
+    -   **Manage Categories**: Create new expense categories, edit their names, and delete them.
+    -   **Manage Expenses**: Delete any expense from the log.
+    -   Reset passwords for any user.
+
+## 4. Core Features
+
+### 4.1. Dashboard
 
 The Dashboard is the first screen you see after logging in. It provides a quick overview of the apartment's financial status.
 
@@ -26,7 +53,7 @@ The Dashboard is the first screen you see after logging in. It provides a quick 
 -   **Recent Expenses**: A list of the most recently added expenses.
 -   **Notifications**: Reminders for upcoming bills or payments.
 
-### 3.2. All Expenses
+### 4.2. All Expenses
 
 This page provides a detailed log of every expense recorded in the app.
 
@@ -34,14 +61,14 @@ This page provides a detailed log of every expense recorded in the app.
 -   **Export**: Export all expense data to a CSV file for your own records or analysis.
 -   **Receipts**: Expenses with an attached receipt will show a paperclip icon. Click it to view the receipt.
 
-### 3.3. Analytics
+### 4.3. Analytics
 
 The Analytics page offers visual insights into the group's spending.
 
 -   **Spending by Category**: A bar chart showing the total amount spent in each category.
 -   **Spending Over Time**: A chart illustrating total expenses over the last six months, helping you identify trends.
 
-### 3.4. User Profile & Settings
+### 4.4. User Profile & Settings
 
 You can manage your personal information from the user menu in the top-right corner.
 
@@ -49,7 +76,7 @@ You can manage your personal information from the user menu in the top-right cor
 -   **Reset Password**: You can reset your own password back to the default (`password`) from the Settings dialog.
 -   **Logout**: Securely log out of the application.
 
-### 3.5. Admin Panel (Admin Users Only)
+### 4.5. Admin Panel (Admin Users Only)
 
 Administrators have access to a special panel for managing the application's core data.
 
@@ -65,9 +92,9 @@ Administrators have access to a special panel for managing the application's cor
     -   Edit the names of existing categories.
     -   Delete categories.
 
-## 4. How to Use the Application
+## 5. How to Use the Application
 
-### Adding a New Expense
+### 5.1. Adding a New Expense
 
 1.  Click the **"Add Expense"** button, available on the main header.
 2.  Fill in the expense details:
@@ -78,7 +105,7 @@ Administrators have access to a special panel for managing the application's cor
     -   **Receipt (Optional)**: Upload an image of the receipt.
 3.  Click **"Add Expense"** to save it. The expense will be split evenly among all users.
 
-### Managing Users (Admin)
+### 5.2. Managing Users (Admin)
 
 1.  Navigate to the **Admin** panel from the sidebar.
 2.  In the **User Management** section:
@@ -86,7 +113,7 @@ Administrators have access to a special panel for managing the application's cor
     -   To edit a user, find them in the list and click **"Edit"**.
     -   To delete a user, click the trash can icon next to their name and confirm the action.
 
-### Updating Your Profile
+### 5.3. Updating Your Profile
 
 1.  Click your avatar in the top-right corner of the header.
 2.  Select **"Settings"** from the dropdown menu.
