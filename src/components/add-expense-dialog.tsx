@@ -84,7 +84,7 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense }: 
     onAddExpense(expenseData);
     toast({
       title: 'Expense Added!',
-      description: `"${data.description}" for $${data.amount} has been logged.`,
+      description: `"${data.description}" for ₹${data.amount} has been logged.`,
       variant: 'default',
     });
     setOpen(false);

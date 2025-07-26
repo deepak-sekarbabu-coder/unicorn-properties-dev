@@ -280,7 +280,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${u.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {u.balance >= 0 ? `+$${u.balance.toFixed(2)}` : `-$${Math.abs(u.balance).toFixed(2)}`}
+                {u.balance >= 0 ? `+₹${u.balance.toFixed(2)}` : `-₹${Math.abs(u.balance).toFixed(2)}`}
               </div>
               <p className="text-xs text-muted-foreground">
                 {u.balance >= 0 ? 'is owed' : 'owes'}
@@ -317,7 +317,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <Wallet className={`h-6 w-6 ${loggedInUserBalance && loggedInUserBalance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
               <div className="grid gap-1">
                 <p className="text-sm font-medium">
-                  Your balance is {loggedInUserBalance && loggedInUserBalance >= 0 ? `+$${loggedInUserBalance.toFixed(2)}` : `-$${Math.abs(loggedInUserBalance || 0).toFixed(2)}`}
+                  Your balance is {loggedInUserBalance && loggedInUserBalance >= 0 ? `+₹${loggedInUserBalance.toFixed(2)}` : `-₹${Math.abs(loggedInUserBalance || 0).toFixed(2)}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
                    {loggedInUserBalance && loggedInUserBalance >= 0 ? 'You are all settled up.' : 'You have outstanding balances.'}
@@ -611,7 +611,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               </TableCell>
               <TableCell>{expenseUser?.name}</TableCell>
               <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
-              <TableCell className="text-right font-medium">${expense.amount.toFixed(2)}</TableCell>
+              <TableCell className="text-right font-medium">₹{expense.amount.toFixed(2)}</TableCell>
               {role === 'admin' && !showPayer && (
                 <TableCell className="text-right">
                     <AlertDialog>
@@ -743,7 +743,7 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
               <CardDescription>Sum of all shared expenses.</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-0">
-               <div className="text-2xl font-bold">${totalExpenses.toFixed(2)}</div>
+               <div className="text-2xl font-bold">₹{totalExpenses.toFixed(2)}</div>
             </CardContent>
           </Card>
         </SidebarFooter>
