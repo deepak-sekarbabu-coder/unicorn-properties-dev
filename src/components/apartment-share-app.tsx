@@ -106,6 +106,14 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
     };
     setExpenses(prev => [newExpense, ...prev]);
   };
+
+  const handleDeleteExpense = (expenseId: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== expenseId));
+    toast({
+        title: 'Expense Deleted',
+        description: 'The expense has been successfully removed.',
+    });
+  };
   
   const handleUpdateUser = (updatedUser: User) => {
     updateUser(updatedUser);
@@ -541,12 +549,13 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
           <TableHead>Date</TableHead>
           <TableHead>Paid by</TableHead>
           <TableHead className="text-right">Amount</TableHead>
+           {role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
         {expenses.slice(0, limit).map(expense => {
           const category = getCategoryById(expense.categoryId);
-          const user = getUserById(expense.paidBy);
+          const expenseUser = getUserById(expense.paidBy);
           return (
             <TableRow key={expense.id}>
               <TableCell className="hidden sm:table-cell">
@@ -568,8 +577,36 @@ export function ApartmentShareApp({ initialUsers, initialCategories, initialExpe
                 </div>
               </TableCell>
               <TableCell>{formatDistanceToNow(new Date(expense.date), { addSuffix: true })}</TableCell>
-              <TableCell>{user?.name}</TableCell>
+              <TableCell>{expenseUser?.name}</TableCell>
               <TableCell className="text-right font-medium">${expense.amount.toFixed(2)}</TableCell>
+              {role === 'admin' && (
+                <TableCell className="text-right">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the expense: <strong>"{expense.description}"</strong>.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            className="bg-destructive hover:bg-destructive/90"
+                            >
+                            Delete Expense
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </TableCell>
+              )}
             </TableRow>
           );
         })}
