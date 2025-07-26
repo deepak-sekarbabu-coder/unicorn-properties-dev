@@ -13,10 +13,6 @@ export async function POST(request: NextRequest) {
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
 
     const adminApp = getFirebaseAdminApp();
-    if (!adminApp) {
-        console.error("Firebase Admin SDK is not initialized.");
-        return NextResponse.json({ status: "error", message: "Firebase Admin SDK not initialized on server." }, { status: 500 });
-    }
     const sessionCookie = await auth(adminApp).createSessionCookie(idToken, { expiresIn });
 
     cookies().set("session", sessionCookie, {
@@ -29,9 +25,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: "success" });
   } catch (error: any) {
-    console.error('Session cookie creation failed:', error);
-    // Ensure a helpful message is returned
-    const errorMessage = error.message || "Failed to create session.";
+    console.error('SESSION_CREATION_ERROR:', error);
+    // Ensure a helpful message is returned, including the error code if available
+    const errorMessage = error.code ? `(${error.code}) ${error.message}` : error.message || "Failed to create session.";
     return NextResponse.json({ status: "error", message: errorMessage }, { status: 401 });
   }
 }

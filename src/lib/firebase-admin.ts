@@ -1,19 +1,19 @@
+import * as dotenv from 'dotenv';
 import { init, App, getApps, credential } from "firebase-admin/app";
 
-// This function will be more robust to build-time environment variable issues.
-function initializeAdminApp() {
+// Load environment variables from .env file
+dotenv.config();
+
+function initializeAdminApp(): App {
     const apps = getApps();
     if (apps.length) return apps[0];
 
     const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
     if (!serviceAccountJson) {
-        // Log a warning instead of throwing an error during build time.
-        // The app will fail at runtime if the variable is still not set, which is expected.
-        console.warn(
-            "FIREBASE_SERVICE_ACCOUNT_JSON is not set. Admin SDK will not be initialized."
+        throw new Error(
+            "FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. Admin SDK initialization failed."
         );
-        return null;
     }
 
     try {
@@ -21,22 +21,15 @@ function initializeAdminApp() {
         return init({
             credential: credential.cert(serviceAccount),
         });
-    } catch (error) {
-        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", error);
-        return null;
+    } catch (error: any) {
+        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", error.message);
+        throw new Error("Could not initialize Firebase Admin SDK. Service account JSON is invalid.");
     }
 }
 
-let adminApp: App | null = null;
+// This pattern ensures that initialization only happens once.
+const adminApp = initializeAdminApp();
 
 export const getFirebaseAdminApp = (): App => {
-    if (adminApp) {
-        return adminApp;
-    }
-    const app = initializeAdminApp();
-    if (!app) {
-        throw new Error("Firebase Admin SDK initialization failed.");
-    }
-    adminApp = app;
     return adminApp;
 };
