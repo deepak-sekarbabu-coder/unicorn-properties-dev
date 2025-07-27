@@ -61,7 +61,7 @@ NEXTAUTH_URL=https://your-site-name.netlify.app
 - Handles redirects and headers
 - Configures Next.js plugin
 
-### public/_redirects
+### public/\_redirects
 
 - Backup redirect configuration
 - Handles client-side routing

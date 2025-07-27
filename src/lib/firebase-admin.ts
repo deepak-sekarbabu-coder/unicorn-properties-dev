@@ -45,10 +45,7 @@ try {
 
     // Ensure private_key has correct newline characters.
     if (serviceAccount && serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(
-        /\\n/g,
-        '\n'
-      );
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
     adminApp = initializeApp({
