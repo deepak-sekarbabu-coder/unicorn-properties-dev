@@ -1,18 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import {
-  eachDayOfInterval,
-  endOfMonth,
-  format,
-  formatDistanceToNow,
-  startOfMonth,
-  subMonths,
-} from 'date-fns';
+import { format, formatDistanceToNow, subMonths } from 'date-fns';
 import {
   Bell,
   CheckCircle,
-  ChevronDown,
   FileDown,
   Home,
   LineChart,
@@ -27,8 +19,6 @@ import {
   Settings,
   Trash2,
   TrendingUp,
-  UserCircle,
-  Users,
   Wallet,
   XCircle,
 } from 'lucide-react';
@@ -49,7 +39,7 @@ import { useRouter } from 'next/navigation';
 
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
-import type { Announcement, Category, Expense, User, Apartment } from '@/lib/types';
+import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
@@ -73,13 +63,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -173,7 +157,7 @@ export function ApartmentShareApp({
   React.useEffect(() => {
     const fetchData = async () => {
       setIsLoadingData(true);
-      
+
       // Fetch apartments
       try {
         const allApartments = await firestore.getApartments();
@@ -186,7 +170,7 @@ export function ApartmentShareApp({
           variant: 'destructive',
         });
       }
-      
+
       if (user?.apartment) {
         const apartmentUsers = await firestore.getUsers(user.apartment);
         const apartmentExpenses = await firestore.getExpenses(user.apartment);
@@ -198,10 +182,10 @@ export function ApartmentShareApp({
         setUsers(allUsers);
         setExpenses(allExpenses);
       }
-      
+
       setIsLoadingData(false);
     };
-    
+
     fetchData();
   }, [user, showApartmentDialog]);
 
@@ -252,6 +236,7 @@ export function ApartmentShareApp({
   };
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
+    console.log('[handleAddExpense] Input:', newExpenseData);
     // Find paying user and their apartment
     const payingUser = users.find(u => u.id === newExpenseData.paidByApartment);
     if (!payingUser || !payingUser.apartment) {
@@ -263,28 +248,33 @@ export function ApartmentShareApp({
       return;
     }
     const payingApartmentId = payingUser.apartment;
-    
+
     // Get all unique apartment IDs
     const apartmentArray = users.map(u => u.apartment).filter(Boolean) as string[];
     const allApartmentIds = Array.from(new Set(apartmentArray));
-    
+
     // Calculate per-apartment share
     const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
-    const perApartmentShare = owingApartments.length > 0
-      ? newExpenseData.amount / owingApartments.length
-      : 0;
-    
+    const perApartmentShare =
+      owingApartments.length > 0 ? newExpenseData.amount / owingApartments.length : 0;
+    console.log('[handleAddExpense] payingApartmentId:', payingApartmentId);
+    console.log('[handleAddExpense] allApartmentIds:', allApartmentIds);
+    console.log('[handleAddExpense] owingApartments:', owingApartments);
+    console.log('[handleAddExpense] perApartmentShare:', perApartmentShare);
+
     // Create expense with apartment debts
     const expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'> = {
       ...newExpenseData,
       paidByApartment: payingApartmentId,
       owedByApartments: owingApartments,
-      perApartmentShare
+      perApartmentShare,
     };
-    
+    console.log('[handleAddExpense] expenseWithApartmentDebts:', expenseWithApartmentDebts);
+
     const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
+    console.log('[handleAddExpense] newExpense from Firestore:', newExpense);
     setExpenses(prev => [newExpense, ...prev]);
-    
+
     // Show success message
     toast({
       title: 'Expense Added',
@@ -467,14 +457,17 @@ export function ApartmentShareApp({
   };
 
   const [filteredExpenses, setFilteredExpenses] = React.useState<Expense[]>([]);
-  
+
   React.useEffect(() => {
     const filtered = expenses
       .filter(expense => expense.description.toLowerCase().includes(expenseSearch.toLowerCase()))
       .filter(expense => filterCategory === 'all' || expense.categoryId === filterCategory)
       .filter(expense => filterPaidBy === 'all' || expense.paidByApartment === filterPaidBy)
-      .filter(expense => filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth);
-    
+      .filter(
+        expense =>
+          filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth
+      );
+
     setFilteredExpenses(filtered);
   }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
 
@@ -512,7 +505,7 @@ export function ApartmentShareApp({
         fill: `hsl(var(--chart-${(categories.indexOf(category) % 5) + 1}))`,
       };
     });
-    
+
     const monthlySpending = Array.from({ length: 6 })
       .map((_, i) => {
         const monthDate = subMonths(new Date(), i);
@@ -522,7 +515,7 @@ export function ApartmentShareApp({
         return { name: format(monthDate, 'MMM'), total };
       })
       .reverse();
-    
+
     return { categorySpending, monthlySpending };
   }, [expenses, categories]);
 
@@ -1076,13 +1069,7 @@ export function ApartmentShareApp({
     </div>
   );
 
-  const ExpensesTable = ({
-    expenses,
-    limit,
-  }: {
-    expenses: Expense[];
-    limit?: number;
-  }) => {
+  const ExpensesTable = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
           .slice(0, limit)
@@ -1098,9 +1085,7 @@ export function ApartmentShareApp({
             <TableHead>Paid by</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Amount</TableHead>
-            {role === 'admin' && (
-              <TableHead className="text-right">Actions</TableHead>
-            )}
+            {role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>

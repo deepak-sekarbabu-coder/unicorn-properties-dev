@@ -119,13 +119,16 @@ export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise<Expense> => {
+  console.log('[addExpense] Input:', expense);
   const newExpense = {
     ...expense,
     date: new Date().toISOString(),
   };
   const expensesCol = collection(db, 'expenses');
   const cleanExpense = removeUndefined(newExpense);
+  console.log('[addExpense] Cleaned Expense:', cleanExpense);
   const docRef = await addDoc(expensesCol, cleanExpense);
+  console.log('[addExpense] Firestore docRef.id:', docRef.id);
   return { id: docRef.id, ...cleanExpense } as Expense;
 };
 

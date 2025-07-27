@@ -113,7 +113,7 @@ export function AddExpenseDialog({
     const expenseData: Omit<Expense, 'id' | 'date'> = {
       description: data.description,
       amount: data.amount,
-      paidBy: data.paidBy,
+      paidByApartment: data.paidBy, // Map paidBy to paidByApartment
       categoryId: data.categoryId,
       receipt: receiptDataUrl,
       apartment: currentUser.apartment,
