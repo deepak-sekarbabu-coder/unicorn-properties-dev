@@ -8,7 +8,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center">
           <Package2 className="h-8 w-8 mb-2 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome to Unicorn Properties</h1>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
         </div>
         <LoginForm />

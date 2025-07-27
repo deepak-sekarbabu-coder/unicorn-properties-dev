@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the complete authentication flow for first-time and existing users, including role-based redirection and onboarding.
+This document describes the complete authentication flow for Unicorn Properties, including first-time and existing users, role-based redirection and onboarding.
 
 ## User Authentication Flow
 

@@ -1,6 +1,6 @@
-# ApartmentShare Developer Documentation
+# Unicorn Properties Developer Documentation
 
-Welcome, developer! This guide provides a technical overview of the ApartmentShare application to help you get started with the codebase quickly.
+Welcome, developer! This guide provides a technical overview of the Unicorn Properties application to help you get started with the codebase quickly.
 
 ## 1. Tech Stack
 
@@ -40,7 +40,7 @@ This project is a modern web application built with the following technologies:
    npm run dev
    ```
 
-The application will be available at `http://localhost:9002`.
+The application will be available at `http://localhost:3000`.
 
 ## 3. Project Structure
 
@@ -51,20 +51,36 @@ The codebase is organized into the following key directories:
   - `page.tsx`: The entry page, which handles redirection based on auth status.
   - `login/page.tsx`: The login page.
   - `dashboard/page.tsx`: The main dashboard page that renders the core app component.
+  - `api/`: API routes for server-side functionality.
+    - `auth/session/`: Session management endpoints.
+    - `health/`: Health check endpoint.
+    - `test/`: Test endpoint for deployment verification.
 - `src/components/`: Reusable React components.
   - `ui/`: Auto-generated UI components from ShadCN (e.g., `Button`, `Card`, `Dialog`).
   - `apartment-share-app.tsx`: The main stateful component that orchestrates the entire application UI and logic.
   - Dialog components (e.g., `add-expense-dialog.tsx`, `edit-user-dialog.tsx`, `select-apartment-dialog.tsx`): Self-contained dialogs for specific actions.
+  - `outstanding-balance.tsx`: Displays outstanding expense amounts prominently.
+  - `expense-item.tsx`: Enhanced expense display with payment tracking.
+  - `payment-distribution.tsx`: Shows payment status across apartments.
+  - `protected-route.tsx`: Client-side route protection component.
 - `src/lib/`: Core utilities, type definitions, and backend communication logic.
   - `firebase.ts`: Initializes and exports Firebase services (Firestore, Auth, Messaging).
+  - `firebase-client.ts`: Client-side Firebase configuration.
+  - `firebase-admin.ts`: Server-side Firebase Admin SDK configuration.
   - `firestore.ts`: Contains all functions for interacting with the Firestore database (CRUD operations for users, expenses, etc.).
   - `types.ts`: TypeScript type definitions for `User`, `Category`, `Expense`, etc.
+  - `expense-utils.ts`: Utility functions for expense calculations and payment tracking.
+  - `payment-utils.ts`: Payment-related utility functions.
+  - `auth-utils.ts`: Authentication helper functions.
+  - `auth-fallback.ts`: Fallback authentication for development.
   - `push-notifications.ts`: Manages requesting user permission for notifications and handling FCM tokens.
   - `utils.ts`: Utility functions, including `cn` for merging Tailwind classes.
 - `src/context/`: Contains React context providers for global state management.
   - `auth-context.tsx`: Manages user authentication state, including login/logout and the current user object.
 - `src/hooks/`: Custom React hooks.
   - `use-toast.ts`: Hook for displaying toast notifications.
+  - `use-apartments.ts`: Hook for managing apartment data.
+  - `use-mobile.tsx`: Hook for detecting mobile devices.
 - `src/ai/`: Contains Genkit flows and configuration for AI-powered features.
 - `public/`: Static assets, including the `firebase-messaging-sw.js` service worker for push notifications.
 
@@ -91,6 +107,21 @@ The application uses **Firestore** as its database. All database interactions ar
 4. When a user performs an action (e.g., adding an expense), the relevant component calls a handler function in `ApartmentShareApp`.
 5. This handler function then calls the appropriate function in `src/lib/firestore.ts` to update the database.
 6. The local state is then updated with the new data, causing the UI to re-render.
+
+### Expense Division System
+
+The application features an advanced expense division system that automatically splits expenses across apartments and tracks payments:
+
+- **Automatic Division**: Expenses are automatically divided equally among all apartments
+- **Payment Tracking**: Expense owners can mark apartments as paid when they receive payment
+- **Outstanding Balance**: Prominently displays total outstanding amounts
+- **Visual Indicators**: Clear payment status for each apartment
+
+Key files:
+
+- `src/lib/expense-utils.ts`: Core calculation logic
+- `src/components/outstanding-balance.tsx`: Outstanding amount display
+- `src/components/payment-distribution.tsx`: Payment status visualization
 
 ### Push Notifications
 

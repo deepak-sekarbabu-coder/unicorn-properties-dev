@@ -1,10 +1,10 @@
-# ApartmentShare Application Documentation
+# Unicorn Properties Application Documentation
 
-Welcome to the ApartmentShare application! This guide will walk you through its features and how to use them effectively.
+Welcome to the Unicorn Properties application! This guide will walk you through its features and how to use them effectively.
 
 ## 1. Overview
 
-ApartmentShare is a web application designed to help roommates and apartment dwellers manage shared expenses seamlessly. It provides a centralized platform to track who paid for what, calculate balances, and gain insights into spending habits.
+Unicorn Properties is a web application designed to help roommates and apartment dwellers manage shared expenses seamlessly. It provides a centralized platform to track who paid for what, calculate balances, and gain insights into spending habits.
 
 ## 2. Getting Started: Logging In
 
