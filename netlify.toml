@@ -9,31 +9,13 @@
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
 
-# Handle client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin", "user"]}
-
-# API routes
+# API routes - MUST come first and be specific
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/___netlify-handler"
   status = 200
 
-# Handle authentication routes
-[[redirects]]
-  from = "/login"
-  to = "/login/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/dashboard"
-  to = "/dashboard/index.html"
-  status = 200
-
-# Fallback for all other routes
+# Fallback for client-side routing - MUST come last
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -50,7 +32,15 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.google.com wss://*.firebaseio.com;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.google.com https://firestore.googleapis.com wss://*.firebaseio.com;"
+
+# API headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
 
 # Cache static assets
 [[headers]]

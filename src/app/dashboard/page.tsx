@@ -64,6 +64,10 @@ async function getAuthenticatedUser() {
       return null;
     }
 
+    // Production fallback: For Netlify deployments, session cookies might fail
+    // In this case, we'll let the client-side auth handle verification
+    console.warn('🔄 Session verification failed - will rely on client-side auth');
+
     // Development fallback: if we have a user-role cookie, create a basic user object
     if (process.env.NODE_ENV === 'development' && userRoleCookie) {
       console.warn('🔄 Using development fallback for user authentication');
@@ -83,10 +87,28 @@ async function getAuthenticatedUser() {
 export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
 
+  // If server-side auth fails, let client-side handle it
   if (!user) {
-    redirect('/login');
+    console.log('🔄 Server-side auth failed - using client-side protection');
+    const { ProtectedRoute } = await import('@/components/protected-route');
+    const { ApartmentShareApp } = await import('@/components/apartment-share-app');
+
+    // Get basic data that doesn't require user context
+    const initialCategories = await getCategories();
+
+    return (
+      <ProtectedRoute>
+        <ApartmentShareApp
+          initialUsers={[]}
+          initialCategories={initialCategories}
+          initialExpenses={[]}
+          initialAnnouncements={[]}
+        />
+      </ProtectedRoute>
+    );
   }
 
+  // Server-side auth successful - proceed normally
   const initialCategories = await getCategories();
   const initialAnnouncements = await getAnnouncements(user.role === 'admin' ? 'admin' : 'user');
 

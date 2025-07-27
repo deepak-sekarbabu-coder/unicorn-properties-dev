@@ -1,5 +1,5 @@
-# API routes
+# API routes - must come first
 /api/* /.netlify/functions/___netlify-handler 200
 
-# Client-side routing fallback
+# Client-side routing fallback - must come last
 /* /index.html 200

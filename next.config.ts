@@ -18,18 +18,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Netlify configuration
-  output: 'standalone',
+  // Remove standalone output for Netlify - let the plugin handle it
   trailingSlash: false,
-  // Ensure proper handling of dynamic routes
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-    ];
-  },
   // Handle client-side routing
   async redirects() {
     return [

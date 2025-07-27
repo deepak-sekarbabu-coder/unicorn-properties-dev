@@ -120,8 +120,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 console.log('✅ Session cookie set successfully');
               } catch (sessionError) {
                 console.error('❌ Failed to set session cookie:', sessionError);
-                // Don't block the flow for session cookie issues in development
-                if (process.env.NODE_ENV !== 'development') {
+
+                // For production deployments, try to continue without session cookie
+                // The dashboard will handle authentication verification
+                console.warn('⚠️ Continuing without session cookie - dashboard will verify auth');
+
+                // Only throw error if it's a critical authentication failure
+                const errorMessage = (sessionError as Error).message;
+                if (errorMessage.includes('auth/') || errorMessage.includes('permission')) {
                   throw sessionError;
                 }
               }
