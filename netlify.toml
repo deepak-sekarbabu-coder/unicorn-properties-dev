@@ -5,12 +5,11 @@
 # Secrets scanning configuration
 [build.environment]
   SECRETS_SCAN_OMIT_PATHS = ".env.example,.env.local,node_modules/**,docs/**"
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-  NODE_VERSION = "18"
-  NPM_FLAGS = "--legacy-peer-deps"
 
 # API routes - MUST come first and be specific
 [[redirects]]
