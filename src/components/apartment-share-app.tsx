@@ -141,6 +141,7 @@ export function ApartmentShareApp({
   const [filterCategory, setFilterCategory] = React.useState('all');
   const [filterPaidBy, setFilterPaidBy] = React.useState('all');
   const [filterMonth, setFilterMonth] = React.useState('all');
+  const [analyticsMonth, setAnalyticsMonth] = React.useState('all');
 
   const [userSearch, setUserSearch] = React.useState('');
   const [announcementMessage, setAnnouncementMessage] = React.useState('');
@@ -506,8 +507,13 @@ export function ApartmentShareApp({
   }, [users, userSearch]);
 
   const analyticsData = React.useMemo(() => {
+    // Filter expenses by selected month for analytics
+    const filteredExpenses = analyticsMonth === 'all'
+      ? expenses
+      : expenses.filter(e => format(new Date(e.date), 'yyyy-MM') === analyticsMonth);
+
     const categorySpending = categories.map(category => {
-      const total = expenses
+      const total = filteredExpenses
         .filter(e => e.categoryId === category.id)
         .reduce((sum, e) => sum + e.amount, 0);
       return {
@@ -528,7 +534,7 @@ export function ApartmentShareApp({
       .reverse();
 
     return { categorySpending, monthlySpending };
-  }, [expenses, categories]);
+  }, [expenses, categories, analyticsMonth]);
 
   React.useEffect(() => {
     if (role !== 'admin' && view === 'admin') {
@@ -1035,10 +1041,51 @@ export function ApartmentShareApp({
 
   const AnalyticsView = () => (
     <div className="grid gap-6">
+      {/* Month Filter */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Analytics Filters</CardTitle>
+          <CardDescription>Filter your spending analytics by month</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label htmlFor="analytics-month" className="text-sm font-medium">
+                Month:
+              </label>
+              <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
+                <SelectTrigger className="w-[180px]" id="analytics-month">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {expenseMonths.map(month => (
+                    <SelectItem key={month} value={month}>
+                      {format(new Date(month + '-01'), 'MMMM yyyy')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {analyticsMonth !== 'all' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAnalyticsMonth('all')}
+              >
+                Clear Filter
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Spending by Category</CardTitle>
-          <CardDescription>A breakdown of expenses by category for your apartment.</CardDescription>
+          <CardDescription>
+            A breakdown of expenses by category{analyticsMonth !== 'all' ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}` : ' for your apartment'}.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-[300px] w-full">
@@ -1057,6 +1104,7 @@ export function ApartmentShareApp({
           <CardTitle>Spending Over Time</CardTitle>
           <CardDescription>
             Total expenses over the last 6 months for your apartment.
+            {analyticsMonth !== 'all' && ' (Category breakdown filtered by selected month above)'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1401,7 +1449,7 @@ export function ApartmentShareApp({
           <SidebarHeader>
             <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoClick}>
               <Package2 className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">ApartmentShare</span>
+              <span className="text-lg font-semibold">Unicorn Properties</span>
             </div>
           </SidebarHeader>
           <SidebarContent>

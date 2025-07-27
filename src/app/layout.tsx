@@ -7,8 +7,8 @@ import { ToastProvider } from '@/components/ui/toast-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ApartmentShare',
-  description: 'Share and track apartment expenses seamlessly.',
+  title: 'Unicorn Properties',
+  description: 'Manage and track property expenses seamlessly.',
 };
 
 export default function RootLayout({
