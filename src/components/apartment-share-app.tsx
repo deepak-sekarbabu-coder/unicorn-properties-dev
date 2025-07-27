@@ -280,7 +280,10 @@ export function ApartmentShareApp({
     return (
       <>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoNavigation}>
+          <div
+            className="flex items-center gap-2 p-2 cursor-pointer"
+            onClick={handleLogoNavigation}
+          >
             <Package2 className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold">Unicorn Properties</span>
           </div>
@@ -1110,7 +1113,11 @@ export function ApartmentShareApp({
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="ghost" onClick={handleClearFilters} className="sm:col-span-2 lg:col-span-1">
+            <Button
+              variant="ghost"
+              onClick={handleClearFilters}
+              className="sm:col-span-2 lg:col-span-1"
+            >
               Clear Filters
             </Button>
           </div>
@@ -1132,7 +1139,9 @@ export function ApartmentShareApp({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg sm:text-xl">Analytics Filters</CardTitle>
-            <CardDescription className="text-sm">Filter your spending analytics by month</CardDescription>
+            <CardDescription className="text-sm">
+              Filter your spending analytics by month
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -1193,66 +1202,71 @@ export function ApartmentShareApp({
                     .
                   </CardDescription>
                 </CardHeader>
-                  <CardContent className="p-3 sm:p-6">
-                    {filteredData.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <p className="text-sm text-muted-foreground">
-                          No expenses found for the selected period.
-                        </p>
-                      </div>
-                    ) : (
-                      <ChartContainer config={{}} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
-                        <BarChart data={filteredData} accessibilityLayer>
-                          <CartesianGrid vertical={false} />
-                            <XAxis
-                              dataKey="name"
-                              tickLine={false}
-                              tickMargin={10}
-                              axisLine={false}
-                              fontSize={11}
-                              angle={-45}
-                              textAnchor="end"
-                              height={60}
-                              interval={0}
-                            />
-                            <YAxis fontSize={11} />
-                            <RechartsTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                            <Bar dataKey="total" radius={8} />
-                          </BarChart>
-                        </ChartContainer>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg sm:text-xl">Spending Over Time</CardTitle>
-                    <CardDescription className="text-sm">
-                      Total expenses over the last 6 months for your apartment.
-                      {analyticsMonth !== 'all' && ' (Category breakdown filtered by selected month above)'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-3 sm:p-6">
-                    <ChartContainer config={{}} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={analyticsData.monthlySpending}>
-                          <CartesianGrid vertical={false} />
-                          <XAxis
-                            dataKey="name"
-                            fontSize={11}
-                            height={40}
-                            interval={0}
-                          />
-                          <YAxis fontSize={11} />
-                          <RechartsTooltip />
-                          <Legend />
-                          <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                <CardContent className="p-3 sm:p-6">
+                  {filteredData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <p className="text-sm text-muted-foreground">
+                        No expenses found for the selected period.
+                      </p>
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={{}}
+                      className="h-[250px] sm:h-[300px] lg:h-[350px] w-full"
+                    >
+                      <BarChart data={filteredData} accessibilityLayer>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                          dataKey="name"
+                          tickLine={false}
+                          tickMargin={10}
+                          axisLine={false}
+                          fontSize={11}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                          interval={0}
+                        />
+                        <YAxis fontSize={11} />
+                        <RechartsTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent hideLabel />}
+                        />
+                        <Bar dataKey="total" radius={8} />
+                      </BarChart>
                     </ChartContainer>
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg sm:text-xl">Spending Over Time</CardTitle>
+                  <CardDescription className="text-sm">
+                    Total expenses over the last 6 months for your apartment.
+                    {analyticsMonth !== 'all' &&
+                      ' (Category breakdown filtered by selected month above)'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <ChartContainer
+                    config={{}}
+                    className="h-[250px] sm:h-[300px] lg:h-[350px] w-full"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analyticsData.monthlySpending}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="name" fontSize={11} height={40} interval={0} />
+                        <YAxis fontSize={11} />
+                        <RechartsTooltip />
+                        <Legend />
+                        <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
           </>
         )}
       </div>
@@ -1300,7 +1314,9 @@ export function ApartmentShareApp({
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{u.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{u.apartment || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {u.apartment || 'N/A'}
+                      </p>
                       <p className="text-sm text-muted-foreground truncate">{u.phone || 'N/A'}</p>
                       <div className="flex gap-1 flex-wrap mt-2">
                         <Badge
@@ -1630,7 +1646,9 @@ export function ApartmentShareApp({
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>
                   <p className="truncate">{user.name}</p>
-                  <p className="font-normal text-muted-foreground truncate">{user.phone || user.email}</p>
+                  <p className="font-normal text-muted-foreground truncate">
+                    {user.phone || user.email}
+                  </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <UserProfileDialog user={user} onUpdateUser={handleUpdateUser}>

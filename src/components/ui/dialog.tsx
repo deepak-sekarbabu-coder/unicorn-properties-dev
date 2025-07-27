@@ -35,32 +35,36 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
-  >(({ className, children, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const titleId = React.useId();
   const descriptionId = React.useId();
 
-    // Recursively check for DialogTitle and DialogDescription in children
-    const findComponentInChildren = (children: React.ReactNode, targetComponent: React.ComponentType<any>): boolean => {
-      return React.Children.toArray(children).some(child => {
-        if (!React.isValidElement(child)) return false;
+  // Recursively check for DialogTitle and DialogDescription in children
+  const findComponentInChildren = (
+    children: React.ReactNode,
+    targetComponent: React.ComponentType<any>
+  ): boolean => {
+    return React.Children.toArray(children).some(child => {
+      if (!React.isValidElement(child)) return false;
 
-        // Direct type match
-        if (child.type === targetComponent) return true;
+      // Direct type match
+      if (child.type === targetComponent) return true;
 
-        // Display name match
-        if (typeof child.type === 'object' && child.type?.displayName === targetComponent.displayName) return true;
+      // Display name match
+      if (typeof child.type === 'object' && child.type?.displayName === targetComponent.displayName)
+        return true;
 
-        // Recursively check children
-        if (child.props?.children) {
-          return findComponentInChildren(child.props.children, targetComponent);
-        }
+      // Recursively check children
+      if (child.props?.children) {
+        return findComponentInChildren(child.props.children, targetComponent);
+      }
 
-        return false;
-      });
-    };
+      return false;
+    });
+  };
 
-    const hasTitle = findComponentInChildren(children, DialogTitle);
-    const hasDescription = findComponentInChildren(children, DialogDescription);
+  const hasTitle = findComponentInChildren(children, DialogTitle);
+  const hasDescription = findComponentInChildren(children, DialogDescription);
 
   return (
     <DialogPortal>
