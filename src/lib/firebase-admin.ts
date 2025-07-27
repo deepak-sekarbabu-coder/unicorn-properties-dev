@@ -24,7 +24,7 @@ try {
         type: 'service_account',
         project_id: process.env.FIREBASE_PROJECT_ID,
         private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-        private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        private_key: process.env.FIREBASE_PRIVATE_KEY,
         client_email: process.env.FIREBASE_CLIENT_EMAIL,
         client_id: process.env.FIREBASE_CLIENT_ID,
         auth_uri: 'https://accounts.google.com/o/oauth2/auth',
@@ -40,6 +40,14 @@ try {
         'Firebase service account credentials are not set in the environment. ' +
           'Either set individual variables (FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL) ' +
           'or set FIREBASE_SERVICE_ACCOUNT_JSON with the complete JSON.'
+      );
+    }
+
+    // Ensure private_key has correct newline characters.
+    if (serviceAccount && serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(
+        /\\n/g,
+        '\n'
       );
     }
 

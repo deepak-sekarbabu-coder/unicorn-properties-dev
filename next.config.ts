@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Use src directory for app directory
+  dir: './src',
   images: {
     remotePatterns: [
       {
