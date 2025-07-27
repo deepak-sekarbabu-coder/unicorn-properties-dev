@@ -2,6 +2,8 @@
 
 ApartmentShare is a modern web application designed to help roommates and apartment dwellers manage shared expenses seamlessly. It provides a centralized platform to track who paid for what, calculate balances, and stay updated with group announcements.
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/81d761ff-9a71-4099-b92b-52ada05f2198/deploy-status)](https://app.netlify.com/projects/apartment-share/deploys)
+
 ## Features
 
 - **Expense Tracking**: Log shared expenses, assign who paid, and categorize them. The app automatically calculates what each person owes.
