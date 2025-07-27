@@ -49,7 +49,7 @@ import { useRouter } from 'next/navigation';
 
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
-import type { Announcement, Category, Expense, User } from '@/lib/types';
+import type { Announcement, Category, Expense, User, Apartment } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
@@ -148,6 +148,7 @@ export function ApartmentShareApp({
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [announcements, setAnnouncements] = React.useState<Announcement[]>(initialAnnouncements);
+  const [apartments, setApartments] = React.useState<Apartment[]>([]);
 
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
@@ -170,25 +171,38 @@ export function ApartmentShareApp({
   }, [user]);
 
   React.useEffect(() => {
-    const fetchDataForApartment = async () => {
+    const fetchData = async () => {
+      setIsLoadingData(true);
+      
+      // Fetch apartments
+      try {
+        const allApartments = await firestore.getApartments();
+        setApartments(allApartments);
+      } catch (error) {
+        console.error('Error fetching apartments:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch apartment data',
+          variant: 'destructive',
+        });
+      }
+      
       if (user?.apartment) {
-        setIsLoadingData(true);
         const apartmentUsers = await firestore.getUsers(user.apartment);
         const apartmentExpenses = await firestore.getExpenses(user.apartment);
         setUsers(apartmentUsers);
         setExpenses(apartmentExpenses);
-        setIsLoadingData(false);
       } else if (user && !showApartmentDialog) {
-        // If user has no apartment but dialog is not shown (e.g. admin without apartment), fetch all
-        setIsLoadingData(true);
         const allUsers = await firestore.getUsers();
         const allExpenses = await firestore.getExpenses();
         setUsers(allUsers);
         setExpenses(allExpenses);
-        setIsLoadingData(false);
       }
+      
+      setIsLoadingData(false);
     };
-    fetchDataForApartment();
+    
+    fetchData();
   }, [user, showApartmentDialog]);
 
   const role = user?.role || 'user';
@@ -218,7 +232,7 @@ export function ApartmentShareApp({
   const userBalances = React.useMemo(() => {
     return users.map(u => {
       const totalPaid = expenses
-        .filter(e => e.paidBy === u.id)
+        .filter(e => e.paidByApartment === u.apartment)
         .reduce((acc, e) => acc + e.amount, 0);
       const balance = totalPaid - perUserShare;
       return { ...u, balance };
@@ -238,10 +252,44 @@ export function ApartmentShareApp({
   };
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
-    const newExpense = await firestore.addExpense(newExpenseData);
-    if (newExpense.apartment === user?.apartment) {
-      setExpenses(prev => [newExpense, ...prev]);
+    // Find paying user and their apartment
+    const payingUser = users.find(u => u.id === newExpenseData.paidByApartment);
+    if (!payingUser || !payingUser.apartment) {
+      toast({
+        title: 'Error',
+        description: 'Paying user must belong to an apartment',
+        variant: 'destructive',
+      });
+      return;
     }
+    const payingApartmentId = payingUser.apartment;
+    
+    // Get all unique apartment IDs
+    const apartmentArray = users.map(u => u.apartment).filter(Boolean) as string[];
+    const allApartmentIds = Array.from(new Set(apartmentArray));
+    
+    // Calculate per-apartment share
+    const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
+    const perApartmentShare = owingApartments.length > 0
+      ? newExpenseData.amount / owingApartments.length
+      : 0;
+    
+    // Create expense with apartment debts
+    const expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'> = {
+      ...newExpenseData,
+      paidByApartment: payingApartmentId,
+      owedByApartments: owingApartments,
+      perApartmentShare
+    };
+    
+    const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
+    setExpenses(prev => [newExpense, ...prev]);
+    
+    // Show success message
+    toast({
+      title: 'Expense Added',
+      description: `Expense split between ${owingApartments.length} apartments`,
+    });
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
@@ -377,15 +425,16 @@ export function ApartmentShareApp({
       'Description',
       'Amount',
       'Date',
-      'Paid By',
+      'Paid By Apartment',
       'Category',
       'Receipt URL',
-      'Apartment',
     ];
     csvRows.push(headers.join(','));
 
     for (const expense of expenses) {
-      const paidBy = getUserById(expense.paidBy)?.name || 'N/A';
+      const paidByApartment = expense.paidByApartment;
+      const apartment = apartments.find(a => a.id === paidByApartment);
+      const apartmentName = apartment?.name || paidByApartment;
       const category = getCategoryById(expense.categoryId)?.name || 'N/A';
       const formattedDate = format(new Date(expense.date), 'yyyy-MM-dd');
       const values = [
@@ -393,10 +442,9 @@ export function ApartmentShareApp({
         `"${expense.description}"`,
         expense.amount,
         formattedDate,
-        paidBy,
+        apartmentName,
         category,
         expense.receipt || '',
-        expense.apartment,
       ].join(',');
       csvRows.push(values);
     }
@@ -418,15 +466,16 @@ export function ApartmentShareApp({
     });
   };
 
-  const filteredExpenses = React.useMemo(() => {
-    return expenses
+  const [filteredExpenses, setFilteredExpenses] = React.useState<Expense[]>([]);
+  
+  React.useEffect(() => {
+    const filtered = expenses
       .filter(expense => expense.description.toLowerCase().includes(expenseSearch.toLowerCase()))
       .filter(expense => filterCategory === 'all' || expense.categoryId === filterCategory)
-      .filter(expense => filterPaidBy === 'all' || expense.paidBy === filterPaidBy)
-      .filter(
-        expense =>
-          filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth
-      );
+      .filter(expense => filterPaidBy === 'all' || expense.paidByApartment === filterPaidBy)
+      .filter(expense => filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth);
+    
+    setFilteredExpenses(filtered);
   }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
 
   const expenseMonths = React.useMemo(() => {
@@ -463,7 +512,7 @@ export function ApartmentShareApp({
         fill: `hsl(var(--chart-${(categories.indexOf(category) % 5) + 1}))`,
       };
     });
-
+    
     const monthlySpending = Array.from({ length: 6 })
       .map((_, i) => {
         const monthDate = subMonths(new Date(), i);
@@ -473,7 +522,7 @@ export function ApartmentShareApp({
         return { name: format(monthDate, 'MMM'), total };
       })
       .reverse();
-
+    
     return { categorySpending, monthlySpending };
   }, [expenses, categories]);
 
@@ -566,7 +615,7 @@ export function ApartmentShareApp({
             <CardDescription>The last 5 expenses added to your apartment.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ExpensesTable expenses={expenses} limit={5} showPayer />
+            <ExpensesTable expenses={expenses} limit={5} />
           </CardContent>
         </Card>
         <Card>
@@ -722,10 +771,10 @@ export function ApartmentShareApp({
                 <SelectValue placeholder="Filter by paid by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                {users.map(u => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.name}
+                <SelectItem value="all">All Apartments</SelectItem>
+                {apartments.map(a => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1030,11 +1079,9 @@ export function ApartmentShareApp({
   const ExpensesTable = ({
     expenses,
     limit,
-    showPayer = false,
   }: {
     expenses: Expense[];
     limit?: number;
-    showPayer?: boolean;
   }) => {
     const relevantExpenses = limit
       ? expenses
@@ -1051,7 +1098,7 @@ export function ApartmentShareApp({
             <TableHead>Paid by</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Amount</TableHead>
-            {role === 'admin' && !showPayer && (
+            {role === 'admin' && (
               <TableHead className="text-right">Actions</TableHead>
             )}
           </TableRow>
@@ -1060,7 +1107,9 @@ export function ApartmentShareApp({
           {relevantExpenses.length > 0 ? (
             relevantExpenses.map(expense => {
               const category = getCategoryById(expense.categoryId);
-              const expenseUser = getUserById(expense.paidBy);
+              const paidByApartment = expense.paidByApartment;
+              const apartment = apartments.find(a => a.id === paidByApartment);
+              const apartmentName = apartment?.name || paidByApartment;
               return (
                 <TableRow key={expense.id}>
                   <TableCell className="hidden sm:table-cell">
@@ -1086,14 +1135,14 @@ export function ApartmentShareApp({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{expenseUser?.name}</TableCell>
+                  <TableCell>{apartmentName}</TableCell>
                   <TableCell>
                     {formatDistanceToNow(new Date(expense.date), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     ₹{expense.amount.toFixed(2)}
                   </TableCell>
-                  {role === 'admin' && !showPayer && (
+                  {role === 'admin' && (
                     <TableCell className="text-right">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

@@ -7,7 +7,7 @@ export type User = {
   role?: 'user' | 'admin'; // Authentication role (system permissions)
   propertyRole?: 'tenant' | 'owner'; // Property relationship role
   fcmToken?: string; // For push notifications
-  apartment?: string;
+  apartment: string; // Apartment is now required
 };
 
 export type Category = {
@@ -16,15 +16,22 @@ export type Category = {
   icon: string;
 };
 
+export type Apartment = {
+  id: string;
+  name: string;
+  members: string[]; // User IDs
+};
+
 export type Expense = {
   id: string;
   description: string;
   amount: number;
   date: string; // ISO date string
-  paidBy: string; // User ID
+  paidByApartment: string; // Apartment ID that paid
+  owedByApartments: string[]; // Apartments that owe a share
+  perApartmentShare: number; // Amount each owing apartment owes
   categoryId: string; // Category ID
   receipt?: string; // Optional: data URI for the receipt image
-  apartment: string; // Apartment ID
 };
 
 export type Announcement = {

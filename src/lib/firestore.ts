@@ -12,11 +12,18 @@ import {
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Announcement, Category, Expense, User } from './types';
+import type { Announcement, Apartment, Category, Expense, User } from './types';
 
 const removeUndefined = (obj: Record<string, any>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
   return obj;
+};
+
+// Apartments
+export const getApartments = async (): Promise<Apartment[]> => {
+  const apartmentsQuery = query(collection(db, 'apartments'));
+  const apartmentSnapshot = await getDocs(apartmentsQuery);
+  return apartmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
 };
 
 // Users

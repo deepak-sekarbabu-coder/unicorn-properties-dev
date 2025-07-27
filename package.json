@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "format:staged": "prettier --write"
+    "format:staged": "prettier --write",
+    "insert-apartments": "tsx scripts/insertApartments.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",

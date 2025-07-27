@@ -8,6 +8,7 @@ import * as z from 'zod';
 import * as React from 'react';
 
 import type { User } from '@/lib/types';
+import { useApartments } from '@/hooks/use-apartments';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,7 @@ const userSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(['user', 'admin']),
   propertyRole: z.enum(['tenant', 'owner']).optional(),
+  apartment: z.string().min(1, 'Apartment is required'),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -65,8 +67,10 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
       phone: '',
       role: 'user',
       propertyRole: undefined,
+      apartment: '',
     },
   });
+  const { apartments } = useApartments();
 
   const onSubmit = (data: UserFormValues) => {
     setIsSaving(true);
@@ -169,6 +173,28 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                       <SelectContent>
                         <SelectItem value="tenant">Tenant</SelectItem>
                         <SelectItem value="owner">Owner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="apartment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apartment</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select apartment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {apartments.map(apartment => (
+                          <SelectItem key={apartment.id} value={apartment.id}>
+                            {apartment.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
