@@ -11,13 +11,13 @@ import {
   LogOut,
   Megaphone,
   Package2,
-  Paperclip,
   PieChart,
   PlusCircle,
   Search,
   Send,
   Settings,
   Trash2,
+  TrendingDown,
   TrendingUp,
   Wallet,
   XCircle,
@@ -37,6 +37,7 @@ import * as React from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { migrateAllExpenses } from '@/lib/expense-migration';
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
@@ -47,6 +48,9 @@ import { AddUserDialog } from '@/components/add-user-dialog';
 import { CategoryIcon } from '@/components/category-icon';
 import { EditCategoryDialog } from '@/components/edit-category-dialog';
 import { EditUserDialog } from '@/components/edit-user-dialog';
+import { ExpenseItem } from '@/components/expense-item';
+import { Icons } from '@/components/icons';
+import { OutstandingBalance } from '@/components/outstanding-balance';
 import { SelectApartmentDialog } from '@/components/select-apartment-dialog';
 import {
   AlertDialog,
@@ -111,16 +115,12 @@ import { Skeleton } from './ui/skeleton';
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
 interface ApartmentShareAppProps {
-  initialUsers: User[];
   initialCategories: Category[];
-  initialExpenses: Expense[];
   initialAnnouncements: Announcement[];
 }
 
 export function ApartmentShareApp({
-  initialUsers,
   initialCategories,
-  initialExpenses,
   initialAnnouncements,
 }: ApartmentShareAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
@@ -158,36 +158,54 @@ export function ApartmentShareApp({
     const fetchData = async () => {
       setIsLoadingData(true);
 
-      // Fetch apartments
       try {
+        // Always fetch all apartments
         const allApartments = await firestore.getApartments();
         setApartments(allApartments);
+
+        // If user is an admin or has no apartment assigned, fetch all users and expenses
+        if (user?.role === 'admin' || !user?.apartment) {
+          const allUsers = await firestore.getUsers();
+          const allExpenses = await firestore.getExpenses();
+
+          // Migrate expenses to new format
+          const migratedExpenses = await migrateAllExpenses(allExpenses, allApartments);
+
+          setUsers(allUsers);
+          setExpenses(migratedExpenses);
+        } else {
+          // For regular users, fetch their apartment&apos;s users and all relevant expenses
+          const apartmentUsers = await firestore.getUsers(user.apartment);
+
+          // Get all expenses where the user's apartment is either the payer or owes a share
+          const allExpenses = await firestore.getExpenses();
+
+          // Migrate expenses to new format
+          const migratedExpenses = await migrateAllExpenses(allExpenses, allApartments);
+
+          const relevantExpenses = migratedExpenses.filter(
+            expense =>
+              expense.paidByApartment === user.apartment ||
+              expense.owedByApartments?.includes(user.apartment)
+          );
+
+          setUsers(apartmentUsers);
+          setExpenses(relevantExpenses);
+        }
       } catch (error) {
-        console.error('Error fetching apartments:', error);
+        console.error('Error fetching data:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch apartment data',
+          description: 'Failed to fetch data',
           variant: 'destructive',
         });
+      } finally {
+        setIsLoadingData(false);
       }
-
-      if (user?.apartment) {
-        const apartmentUsers = await firestore.getUsers(user.apartment);
-        const apartmentExpenses = await firestore.getExpenses(user.apartment);
-        setUsers(apartmentUsers);
-        setExpenses(apartmentExpenses);
-      } else if (user && !showApartmentDialog) {
-        const allUsers = await firestore.getUsers();
-        const allExpenses = await firestore.getExpenses();
-        setUsers(allUsers);
-        setExpenses(allExpenses);
-      }
-
-      setIsLoadingData(false);
     };
 
     fetchData();
-  }, [user, showApartmentDialog]);
+  }, [user, showApartmentDialog, toast]);
 
   const role = user?.role || 'user';
 
@@ -223,7 +241,6 @@ export function ApartmentShareApp({
     });
   }, [users, expenses, perUserShare]);
 
-  const loggedInUserBalance = user ? userBalances.find(b => b.id === user.id)?.balance : 0;
   const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
   const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
 
@@ -237,26 +254,27 @@ export function ApartmentShareApp({
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     console.log('[handleAddExpense] Input:', newExpenseData);
-    // Find paying user and their apartment
-    const payingUser = users.find(u => u.id === newExpenseData.paidByApartment);
-    if (!payingUser || !payingUser.apartment) {
+
+    if (!user?.apartment) {
       toast({
         title: 'Error',
-        description: 'Paying user must belong to an apartment',
+        description: 'You must belong to an apartment to add an expense',
         variant: 'destructive',
       });
       return;
     }
-    const payingApartmentId = payingUser.apartment;
 
-    // Get all unique apartment IDs
-    const apartmentArray = users.map(u => u.apartment).filter(Boolean) as string[];
-    const allApartmentIds = Array.from(new Set(apartmentArray));
+    const payingApartmentId = user.apartment;
 
-    // Calculate per-apartment share
+    // Get all unique apartment IDs (7 apartments total)
+    const allApartmentIds = apartments.map(apt => apt.id);
+
+    // Calculate per-apartment share (divide by 7 apartments)
+    const perApartmentShare = newExpenseData.amount / allApartmentIds.length;
+
+    // All other apartments owe money (excluding the paying apartment)
     const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
-    const perApartmentShare =
-      owingApartments.length > 0 ? newExpenseData.amount / owingApartments.length : 0;
+
     console.log('[handleAddExpense] payingApartmentId:', payingApartmentId);
     console.log('[handleAddExpense] allApartmentIds:', allApartmentIds);
     console.log('[handleAddExpense] owingApartments:', owingApartments);
@@ -268,6 +286,7 @@ export function ApartmentShareApp({
       paidByApartment: payingApartmentId,
       owedByApartments: owingApartments,
       perApartmentShare,
+      paidByApartments: [], // Initialize as empty - no one has paid yet
     };
     console.log('[handleAddExpense] expenseWithApartmentDebts:', expenseWithApartmentDebts);
 
@@ -276,18 +295,10 @@ export function ApartmentShareApp({
     setExpenses(prev => [newExpense, ...prev]);
 
     // Show success message
+    const totalOwedByOthers = owingApartments.length * perApartmentShare;
     toast({
       title: 'Expense Added',
-      description: `Expense split between ${owingApartments.length} apartments`,
-    });
-  };
-
-  const handleDeleteExpense = async (expenseId: string) => {
-    await firestore.deleteExpense(expenseId);
-    setExpenses(prev => prev.filter(e => e.id !== expenseId));
-    toast({
-      title: 'Expense Deleted',
-      description: 'The expense has been successfully removed.',
+      description: `₹${newExpenseData.amount} expense split among ${allApartmentIds.length} apartments. Your share: ₹${perApartmentShare.toFixed(2)}. You are owed ₹${totalOwedByOthers.toFixed(2)} from others.`,
     });
   };
 
@@ -373,7 +384,7 @@ export function ApartmentShareApp({
         });
       }
       setAnnouncementMessage('');
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to send announcement.',
@@ -576,31 +587,229 @@ export function ApartmentShareApp({
     }
   };
 
+  // Debug function to log expense calculations
+  const debugExpenseCalculations = React.useCallback(() => {
+    console.log('=== EXPENSE CALCULATION DEBUG ===');
+    expenses.forEach((expense, index) => {
+      const unpaidApartments = expense.owedByApartments?.filter(
+        apartmentId => !expense.paidByApartments?.includes(apartmentId)
+      ) || [];
+
+      console.log(`Expense ${index + 1}:`, {
+        description: expense.description,
+        amount: expense.amount,
+        paidByApartment: expense.paidByApartment,
+        owedByApartments: expense.owedByApartments,
+        paidByApartments: expense.paidByApartments || [],
+        unpaidApartments,
+        perApartmentShare: expense.perApartmentShare,
+        totalStillOwed: unpaidApartments.length * expense.perApartmentShare,
+        isCurrentUserPaying: expense.paidByApartment === currentUserApartment,
+        isCurrentUserOwing: expense.owedByApartments?.includes(currentUserApartment),
+        hasCurrentUserPaid: expense.paidByApartments?.includes(currentUserApartment),
+      });
+    });
+    console.log('=== END DEBUG ===');
+  }, [expenses, currentUserApartment]);
+
+  // Calculate apartment balances
+  const apartmentBalances = React.useMemo(() => {
+    const balances: Record<
+      string,
+      {
+        name: string;
+        balance: number;
+        owes: Record<string, number>;
+        isOwed: Record<string, number>;
+      }
+    > = {};
+
+    // Initialize balances for all apartments
+    apartments.forEach(apartment => {
+      balances[apartment.id] = {
+        name: apartment.name,
+        balance: 0,
+        owes: {},
+        isOwed: {},
+      };
+    });
+
+    // Process each expense to calculate balances
+    expenses.forEach(expense => {
+      const { paidByApartment, owedByApartments, perApartmentShare, paidByApartments = [] } = expense;
+
+      // Get apartments that still owe money (haven't paid yet)
+      const unpaidApartments = owedByApartments?.filter(
+        apartmentId => !paidByApartments.includes(apartmentId)
+      ) || [];
+
+      // Calculate the amount still owed to the paying apartment (only from unpaid apartments)
+      const totalStillOwed = unpaidApartments.length * perApartmentShare;
+
+      // Add to the paid apartment's balance (only the amount still owed by unpaid apartments)
+      if (balances[paidByApartment]) {
+        balances[paidByApartment].balance += totalStillOwed;
+
+        // Track how much this apartment is owed by others (only unpaid apartments)
+        unpaidApartments.forEach(apartmentId => {
+          if (apartmentId !== paidByApartment) {
+            balances[paidByApartment].isOwed[apartmentId] =
+              (balances[paidByApartment].isOwed[apartmentId] || 0) + perApartmentShare;
+          }
+        });
+      }
+
+      // Subtract from the unpaid apartments' balances only
+      unpaidApartments.forEach(apartmentId => {
+        if (balances[apartmentId] && apartmentId !== paidByApartment) {
+          balances[apartmentId].balance -= perApartmentShare;
+
+          // Track how much this apartment owes to others
+          balances[apartmentId].owes[paidByApartment] =
+            (balances[apartmentId].owes[paidByApartment] || 0) + perApartmentShare;
+        }
+      });
+
+      // For apartments that have paid their share but aren't the paying apartment,
+      // their balance should be 0 for this expense (they don't owe anything)
+      paidByApartments.forEach(apartmentId => {
+        if (apartmentId !== paidByApartment && owedByApartments?.includes(apartmentId)) {
+          // This apartment has paid their share, so they don't owe anything for this expense
+          // Their balance remains unchanged (neither positive nor negative for this expense)
+        }
+      });
+    });
+
+    // Debug the calculations
+    if (process.env.NODE_ENV === 'development') {
+      debugExpenseCalculations();
+      console.log('Calculated apartment balances:', balances);
+      console.log('Current user apartment:', currentUserApartment);
+    }
+
+    return balances;
+  }, [expenses, apartments, debugExpenseCalculations]);
+
+  // Get current user's apartment ID
+  const currentUserApartment = user?.apartment;
+
+  // Get balances for the current user's apartment
+  const currentApartmentBalance = currentUserApartment
+    ? apartmentBalances[currentUserApartment]
+    : null;
+
+  // Use apartment balance instead of user balance for notifications
+  const loggedInUserBalance = currentApartmentBalance ? currentApartmentBalance.balance : 0;
+
   const DashboardView = () => (
     <div className="grid gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {userBalances.map(u => (
-          <Card key={u.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{u.name}</CardTitle>
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={u.avatar} alt={u.name} />
-                <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </CardHeader>
-            <CardContent>
+
+
+
+
+      {/* Apartment Balances */}
+      {currentApartmentBalance && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Apartment Balances</CardTitle>
+            <CardDescription>Summary of amounts owed between apartments</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* What you are owed */}
+            {Object.entries(currentApartmentBalance.isOwed).map(
+              ([apartmentId, amount]) =>
+                amount > 0 && (
+                  <div
+                    key={`owed-${apartmentId}`}
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-green-100">
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">owes your apartment</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-semibold text-green-700">
+                      ₹{amount.toFixed(2)}
+                    </span>
+                  </div>
+                )
+            )}
+
+            {/* What you owe */}
+            {Object.entries(currentApartmentBalance.owes).map(
+              ([apartmentId, amount]) =>
+                amount > 0 && (
+                  <div
+                    key={`owes-${apartmentId}`}
+                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-red-100">
+                        <TrendingDown className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          You owe {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">for shared expenses</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-semibold text-red-700">₹{amount.toFixed(2)}</span>
+                  </div>
+                )
+            )}
+
+            {/* Net balance */}
+            {currentApartmentBalance.balance !== 0 && (
               <div
-                className={`text-2xl font-bold ${u.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`mt-4 p-4 rounded-lg ${currentApartmentBalance.balance > 0 ? 'bg-green-50' : 'bg-red-50'}`}
               >
-                {u.balance >= 0
-                  ? `+₹${u.balance.toFixed(2)}`
-                  : `-₹${Math.abs(u.balance).toFixed(2)}`}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {currentApartmentBalance.balance > 0
+                        ? 'Your apartment is owed'
+                        : 'Your apartment owes'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {currentApartmentBalance.balance > 0
+                        ? 'in total across all apartments'
+                        : 'in total to other apartments'}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-xl font-bold ${currentApartmentBalance.balance > 0 ? 'text-green-700' : 'text-red-700'}`}
+                  >
+                    {currentApartmentBalance.balance > 0 ? '+' : ''}₹
+                    {Math.abs(currentApartmentBalance.balance).toFixed(2)}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">{u.balance >= 0 ? 'is owed' : 'owes'}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            )}
+
+            {/* Calculation verification for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-sm mb-2">Calculation Verification</h4>
+                <div className="text-xs space-y-1">
+                  <p>Total apartments: {apartments.length}</p>
+                  <p>Total expenses paid by your apartment: {expenses.filter(e => e.paidByApartment === currentUserApartment).length}</p>
+                  <p>Total amount you paid: ₹{expenses.filter(e => e.paidByApartment === currentUserApartment).reduce((sum, e) => sum + e.amount, 0).toFixed(2)}</p>
+                  <p>Total amount still owed to you: ₹{Object.values(currentApartmentBalance.isOwed).reduce((sum, amount) => sum + amount, 0).toFixed(2)}</p>
+                  <p>Total amount you still owe: ₹{Object.values(currentApartmentBalance.owes).reduce((sum, amount) => sum + amount, 0).toFixed(2)}</p>
+                  <p>Your net balance: {currentApartmentBalance.balance >= 0 ? '+' : ''}₹{currentApartmentBalance.balance.toFixed(2)}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -608,7 +817,7 @@ export function ApartmentShareApp({
             <CardDescription>The last 5 expenses added to your apartment.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ExpensesTable expenses={expenses} limit={5} />
+            <ExpensesList expenses={expenses} limit={5} />
           </CardContent>
         </Card>
         <Card>
@@ -792,7 +1001,7 @@ export function ApartmentShareApp({
         </div>
       </CardHeader>
       <CardContent>
-        <ExpensesTable expenses={filteredExpenses} />
+        <ExpensesList expenses={filteredExpenses} />
       </CardContent>
     </Card>
   );
@@ -930,7 +1139,7 @@ export function ApartmentShareApp({
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete{' '}
-                            <strong>{u.name}</strong>'s account.
+                            <strong>{u.name}</strong>&apos;s account.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -1021,7 +1230,7 @@ export function ApartmentShareApp({
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <CategoryIcon name={cat.icon as any} />
+                    <CategoryIcon name={cat.icon as keyof typeof Icons} />
                     <span>{cat.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1069,109 +1278,34 @@ export function ApartmentShareApp({
     </div>
   );
 
-  const ExpensesTable = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
+  const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
           .slice(0, limit)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+    const handleExpenseUpdate = (updatedExpense: Expense) => {
+      setExpenses(prev => prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp)));
+    };
+
+    if (relevantExpenses.length === 0) {
+      return <div className="text-center py-8 text-muted-foreground">No expenses found.</div>;
+    }
+
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="hidden sm:table-cell">Category</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Paid by</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            {role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {relevantExpenses.length > 0 ? (
-            relevantExpenses.map(expense => {
-              const category = getCategoryById(expense.categoryId);
-              const paidByApartment = expense.paidByApartment;
-              const apartment = apartments.find(a => a.id === paidByApartment);
-              const apartmentName = apartment?.name || paidByApartment;
-              return (
-                <TableRow key={expense.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center gap-2">
-                      {category && <CategoryIcon name={category.icon as any} className="h-9 w-9" />}
-                      <div>
-                        <p className="font-medium">{category?.name}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {expense.description}
-                      {expense.receipt && (
-                        <a
-                          href={expense.receipt}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-500 hover:underline"
-                        >
-                          <Paperclip className="h-4 w-4" />
-                        </a>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{apartmentName}</TableCell>
-                  <TableCell>
-                    {formatDistanceToNow(new Date(expense.date), { addSuffix: true })}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    ₹{expense.amount.toFixed(2)}
-                  </TableCell>
-                  {role === 'admin' && (
-                    <TableCell className="text-right">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the
-                              expense: <strong>"{expense.description}"</strong>.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteExpense(expense.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Delete Expense
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center h-24">
-                No expenses found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <div className="space-y-4">
+        {relevantExpenses.map(expense => (
+          <ExpenseItem
+            key={expense.id}
+            expense={expense}
+            apartments={apartments}
+            currentUserApartment={currentUserApartment}
+            isOwner={expense.paidByApartment === currentUserApartment}
+            onExpenseUpdate={handleExpenseUpdate}
+          />
+        ))}
+      </div>
     );
   };
 

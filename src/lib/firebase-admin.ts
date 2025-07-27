@@ -54,7 +54,7 @@ try {
   } else {
     adminApp = getApps()[0];
   }
-} catch (error: any) {
+} catch (error: unknown) {
   console.error('Firebase Admin SDK initialization failed:', error);
   // We don't re-throw here to avoid crashing the server on build,
   // but the app will not function correctly without a successful initialization.
@@ -72,7 +72,7 @@ export const getFirebaseAdminApp = (): App => {
   // Additional check to ensure the app is properly configured
   try {
     // This will throw if the app is not properly initialized
-    const auth = getAuth(adminApp);
+    getAuth(adminApp);
     console.log('Firebase Admin Auth service is available');
   } catch (error) {
     console.error('Firebase Admin Auth service is not available:', error);

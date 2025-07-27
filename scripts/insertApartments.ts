@@ -1,4 +1,5 @@
-import { collection, addDoc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
+
 import { db } from '../src/lib/firebase';
 
 const insertApartments = async () => {

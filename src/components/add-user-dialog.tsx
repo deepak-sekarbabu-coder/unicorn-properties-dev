@@ -8,7 +8,6 @@ import * as z from 'zod';
 import * as React from 'react';
 
 import type { User } from '@/lib/types';
-import { useApartments } from '@/hooks/use-apartments';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -36,8 +35,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useToast } from '@/components/ui/toast-provider';
 
-import { useToast } from '@/hooks/use-toast';
+import { useApartments } from '@/hooks/use-apartments';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
@@ -77,8 +77,7 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     // Simulate API call
     setTimeout(() => {
       onAddUser(data);
-      toast({
-        title: 'User Added',
+      toast('User Added', {
         description: `An account for ${data.name} has been created.`,
       });
       setIsSaving(false);

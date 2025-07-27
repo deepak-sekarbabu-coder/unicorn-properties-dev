@@ -8,8 +8,6 @@ import * as z from 'zod';
 
 import * as React from 'react';
 
-import { useRouter } from 'next/navigation';
-
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -20,9 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -39,7 +35,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export function LoginForm() {
-  const router = useRouter();
   const { toast } = useToast();
   const { login, loginWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -59,10 +54,8 @@ export function LoginForm() {
       await login(data.email, data.password);
       // Don't manually redirect - let the auth context handle it
     } catch (error) {
-      toast({
-        title: 'Login Failed',
+      toast('Login Failed', {
         description: (error as Error).message,
-        variant: 'destructive',
       });
       setIsLoading(false);
     }
@@ -74,10 +67,8 @@ export function LoginForm() {
       await loginWithGoogle();
       // Don't manually redirect - let the auth context handle it
     } catch (error) {
-      toast({
-        title: 'Google Sign-In Failed',
+      toast('Google Sign-In Failed', {
         description: (error as Error).message,
-        variant: 'destructive',
       });
       setIsGoogleLoading(false);
     }

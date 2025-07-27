@@ -28,8 +28,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 import { CategoryIcon } from './category-icon';
 
@@ -74,8 +73,7 @@ export function EditCategoryDialog({
     setTimeout(() => {
       const updatedCategory = { ...category, name: data.name };
       onUpdateCategory(updatedCategory);
-      toast({
-        title: 'Category Updated',
+      toast('Category Updated', {
         description: `The category has been renamed to "${data.name}".`,
       });
       setIsSaving(false);
@@ -89,7 +87,7 @@ export function EditCategoryDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <CategoryIcon name={category.icon as any} className="h-10 w-10" />
+            <CategoryIcon name={category.icon as keyof typeof Icons} className="h-10 w-10" />
             <DialogTitle>Edit Category</DialogTitle>
           </div>
           <DialogDescription>Update the details for this category.</DialogDescription>
@@ -112,7 +110,7 @@ export function EditCategoryDialog({
             <FormField
               control={form.control}
               name="icon"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Icon</FormLabel>
                   <FormControl>

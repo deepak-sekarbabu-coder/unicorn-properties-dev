@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { getApartments } from '@/lib/firestore';
 import type { Apartment } from '@/lib/types';
 

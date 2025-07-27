@@ -1,7 +1,6 @@
 import { getAuth } from 'firebase-admin/auth';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';

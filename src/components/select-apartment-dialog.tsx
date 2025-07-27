@@ -34,8 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 const onboardingSchema = z.object({
   apartment: z.string().min(1, 'Please select an apartment.'),
@@ -70,8 +69,7 @@ export function SelectApartmentDialog({
   const onSubmit = (data: OnboardingFormValues) => {
     setIsSaving(true);
     onSave(data);
-    toast({
-      title: 'Profile Setup Complete!',
+    toast('Profile Setup Complete!', {
       description: `Welcome to apartment ${data.apartment}, ${user.name}!`,
     });
     setIsSaving(false);

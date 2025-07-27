@@ -1,4 +1,4 @@
-import { Droplets, FileText, type LucideIcon, Megaphone, Sparkles, Zap } from 'lucide-react';
+import { Droplets, FileText, Megaphone, Sparkles, Zap } from 'lucide-react';
 
 export const Icons = {
   Zap,

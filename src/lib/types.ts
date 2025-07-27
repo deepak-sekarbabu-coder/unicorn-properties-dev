@@ -32,6 +32,7 @@ export type Expense = {
   perApartmentShare: number; // Amount each owing apartment owes
   categoryId: string; // Category ID
   receipt?: string; // Optional: data URI for the receipt image
+  paidByApartments?: string[]; // Apartments that have already paid their share back
 };
 
 export type Announcement = {
@@ -41,4 +42,21 @@ export type Announcement = {
   createdBy: string; // User ID
   createdAt: string; // ISO date string
   expiresAt: string; // ISO date string
+};
+
+export type NotificationType = 'payment_request' | 'payment_received' | 'announcement' | 'reminder';
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  amount?: number;
+  currency?: string;
+  fromApartmentId?: string;
+  toApartmentId?: string;
+  relatedExpenseId?: string;
+  isRead: boolean;
+  createdAt: string; // ISO date string
+  dueDate?: string; // ISO date string
 };

@@ -20,4 +20,4 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
 
-export { db, auth, messaging };
+export { db, auth, messaging, app };

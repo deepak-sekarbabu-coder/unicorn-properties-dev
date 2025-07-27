@@ -35,8 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 import { IconName, Icons } from './icons';
 
@@ -71,8 +70,7 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
     // Simulate API call
     setTimeout(() => {
       onAddCategory(data);
-      toast({
-        title: 'Category Added',
+      toast('Category Added', {
         description: `The "${data.name}" category has been created.`,
       });
       setIsSaving(false);

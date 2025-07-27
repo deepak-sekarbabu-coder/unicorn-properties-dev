@@ -43,7 +43,6 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/web
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
-  paidBy: z.string().min(1, 'Please select who paid'),
   categoryId: z.string().min(1, 'Please select a category'),
   receipt: z
     .any()
@@ -63,7 +62,6 @@ type ExpenseFormValues = z.infer<typeof expenseSchema>;
 interface AddExpenseDialogProps {
   children: React.ReactNode;
   categories: Category[];
-  users: User[];
   onAddExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
   currentUser: User;
 }
@@ -71,7 +69,6 @@ interface AddExpenseDialogProps {
 export function AddExpenseDialog({
   children,
   categories,
-  users,
   onAddExpense,
   currentUser,
 }: AddExpenseDialogProps) {
@@ -82,7 +79,6 @@ export function AddExpenseDialog({
     defaultValues: {
       description: '',
       amount: 0,
-      paidBy: '',
       categoryId: '',
       receipt: undefined,
     },
@@ -102,10 +98,8 @@ export function AddExpenseDialog({
     }
 
     if (!currentUser.apartment) {
-      toast({
-        title: 'Error',
+      toast('Error', {
         description: 'You must belong to an apartment to add an expense.',
-        variant: 'destructive',
       });
       return;
     }
@@ -113,17 +107,16 @@ export function AddExpenseDialog({
     const expenseData: Omit<Expense, 'id' | 'date'> = {
       description: data.description,
       amount: data.amount,
-      paidByApartment: data.paidBy, // Map paidBy to paidByApartment
+      paidByApartment: currentUser.apartment, // Use current user's apartment
       categoryId: data.categoryId,
       receipt: receiptDataUrl,
-      apartment: currentUser.apartment,
+      owedByApartments: [], // Will be calculated in handleAddExpense
+      perApartmentShare: 0, // Will be calculated in handleAddExpense
     };
 
     onAddExpense(expenseData);
-    toast({
-      title: 'Expense Added!',
+    toast('Expense Added!', {
       description: `"${data.description}" for ₹${data.amount} has been logged.`,
-      variant: 'default',
     });
     setOpen(false);
     form.reset();
@@ -167,60 +160,34 @@ export function AddExpenseDialog({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="paidBy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Paid By</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select user" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {users.map(user => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="receipt"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Receipt (Optional)</FormLabel>
                   <FormControl>

@@ -14,7 +14,7 @@ import {
 import { db } from './firebase';
 import type { Announcement, Apartment, Category, Expense, User } from './types';
 
-const removeUndefined = (obj: Record<string, any>) => {
+const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
   return obj;
 };
@@ -110,12 +110,19 @@ export const deleteCategory = async (id: string): Promise<void> => {
 
 // Expenses
 export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
-  let expensesQuery = query(collection(db, 'expenses'));
-  if (apartment) {
-    expensesQuery = query(expensesQuery, where('apartment', '==', apartment));
-  }
+  const expensesQuery = query(collection(db, 'expenses'));
   const expenseSnapshot = await getDocs(expensesQuery);
-  return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
+  const allExpenses = expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
+
+  if (!apartment) {
+    return allExpenses;
+  }
+
+  // Return expenses where the apartment is either the payer or one of the oweing apartments
+  return allExpenses.filter(
+    expense =>
+      expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
+  );
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise<Expense> => {
@@ -123,6 +130,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise
   const newExpense = {
     ...expense,
     date: new Date().toISOString(),
+    paidByApartments: expense.paidByApartments || [], // Initialize empty array if not provided
   };
   const expensesCol = collection(db, 'expenses');
   const cleanExpense = removeUndefined(newExpense);
@@ -130,6 +138,12 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise
   const docRef = await addDoc(expensesCol, cleanExpense);
   console.log('[addExpense] Firestore docRef.id:', docRef.id);
   return { id: docRef.id, ...cleanExpense } as Expense;
+};
+
+export const updateExpense = async (id: string, expense: Partial<Expense>): Promise<void> => {
+  const expenseDoc = doc(db, 'expenses', id);
+  const cleanExpense = removeUndefined(expense);
+  await updateDoc(expenseDoc, cleanExpense);
 };
 
 export const deleteExpense = async (id: string): Promise<void> => {

@@ -92,7 +92,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
               console.log('🔍 Looking up user in Firestore:', firebaseUser.email);
               let appUser = await getUserByEmail(firebaseUser.email);
-              let isNewUser = false;
 
               // If user doesn't exist in Firestore, create them with default role
               if (!appUser) {
@@ -105,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   propertyRole: undefined, // Will be set during onboarding
                 };
                 appUser = await addUser(newUser);
-                isNewUser = true;
                 console.log('✅ New user created:', appUser.id);
               } else {
                 console.log('✅ Existing user found:', appUser.id);

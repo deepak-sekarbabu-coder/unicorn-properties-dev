@@ -36,8 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -126,8 +125,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       avatar: avatarDataUrl,
     };
     onUpdateUser(updatedUser);
-    toast({
-      title: 'User Updated',
+    toast('User Updated', {
       description: `Information for ${data.name} has been updated.`,
     });
     setIsSaving(false);
@@ -137,8 +135,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
   const handleResetPassword = () => {
     // In a real app, this would trigger a password reset flow.
     // Here, we just notify the admin what the password is.
-    toast({
-      title: 'Password Reset',
+    toast('Password Reset', {
       description: `Password for ${user.name} has been reset to "password".`,
     });
   };
@@ -201,7 +198,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
             <FormField
               control={form.control}
               name="avatar"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Profile Picture</FormLabel>
                   <FormControl>

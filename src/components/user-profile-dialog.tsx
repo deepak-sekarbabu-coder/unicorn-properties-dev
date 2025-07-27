@@ -29,8 +29,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -101,8 +100,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
 
     const updatedUser = { ...user, name: data.name, phone: data.phone, avatar: avatarDataUrl };
     onUpdateUser(updatedUser);
-    toast({
-      title: 'Profile Updated',
+    toast('Profile Updated', {
       description: 'Your profile information has been successfully updated.',
     });
     setIsSaving(false);
@@ -112,8 +110,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
   const handleResetPassword = () => {
     // In a real app, this would trigger a password reset flow.
     // Here, we just notify the user what the password is.
-    toast({
-      title: 'Password Reset',
+    toast('Password Reset', {
       description: `Your password has been reset to "password".`,
     });
   };
@@ -186,7 +183,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
             <FormField
               control={form.control}
               name="avatar"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Change Profile Picture</FormLabel>
                   <FormControl>
