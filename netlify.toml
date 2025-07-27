@@ -4,7 +4,12 @@
 
 # Secrets scanning configuration
 [build.environment]
-  SECRETS_SCAN_OMIT_PATHS = ".env.example,.env.local,node_modules/**,docs/**"
+  # Environment variables that should be set in Netlify's UI
+  FIREBASE_PROJECT_ID = ""  # Set in Netlify environment variables
+  NEXT_PUBLIC_FIREBASE_VAPID_KEY = ""  # Set in Netlify environment variables
+  
+  # Secret scanning configuration
+  SECRETS_SCAN_OMIT_PATHS = ".env.example,.env.local,node_modules/**,docs/**,.firebaserc,firebase.json"
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
 
