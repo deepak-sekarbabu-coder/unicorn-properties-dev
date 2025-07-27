@@ -76,6 +76,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 // This page will handle redirection based on auth status.
 // In a real app, this logic would likely be in middleware.
 
+// This page will handle redirection based on auth status.
+// In a real app, this logic would likely be in middleware.
+
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();

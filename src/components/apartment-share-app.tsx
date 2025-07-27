@@ -965,32 +965,32 @@ export function ApartmentShareApp({
     <Card>
       <CardHeader>
         <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <CardTitle>All Expenses</CardTitle>
               <CardDescription>
                 A complete log of all shared expenses for your apartment.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search expenses..."
-                  className="pl-8 sm:w-[200px] lg:w-[300px]"
+                  className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
                   value={expenseSearch}
                   onChange={e => setExpenseSearch(e.target.value)}
                 />
               </div>
-              <Button onClick={handleExportCSV} variant="outline">
+              <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto">
                 <FileDown className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -1003,7 +1003,7 @@ export function ApartmentShareApp({
               </SelectContent>
             </Select>
             <Select value={filterPaidBy} onValueChange={setFilterPaidBy}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by paid by" />
               </SelectTrigger>
               <SelectContent>
@@ -1016,7 +1016,7 @@ export function ApartmentShareApp({
               </SelectContent>
             </Select>
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by month" />
               </SelectTrigger>
               <SelectContent>
@@ -1028,7 +1028,7 @@ export function ApartmentShareApp({
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="ghost" onClick={handleClearFilters}>
+            <Button variant="ghost" onClick={handleClearFilters} className="sm:col-span-2 lg:col-span-1">
               Clear Filters
             </Button>
           </div>
@@ -1130,24 +1130,24 @@ export function ApartmentShareApp({
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>User Management</CardTitle>
               <CardDescription>Add, edit, or remove users from the system.</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search users..."
-                  className="pl-8 sm:w-[300px]"
+                  className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
                   value={userSearch}
                   onChange={e => setUserSearch(e.target.value)}
                 />
               </div>
               <AddUserDialog onAddUser={handleAddUser}>
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add User
                 </Button>
               </AddUserDialog>
@@ -1155,48 +1155,38 @@ export function ApartmentShareApp({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Apartment</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Roles</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map(u => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={u.avatar} alt={u.name} />
-                        <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span>{u.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{u.apartment || 'N/A'}</TableCell>
-                  <TableCell>{u.phone || 'N/A'}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap">
-                      <Badge
-                        variant={u.role === 'admin' ? 'default' : 'secondary'}
-                        className="capitalize"
-                      >
-                        {u.role}
-                      </Badge>
-                      {u.propertyRole && (
-                        <Badge variant="outline" className="capitalize">
-                          {u.propertyRole}
+          {/* Mobile Card Layout */}
+          <div className="block md:hidden space-y-4">
+            {filteredUsers.map(u => (
+              <Card key={u.id} className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      <AvatarImage src={u.avatar} alt={u.name} />
+                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{u.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{u.apartment || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground truncate">{u.phone || 'N/A'}</p>
+                      <div className="flex gap-1 flex-wrap mt-2">
+                        <Badge
+                          variant={u.role === 'admin' ? 'default' : 'secondary'}
+                          className="capitalize text-xs"
+                        >
+                          {u.role}
                         </Badge>
-                      )}
+                        {u.propertyRole && (
+                          <Badge variant="outline" className="capitalize text-xs">
+                            {u.propertyRole}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </div>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
                     <EditUserDialog user={u} onUpdateUser={handleUpdateUserFromAdmin}>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="h-8 px-2">
                         Edit
                       </Button>
                     </EditUserDialog>
@@ -1205,7 +1195,7 @@ export function ApartmentShareApp({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive h-8 px-2"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1229,11 +1219,94 @@ export function ApartmentShareApp({
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                  </TableCell>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop Table Layout */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Apartment</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Roles</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map(u => (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={u.avatar} alt={u.name} />
+                          <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{u.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{u.apartment || 'N/A'}</TableCell>
+                    <TableCell>{u.phone || 'N/A'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        <Badge
+                          variant={u.role === 'admin' ? 'default' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {u.role}
+                        </Badge>
+                        {u.propertyRole && (
+                          <Badge variant="outline" className="capitalize">
+                            {u.propertyRole}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <EditUserDialog user={u} onUpdateUser={handleUpdateUserFromAdmin}>
+                        <Button variant="ghost" size="sm">
+                          Edit
+                        </Button>
+                      </EditUserDialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete{' '}
+                              <strong>{u.name}</strong>&apos;s account.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteUser(u.id)}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              Delete User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -1249,21 +1322,21 @@ export function ApartmentShareApp({
             <ul className="space-y-4">
               {pendingAnnouncements.map(ann => (
                 <li key={ann.id} className="rounded-lg border p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1 flex-1 min-w-0">
                       <p className="text-sm text-muted-foreground">
                         From:{' '}
                         <span className="font-medium text-foreground">
                           {getUserById(ann.createdBy)?.name || 'Unknown User'}
                         </span>
                       </p>
-                      <p className="text-sm">{ann.message}</p>
+                      <p className="text-sm break-words">{ann.message}</p>
                     </div>
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 sm:shrink-0">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50 w-full sm:w-auto"
                         onClick={() => handleAnnouncementDecision(ann.id, 'approved')}
                       >
                         <CheckCircle className="mr-2 h-4 w-4" /> Approve
@@ -1271,7 +1344,7 @@ export function ApartmentShareApp({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
                         onClick={() => handleAnnouncementDecision(ann.id, 'rejected')}
                       >
                         <XCircle className="mr-2 h-4 w-4" /> Reject
@@ -1286,16 +1359,18 @@ export function ApartmentShareApp({
       )}
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Category Management</CardTitle>
-            <CardDescription>Manage expense categories for the group.</CardDescription>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Category Management</CardTitle>
+              <CardDescription>Manage expense categories for the group.</CardDescription>
+            </div>
+            <AddCategoryDialog onAddCategory={handleAddCategory}>
+              <Button className="w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
+              </Button>
+            </AddCategoryDialog>
           </div>
-          <AddCategoryDialog onAddCategory={handleAddCategory}>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Category
-            </Button>
-          </AddCategoryDialog>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
@@ -1303,15 +1378,15 @@ export function ApartmentShareApp({
               {categories.map(cat => (
                 <li
                   key={cat.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-3"
                 >
-                  <div className="flex items-center gap-3">
-                    <CategoryIcon name={cat.icon as keyof typeof Icons} />
-                    <span>{cat.name}</span>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <CategoryIcon name={cat.icon as keyof typeof Icons} className="flex-shrink-0" />
+                    <span className="truncate">{cat.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:flex-shrink-0">
                     <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="flex-1 sm:flex-initial">
                         Edit
                       </Button>
                     </EditCategoryDialog>
@@ -1320,7 +1395,7 @@ export function ApartmentShareApp({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive flex-1 sm:flex-initial"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1392,10 +1467,10 @@ export function ApartmentShareApp({
     if (view === 'admin') title = 'Admin Panel';
     if (view === 'analytics') title = 'Analytics';
     return (
-      <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
+      <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">
         <SidebarTrigger className="md:hidden" />
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <div className="ml-auto flex items-center gap-4">
+        <h1 className="text-lg sm:text-xl font-semibold truncate flex-1">{title}</h1>
+        <div className="flex items-center gap-2 sm:gap-4">
           {user && (
             <AddExpenseDialog
               categories={categories}
@@ -1404,7 +1479,8 @@ export function ApartmentShareApp({
               currentUser={user}
             >
               <Button className="bg-accent hover:bg-accent/90">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
+                <PlusCircle className="mr-2 h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add Expense</span>
               </Button>
             </AddExpenseDialog>
           )}
@@ -1420,8 +1496,8 @@ export function ApartmentShareApp({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>
-                  <p>{user.name}</p>
-                  <p className="font-normal text-muted-foreground">{user.phone || user.email}</p>
+                  <p className="truncate">{user.name}</p>
+                  <p className="font-normal text-muted-foreground truncate">{user.phone || user.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <UserProfileDialog user={user} onUpdateUser={handleUpdateUser}>
