@@ -587,13 +587,17 @@ export function ApartmentShareApp({
     }
   };
 
+  // Get current user's apartment ID
+  const currentUserApartment = user?.apartment;
+
   // Debug function to log expense calculations
   const debugExpenseCalculations = React.useCallback(() => {
     console.log('=== EXPENSE CALCULATION DEBUG ===');
     expenses.forEach((expense, index) => {
-      const unpaidApartments = expense.owedByApartments?.filter(
-        apartmentId => !expense.paidByApartments?.includes(apartmentId)
-      ) || [];
+      const unpaidApartments =
+        expense.owedByApartments?.filter(
+          apartmentId => !expense.paidByApartments?.includes(apartmentId)
+        ) || [];
 
       console.log(`Expense ${index + 1}:`, {
         description: expense.description,
@@ -636,12 +640,16 @@ export function ApartmentShareApp({
 
     // Process each expense to calculate balances
     expenses.forEach(expense => {
-      const { paidByApartment, owedByApartments, perApartmentShare, paidByApartments = [] } = expense;
+      const {
+        paidByApartment,
+        owedByApartments,
+        perApartmentShare,
+        paidByApartments = [],
+      } = expense;
 
       // Get apartments that still owe money (haven't paid yet)
-      const unpaidApartments = owedByApartments?.filter(
-        apartmentId => !paidByApartments.includes(apartmentId)
-      ) || [];
+      const unpaidApartments =
+        owedByApartments?.filter(apartmentId => !paidByApartments.includes(apartmentId)) || [];
 
       // Calculate the amount still owed to the paying apartment (only from unpaid apartments)
       const totalStillOwed = unpaidApartments.length * perApartmentShare;
@@ -690,9 +698,6 @@ export function ApartmentShareApp({
     return balances;
   }, [expenses, apartments, debugExpenseCalculations]);
 
-  // Get current user's apartment ID
-  const currentUserApartment = user?.apartment;
-
   // Get balances for the current user's apartment
   const currentApartmentBalance = currentUserApartment
     ? apartmentBalances[currentUserApartment]
@@ -703,10 +708,6 @@ export function ApartmentShareApp({
 
   const DashboardView = () => (
     <div className="grid gap-6">
-
-
-
-
       {/* Apartment Balances */}
       {currentApartmentBalance && (
         <Card>
@@ -799,11 +800,33 @@ export function ApartmentShareApp({
                 <h4 className="font-medium text-sm mb-2">Calculation Verification</h4>
                 <div className="text-xs space-y-1">
                   <p>Total apartments: {apartments.length}</p>
-                  <p>Total expenses paid by your apartment: {expenses.filter(e => e.paidByApartment === currentUserApartment).length}</p>
-                  <p>Total amount you paid: ₹{expenses.filter(e => e.paidByApartment === currentUserApartment).reduce((sum, e) => sum + e.amount, 0).toFixed(2)}</p>
-                  <p>Total amount still owed to you: ₹{Object.values(currentApartmentBalance.isOwed).reduce((sum, amount) => sum + amount, 0).toFixed(2)}</p>
-                  <p>Total amount you still owe: ₹{Object.values(currentApartmentBalance.owes).reduce((sum, amount) => sum + amount, 0).toFixed(2)}</p>
-                  <p>Your net balance: {currentApartmentBalance.balance >= 0 ? '+' : ''}₹{currentApartmentBalance.balance.toFixed(2)}</p>
+                  <p>
+                    Total expenses paid by your apartment:{' '}
+                    {expenses.filter(e => e.paidByApartment === currentUserApartment).length}
+                  </p>
+                  <p>
+                    Total amount you paid: ₹
+                    {expenses
+                      .filter(e => e.paidByApartment === currentUserApartment)
+                      .reduce((sum, e) => sum + e.amount, 0)
+                      .toFixed(2)}
+                  </p>
+                  <p>
+                    Total amount still owed to you: ₹
+                    {Object.values(currentApartmentBalance.isOwed)
+                      .reduce((sum, amount) => sum + amount, 0)
+                      .toFixed(2)}
+                  </p>
+                  <p>
+                    Total amount you still owe: ₹
+                    {Object.values(currentApartmentBalance.owes)
+                      .reduce((sum, amount) => sum + amount, 0)
+                      .toFixed(2)}
+                  </p>
+                  <p>
+                    Your net balance: {currentApartmentBalance.balance >= 0 ? '+' : ''}₹
+                    {currentApartmentBalance.balance.toFixed(2)}
+                  </p>
                 </div>
               </div>
             )}
@@ -853,23 +876,27 @@ export function ApartmentShareApp({
             <Separator />
             <div className="flex items-center gap-4">
               <Wallet
-                className={`h-6 w-6 ${loggedInUserBalance && loggedInUserBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`h-6 w-6 ${Math.abs(loggedInUserBalance) < 0.01 ? 'text-green-600' : loggedInUserBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}
               />
               <div className="grid gap-1">
                 <p className="text-sm font-medium">
                   Your balance is{' '}
-                  {loggedInUserBalance && loggedInUserBalance >= 0
-                    ? `+₹${loggedInUserBalance.toFixed(2)}`
-                    : `-₹${Math.abs(loggedInUserBalance || 0).toFixed(2)}`}
+                  {Math.abs(loggedInUserBalance) < 0.01
+                    ? '₹0.00'
+                    : loggedInUserBalance >= 0
+                      ? `-₹${loggedInUserBalance.toFixed(2)}`
+                      : `+₹${Math.abs(loggedInUserBalance).toFixed(2)}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {loggedInUserBalance && loggedInUserBalance >= 0
+                  {Math.abs(loggedInUserBalance) < 0.01
                     ? 'You are all settled up.'
-                    : 'You have outstanding balances.'}
+                    : loggedInUserBalance > 0
+                      ? 'Others owe you money.'
+                      : 'You have outstanding balances.'}
                 </p>
               </div>
             </div>
-            {loggedInUserBalance && loggedInUserBalance < 0 && (
+            {loggedInUserBalance < -0.01 && (
               <>
                 <Separator />
                 <div className="flex items-center gap-4">
@@ -1281,8 +1308,8 @@ export function ApartmentShareApp({
   const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
-          .slice(0, limit)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, limit)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleExpenseUpdate = (updatedExpense: Expense) => {

@@ -168,8 +168,9 @@ export function ExpenseItem({
               return (
                 <div
                   key={apartmentId}
-                  className={`flex items-center justify-between p-2 rounded-lg border ${isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                    }`}
+                  className={`flex items-center justify-between p-2 rounded-lg border ${
+                    isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  }`}
                 >
                   <div className="flex items-center gap-2">
                     <div
@@ -195,7 +196,11 @@ export function ExpenseItem({
                             onClick={() => handleMarkUnpaid(apartmentId)}
                             disabled={isUpdating}
                             className="h-6 px-2"
-                            title={isCurrentUser && !isOwner ? "Mark as unpaid" : "Mark as unpaid (Owner)"}
+                            title={
+                              isCurrentUser && !isOwner
+                                ? 'Mark as unpaid'
+                                : 'Mark as unpaid (Owner)'
+                            }
                           >
                             <X className="h-3 w-3" />
                           </Button>
@@ -206,7 +211,9 @@ export function ExpenseItem({
                             onClick={() => handleMarkPaid(apartmentId)}
                             disabled={isUpdating}
                             className="h-6 px-2"
-                            title={isCurrentUser && !isOwner ? "Mark as paid" : "Mark as paid (Owner)"}
+                            title={
+                              isCurrentUser && !isOwner ? 'Mark as paid' : 'Mark as paid (Owner)'
+                            }
                           >
                             <Check className="h-3 w-3" />
                           </Button>
