@@ -96,6 +96,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   Table,
@@ -251,6 +252,87 @@ export function ApartmentShareApp({
     } else {
       router.push('/login');
     }
+  };
+
+  // Navigation component that can access sidebar context
+  const NavigationMenu = () => {
+    const { setOpenMobile, isMobile } = useSidebar();
+
+    const handleNavigation = (newView: View) => {
+      setView(newView);
+      // Close mobile sidebar when navigating
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    };
+
+    const handleLogoNavigation = () => {
+      if (user) {
+        setView('dashboard');
+        if (isMobile) {
+          setOpenMobile(false);
+        }
+      } else {
+        router.push('/login');
+      }
+    };
+
+    return (
+      <>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoNavigation}>
+            <Package2 className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold">Unicorn Properties</span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('dashboard')}
+                isActive={view === 'dashboard'}
+                tooltip="Dashboard"
+              >
+                <Home />
+                Dashboard
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('expenses')}
+                isActive={view === 'expenses'}
+                tooltip="All Expenses"
+              >
+                <LineChart />
+                All Expenses
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('analytics')}
+                isActive={view === 'analytics'}
+                tooltip="Analytics"
+              >
+                <PieChart />
+                Analytics
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {role === 'admin' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => handleNavigation('admin')}
+                  isActive={view === 'admin'}
+                  tooltip="Admin"
+                >
+                  <Settings />
+                  Admin
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+      </>
+    );
   };
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
@@ -1040,91 +1122,142 @@ export function ApartmentShareApp({
     </Card>
   );
 
-  const AnalyticsView = () => (
-    <div className="grid gap-6">
-      {/* Month Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics Filters</CardTitle>
-          <CardDescription>Filter your spending analytics by month</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label htmlFor="analytics-month" className="text-sm font-medium">
-                Month:
-              </label>
-              <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
-                <SelectTrigger className="w-[180px]" id="analytics-month">
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Months</SelectItem>
-                  {expenseMonths.map(month => (
-                    <SelectItem key={month} value={month}>
-                      {format(new Date(month + '-01'), 'MMMM yyyy')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {analyticsMonth !== 'all' && (
-              <Button variant="outline" size="sm" onClick={() => setAnalyticsMonth('all')}>
-                Clear Filter
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+  const AnalyticsView = () => {
+    const hasData = expenses.length > 0;
+    const filteredData = analyticsData.categorySpending.filter(item => item.total > 0);
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Spending by Category</CardTitle>
-          <CardDescription>
-            A breakdown of expenses by category
-            {analyticsMonth !== 'all'
-              ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}`
-              : ' for your apartment'}
-            .
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={{}} className="h-[300px] w-full">
-            <BarChart data={analyticsData.categorySpending} accessibilityLayer>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-              <YAxis />
-              <RechartsTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey="total" radius={8} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Spending Over Time</CardTitle>
-          <CardDescription>
-            Total expenses over the last 6 months for your apartment.
-            {analyticsMonth !== 'all' && ' (Category breakdown filtered by selected month above)'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={{}} className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analyticsData.monthlySpending}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <RechartsTooltip />
-                <Legend />
-                <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    return (
+      <div className="grid gap-4 sm:gap-6">
+        {/* Month Filter */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg sm:text-xl">Analytics Filters</CardTitle>
+            <CardDescription className="text-sm">Filter your spending analytics by month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <label htmlFor="analytics-month" className="text-sm font-medium whitespace-nowrap">
+                  Month:
+                </label>
+                <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
+                  <SelectTrigger className="w-full sm:w-[180px]" id="analytics-month">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Months</SelectItem>
+                    {expenseMonths.map(month => (
+                      <SelectItem key={month} value={month}>
+                        {format(new Date(month + '-01'), 'MMMM yyyy')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {analyticsMonth !== 'all' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAnalyticsMonth('all')}
+                  className="w-full sm:w-auto"
+                >
+                  Clear Filter
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {!hasData ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <PieChart className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Data Available</h3>
+              <p className="text-sm text-muted-foreground text-center max-w-md">
+                Add some expenses to see analytics and spending insights for your apartment.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Charts Grid */}
+            <div className="grid gap-4 sm:gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg sm:text-xl">Spending by Category</CardTitle>
+                  <CardDescription className="text-sm">
+                    A breakdown of expenses by category
+                    {analyticsMonth !== 'all'
+                      ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}`
+                      : ' for your apartment'}
+                    .
+                  </CardDescription>
+                </CardHeader>
+                  <CardContent className="p-3 sm:p-6">
+                    {filteredData.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <p className="text-sm text-muted-foreground">
+                          No expenses found for the selected period.
+                        </p>
+                      </div>
+                    ) : (
+                      <ChartContainer config={{}} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
+                        <BarChart data={filteredData} accessibilityLayer>
+                          <CartesianGrid vertical={false} />
+                            <XAxis
+                              dataKey="name"
+                              tickLine={false}
+                              tickMargin={10}
+                              axisLine={false}
+                              fontSize={11}
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                              interval={0}
+                            />
+                            <YAxis fontSize={11} />
+                            <RechartsTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                            <Bar dataKey="total" radius={8} />
+                          </BarChart>
+                        </ChartContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Spending Over Time</CardTitle>
+                    <CardDescription className="text-sm">
+                      Total expenses over the last 6 months for your apartment.
+                      {analyticsMonth !== 'all' && ' (Category breakdown filtered by selected month above)'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6">
+                    <ChartContainer config={{}} className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={analyticsData.monthlySpending}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="name"
+                            fontSize={11}
+                            height={40}
+                            interval={0}
+                          />
+                          <YAxis fontSize={11} />
+                          <RechartsTooltip />
+                          <Legend />
+                          <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const AdminView = () => (
     <div className="grid gap-6">
@@ -1523,58 +1656,7 @@ export function ApartmentShareApp({
     <>
       <SidebarProvider>
         <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoClick}>
-              <Package2 className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">Unicorn Properties</span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setView('dashboard')}
-                  isActive={view === 'dashboard'}
-                  tooltip="Dashboard"
-                >
-                  <Home />
-                  Dashboard
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setView('expenses')}
-                  isActive={view === 'expenses'}
-                  tooltip="All Expenses"
-                >
-                  <LineChart />
-                  All Expenses
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setView('analytics')}
-                  isActive={view === 'analytics'}
-                  tooltip="Analytics"
-                >
-                  <PieChart />
-                  Analytics
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {role === 'admin' && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setView('admin')}
-                    isActive={view === 'admin'}
-                    tooltip="Admin"
-                  >
-                    <Settings />
-                    Admin
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarContent>
+          <NavigationMenu />
           <SidebarFooter>
             <Card className="m-2">
               <CardHeader className="p-3">
@@ -1590,8 +1672,10 @@ export function ApartmentShareApp({
         <SidebarInset>
           <div className="flex flex-col min-h-screen">
             <PageHeader />
-            <main className="flex-1 p-4 sm:p-6 bg-background">
-              <MainContent />
+            <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-background overflow-x-hidden">
+              <div className="max-w-7xl mx-auto">
+                <MainContent />
+              </div>
             </main>
           </div>
         </SidebarInset>

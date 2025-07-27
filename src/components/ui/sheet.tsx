@@ -63,38 +63,28 @@ const SheetContent = React.forwardRef<
   const titleId = React.useId();
   const descriptionId = React.useId();
 
-  // Check if children contains SheetTitle
-  const hasTitle = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === SheetTitle ||
-        (typeof child.type === 'object' && child.type?.displayName === 'SheetTitle') ||
-        (child.props &&
-          child.props.children &&
-          React.Children.toArray(child.props.children).some(
-            grandChild =>
-              React.isValidElement(grandChild) &&
-              (grandChild.type === SheetTitle ||
-                (typeof grandChild.type === 'object' &&
-                  grandChild.type?.displayName === 'SheetTitle'))
-          )))
-  );
+    // Recursively check for SheetTitle and SheetDescription in children
+    const findComponentInChildren = (children: React.ReactNode, targetComponent: React.ComponentType<any>): boolean => {
+      return React.Children.toArray(children).some(child => {
+        if (!React.isValidElement(child)) return false;
 
-  const hasDescription = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === SheetDescription ||
-        (typeof child.type === 'object' && child.type?.displayName === 'SheetDescription') ||
-        (child.props &&
-          child.props.children &&
-          React.Children.toArray(child.props.children).some(
-            grandChild =>
-              React.isValidElement(grandChild) &&
-              (grandChild.type === SheetDescription ||
-                (typeof grandChild.type === 'object' &&
-                  grandChild.type?.displayName === 'SheetDescription'))
-          )))
-  );
+        // Direct type match
+        if (child.type === targetComponent) return true;
+
+        // Display name match
+        if (typeof child.type === 'object' && child.type?.displayName === targetComponent.displayName) return true;
+
+        // Recursively check children
+        if (child.props?.children) {
+          return findComponentInChildren(child.props.children, targetComponent);
+        }
+
+        return false;
+      });
+    };
+
+    const hasTitle = findComponentInChildren(children, SheetTitle);
+    const hasDescription = findComponentInChildren(children, SheetDescription);
 
   return (
     <SheetPortal>
