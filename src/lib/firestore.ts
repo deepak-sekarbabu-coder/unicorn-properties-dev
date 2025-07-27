@@ -41,12 +41,21 @@ export const getUser = async (id: string): Promise<User | null> => {
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   const usersCol = collection(db, 'users');
   const q = query(usersCol, where('email', '==', email));
-  const userSnapshot = await getDocs(q);
-  if (userSnapshot.empty) {
-    return null;
+
+  try {
+    const userSnapshot = await getDocs(q);
+
+    if (userSnapshot.empty) {
+      return null;
+    }
+
+    const doc = userSnapshot.docs[0];
+    const userData = { id: doc.id, ...doc.data() } as User;
+    return userData;
+  } catch (error) {
+    console.error('Error querying user by email:', error);
+    throw error;
   }
-  const doc = userSnapshot.docs[0];
-  return { id: doc.id, ...doc.data() } as User;
 };
 
 export const addUser = async (user: Omit<User, 'id'>): Promise<User> => {

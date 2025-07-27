@@ -57,7 +57,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await login(data.email, data.password);
-      router.push('/dashboard');
+      // Don't manually redirect - let the auth context handle it
     } catch (error) {
       toast({
         title: 'Login Failed',
@@ -72,7 +72,7 @@ export function LoginForm() {
     setIsGoogleLoading(true);
     try {
       await loginWithGoogle();
-      router.push('/dashboard');
+      // Don't manually redirect - let the auth context handle it
     } catch (error) {
       toast({
         title: 'Google Sign-In Failed',

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
-import { getAnnouncements, getCategories, getUser } from '@/lib/firestore';
+import { getAnnouncements, getCategories, getUserByEmail } from '@/lib/firestore';
 
 import { ApartmentShareApp } from '@/components/apartment-share-app';
 
@@ -35,15 +35,22 @@ async function getAuthenticatedUser() {
     const decodedClaims = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
     console.log('✅ Session cookie verified successfully, UID:', decodedClaims.uid);
 
-    const user = await getUser(decodedClaims.uid);
+    // Get user by email since Firebase UID != Firestore document ID
+    const user = await getUserByEmail(decodedClaims.email || '');
     console.log('User from Firestore:', user ? 'Found' : 'Not found');
-    if (!user) return null;
+    if (!user) {
+      console.log('❌ User not found in Firestore for email:', decodedClaims.email);
+      return null;
+    }
 
     return user;
   } catch (error: unknown) {
     console.error('❌ Session verification failed:');
     console.error('Error type:', typeof error);
-    console.error('Error constructor:', (error as { constructor?: { name?: string } })?.constructor?.name);
+    console.error(
+      'Error constructor:',
+      (error as { constructor?: { name?: string } })?.constructor?.name
+    );
     console.error('Error message:', (error as { message?: string })?.message);
     console.error('Error code:', (error as { code?: string })?.code);
     console.error('Full error:', error);
