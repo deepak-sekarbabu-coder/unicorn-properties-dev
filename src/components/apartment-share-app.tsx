@@ -508,9 +508,10 @@ export function ApartmentShareApp({
 
   const analyticsData = React.useMemo(() => {
     // Filter expenses by selected month for analytics
-    const filteredExpenses = analyticsMonth === 'all'
-      ? expenses
-      : expenses.filter(e => format(new Date(e.date), 'yyyy-MM') === analyticsMonth);
+    const filteredExpenses =
+      analyticsMonth === 'all'
+        ? expenses
+        : expenses.filter(e => format(new Date(e.date), 'yyyy-MM') === analyticsMonth);
 
     const categorySpending = categories.map(category => {
       const total = filteredExpenses
@@ -1068,11 +1069,7 @@ export function ApartmentShareApp({
               </Select>
             </div>
             {analyticsMonth !== 'all' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAnalyticsMonth('all')}
-              >
+              <Button variant="outline" size="sm" onClick={() => setAnalyticsMonth('all')}>
                 Clear Filter
               </Button>
             )}
@@ -1084,7 +1081,11 @@ export function ApartmentShareApp({
         <CardHeader>
           <CardTitle>Spending by Category</CardTitle>
           <CardDescription>
-            A breakdown of expenses by category{analyticsMonth !== 'all' ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}` : ' for your apartment'}.
+            A breakdown of expenses by category
+            {analyticsMonth !== 'all'
+              ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}`
+              : ' for your apartment'}
+            .
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1356,8 +1357,8 @@ export function ApartmentShareApp({
   const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
-        .slice(0, limit)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, limit)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleExpenseUpdate = (updatedExpense: Expense) => {
