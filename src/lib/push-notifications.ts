@@ -4,17 +4,15 @@ import { app } from './firebase-client';
 // Using a client-side initialized app
 import * as firestore from './firestore';
 
-// IMPORTANT: Replace this with your actual VAPID key from the Firebase console
-const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || 'YOUR_VAPID_KEY_HERE';
-
 export const requestNotificationPermission = async (userId: string) => {
   if (typeof window === 'undefined') return;
 
+  const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+
   // Ensure you have a valid VAPID key before proceeding.
-  // In a real app, you might fetch this from an environment variable.
   if (!VAPID_KEY || VAPID_KEY === 'YOUR_VAPID_KEY_HERE') {
     console.warn(
-      'VAPID key not set. Push notifications will not work. Please generate a key in your Firebase project settings.'
+      'VAPID key not set. Push notifications will not work. Please set NEXT_PUBLIC_FIREBASE_VAPID_KEY in your environment variables.'
     );
     return;
   }
