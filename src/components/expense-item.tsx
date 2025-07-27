@@ -11,7 +11,7 @@ import {
   markApartmentAsUnpaid,
 } from '@/lib/expense-utils';
 import { updateExpense } from '@/lib/firestore';
-import type { Apartment, Expense } from '@/lib/types';
+import type { Apartment, Expense, User } from '@/lib/types';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 interface ExpenseItemProps {
   expense: Expense;
   apartments: Apartment[];
+  users: User[];
   currentUserApartment?: string;
   isOwner: boolean; // Whether current user's apartment is the one that paid
   onExpenseUpdate?: (updatedExpense: Expense) => void;
@@ -38,6 +39,7 @@ interface ExpenseItemProps {
 export function ExpenseItem({
   expense,
   apartments,
+  users,
   currentUserApartment,
   isOwner,
   onExpenseUpdate,
@@ -47,6 +49,26 @@ export function ExpenseItem({
 
   const calculation = calculateExpenseAmounts(expense);
   const payingApartment = apartments.find(apt => apt.id === expense.paidByApartment);
+
+  // Helper function to get users for an apartment
+  const getUsersForApartment = (apartmentId: string) => {
+    return users.filter(user => user.apartment === apartmentId);
+  };
+
+  // Helper function to format apartment display with users
+  const formatApartmentWithUsers = (apartmentId: string, showYou: boolean = false) => {
+    const apartment = apartments.find(apt => apt.id === apartmentId);
+    const apartmentUsers = getUsersForApartment(apartmentId);
+    const userNames = apartmentUsers.map(user => user.name).join(', ');
+
+    const apartmentName = apartment?.name || 'Unknown Apartment';
+    const youSuffix = showYou ? ' (You)' : '';
+
+    if (userNames) {
+      return `${apartmentName} - ${userNames}${youSuffix}`;
+    }
+    return `${apartmentName}${youSuffix}`;
+  };
 
   const handleMarkPaid = async (apartmentId: string) => {
     const isCurrentUserPayment = apartmentId === currentUserApartment;
@@ -117,7 +139,7 @@ export function ExpenseItem({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{format(new Date(expense.date), 'MMM d, yyyy')}</span>
               <span>•</span>
-              <span>Paid by {payingApartment?.name || 'Unknown'}</span>
+              <span>Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
               {expense.receipt && (
                 <>
                   <span>•</span>
@@ -177,8 +199,7 @@ export function ExpenseItem({
                       className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
                     />
                     <span className="text-sm font-medium">
-                      {apartment?.name || 'Unknown Apartment'}
-                      {isCurrentUser && ' (You)'}
+                      {formatApartmentWithUsers(apartmentId, isCurrentUser)}
                     </span>
                   </div>
 

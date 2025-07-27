@@ -1327,6 +1327,7 @@ export function ApartmentShareApp({
             key={expense.id}
             expense={expense}
             apartments={apartments}
+            users={users}
             currentUserApartment={currentUserApartment}
             isOwner={expense.paidByApartment === currentUserApartment}
             onExpenseUpdate={handleExpenseUpdate}
