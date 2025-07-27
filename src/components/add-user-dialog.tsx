@@ -1,9 +1,14 @@
-"use client";
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import type { User } from '@/lib/types';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,18 +19,31 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import { useToast } from '@/hooks/use-toast';
-import type { User } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
-  role: z.enum(['owner', 'tenant', 'admin']),
+  role: z.enum(['user', 'admin']),
+  propertyRole: z.enum(['tenant', 'owner']).optional(),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -45,7 +63,8 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
       name: '',
       email: '',
       phone: '',
-      role: 'tenant',
+      role: 'user',
+      propertyRole: undefined,
     },
   });
 
@@ -53,14 +72,14 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-        onAddUser(data);
-        toast({
-          title: 'User Added',
-          description: `An account for ${data.name} has been created.`,
-        });
-        setIsSaving(false);
-        setOpen(false);
-        form.reset();
+      onAddUser(data);
+      toast({
+        title: 'User Added',
+        description: `An account for ${data.name} has been created.`,
+      });
+      setIsSaving(false);
+      setOpen(false);
+      form.reset();
     }, 1000);
   };
 
@@ -70,9 +89,7 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
-          <DialogDescription>
-            Create a new user account and assign them a role.
-          </DialogDescription>
+          <DialogDescription>Create a new user account and assign them a role.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -115,30 +132,54 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="owner">Owner</SelectItem>
-                        <SelectItem value="tenant">Tenant</SelectItem>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>System Role</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select system role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="propertyRole"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Property Role</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select property role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="tenant">Tenant</SelectItem>
+                        <SelectItem value="owner">Owner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Add User

@@ -1,13 +1,16 @@
 'use client';
 
-import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useAuth } from '@/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+
+import * as React from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -16,10 +19,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/auth-context';
-import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -29,12 +32,11 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Google</title>
-        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.9-4.73 1.9-3.87 0-7-3.13-7-7s3.13-7 7-7c1.93 0 3.61.79 4.81 1.9l2.43-2.42C19.64.29 16.7.0 12.48.0 5.88.0.42 5.21.42 12s5.46 12 12.06 12c3.29 0 6.08-1.09 8.16-3.21 2.25-2.25 2.88-5.77 2.88-8.53 0-.63-.06-1.25-.16-1.84H12.48z" />
-    </svg>
+  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <title>Google</title>
+    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.9-4.73 1.9-3.87 0-7-3.13-7-7s3.13-7 7-7c1.93 0 3.61.79 4.81 1.9l2.43-2.42C19.64.29 16.7.0 12.48.0 5.88.0.42 5.21.42 12s5.46 12 12.06 12c3.29 0 6.08-1.09 8.16-3.21 2.25-2.25 2.88-5.77 2.88-8.53 0-.63-.06-1.25-.16-1.84H12.48z" />
+  </svg>
 );
-
 
 export function LoginForm() {
   const router = useRouter();
@@ -79,7 +81,7 @@ export function LoginForm() {
       });
       setIsGoogleLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -126,18 +128,24 @@ export function LoginForm() {
       </Form>
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+          <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-            </span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
       <div className="grid gap-4 pt-4">
-        <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
-            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-            Google
+        <Button
+          variant="outline"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading || isGoogleLoading}
+        >
+          {isGoogleLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <GoogleIcon className="mr-2 h-4 w-4" />
+          )}
+          Google
         </Button>
       </div>
     </>

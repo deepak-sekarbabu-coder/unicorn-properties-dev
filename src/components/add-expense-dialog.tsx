@@ -1,9 +1,13 @@
-"use client";
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import type { Category, Expense, User } from '@/lib/types';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,26 +18,43 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import { useToast } from '@/hooks/use-toast';
-import type { Category, User, Expense } from '@/lib/types';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   paidBy: z.string().min(1, 'Please select who paid'),
   categoryId: z.string().min(1, 'Please select a category'),
-  receipt: z.any()
+  receipt: z
+    .any()
     .optional()
-    .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
-      (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
+      files => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
+      `Max file size is 5MB.`
+    )
+    .refine(
+      files => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      'Only .jpg, .jpeg, .png and .webp formats are supported.'
     ),
 });
 
@@ -47,7 +68,13 @@ interface AddExpenseDialogProps {
   currentUser: User;
 }
 
-export function AddExpenseDialog({ children, categories, users, onAddExpense, currentUser }: AddExpenseDialogProps) {
+export function AddExpenseDialog({
+  children,
+  categories,
+  users,
+  onAddExpense,
+  currentUser,
+}: AddExpenseDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<ExpenseFormValues>({
@@ -61,35 +88,35 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense, cu
     },
   });
 
-  const fileRef = form.register("receipt");
+  const fileRef = form.register('receipt');
 
   const onSubmit = async (data: ExpenseFormValues) => {
     let receiptDataUrl: string | undefined = undefined;
     if (data.receipt && data.receipt.length > 0) {
-        const file = data.receipt[0];
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        receiptDataUrl = await new Promise((resolve) => {
-            reader.onload = () => resolve(reader.result as string);
-        });
+      const file = data.receipt[0];
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      receiptDataUrl = await new Promise(resolve => {
+        reader.onload = () => resolve(reader.result as string);
+      });
     }
-    
+
     if (!currentUser.apartment) {
-        toast({
-            title: 'Error',
-            description: 'You must belong to an apartment to add an expense.',
-            variant: 'destructive',
-        });
-        return;
+      toast({
+        title: 'Error',
+        description: 'You must belong to an apartment to add an expense.',
+        variant: 'destructive',
+      });
+      return;
     }
 
     const expenseData: Omit<Expense, 'id' | 'date'> = {
-        description: data.description,
-        amount: data.amount,
-        paidBy: data.paidBy,
-        categoryId: data.categoryId,
-        receipt: receiptDataUrl,
-        apartment: currentUser.apartment,
+      description: data.description,
+      amount: data.amount,
+      paidBy: data.paidBy,
+      categoryId: data.categoryId,
+      receipt: receiptDataUrl,
+      apartment: currentUser.apartment,
     };
 
     onAddExpense(expenseData);
@@ -190,18 +217,18 @@ export function AddExpenseDialog({ children, categories, users, onAddExpense, cu
                 )}
               />
             </div>
-             <FormField
-                control={form.control}
-                name="receipt"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Receipt (Optional)</FormLabel>
-                        <FormControl>
-                            <Input type="file" accept="image/*" {...fileRef} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
+            <FormField
+              control={form.control}
+              name="receipt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Receipt (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="file" accept="image/*" {...fileRef} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             <DialogFooter>
               <Button type="submit">Add Expense</Button>

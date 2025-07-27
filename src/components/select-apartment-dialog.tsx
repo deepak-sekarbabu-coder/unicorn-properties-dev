@@ -1,10 +1,14 @@
+'use client';
 
-"use client";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import type { User } from '@/lib/types';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,17 +18,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import { useToast } from '@/hooks/use-toast';
-import type { User } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
 
 const onboardingSchema = z.object({
   apartment: z.string().min(1, 'Please select an apartment.'),
-  role: z.enum(['owner', 'tenant'], {
-    required_error: "You need to select a role.",
+  propertyRole: z.enum(['owner', 'tenant'], {
+    required_error: 'You need to select a property role.',
   }),
 });
 
@@ -36,10 +52,15 @@ interface SelectApartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User;
-  onSave: (data: { apartment: string; role: 'owner' | 'tenant' }) => void;
+  onSave: (data: { apartment: string; propertyRole: 'owner' | 'tenant' }) => void;
 }
 
-export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: SelectApartmentDialogProps) {
+export function SelectApartmentDialog({
+  open,
+  onOpenChange,
+  user,
+  onSave,
+}: SelectApartmentDialogProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<OnboardingFormValues>({
@@ -58,7 +79,7 @@ export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: Sele
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Welcome, {user.name}!</DialogTitle>
           <DialogDescription>
@@ -93,10 +114,10 @@ export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: Sele
             />
             <FormField
               control={form.control}
-              name="role"
+              name="propertyRole"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>What is your role?</FormLabel>
+                  <FormLabel>What is your property role?</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -107,17 +128,13 @@ export function SelectApartmentDialog({ open, onOpenChange, user, onSave }: Sele
                         <FormControl>
                           <RadioGroupItem value="owner" />
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          Owner
-                        </FormLabel>
+                        <FormLabel className="font-normal">Owner</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="tenant" />
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          Tenant
-                        </FormLabel>
+                        <FormLabel className="font-normal">Tenant</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>

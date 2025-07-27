@@ -1,12 +1,17 @@
 // This page will handle redirection based on auth status.
 // In a real app, this logic would likely be in middleware.
-"use client";
+'use client';
+
+import { useAuth } from '@/context/auth-context';
 
 import { useEffect } from 'react';
+
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
+// This page will handle redirection based on auth status.
+// In a real app, this logic would likely be in middleware.
 
 export default function Home() {
   const { user, loading } = useAuth();

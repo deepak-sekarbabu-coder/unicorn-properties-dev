@@ -4,7 +4,8 @@ export type User = {
   avatar?: string;
   email?: string;
   phone?: string;
-  role?: 'owner' | 'tenant' | 'admin';
+  role?: 'user' | 'admin'; // Authentication role (system permissions)
+  propertyRole?: 'tenant' | 'owner'; // Property relationship role
   fcmToken?: string; // For push notifications
   apartment?: string;
 };
@@ -27,10 +28,10 @@ export type Expense = {
 };
 
 export type Announcement = {
-    id: string;
-    message: string;
-    status: 'pending' | 'approved' | 'rejected';
-    createdBy: string; // User ID
-    createdAt: string; // ISO date string
-    expiresAt: string; // ISO date string
+  id: string;
+  message: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdBy: string; // User ID
+  createdAt: string; // ISO date string
+  expiresAt: string; // ISO date string
 };

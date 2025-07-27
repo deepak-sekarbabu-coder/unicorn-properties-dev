@@ -1,6 +1,6 @@
 # **App Name**: ApartmentShare
 
-## Core Features:
+## Core Features
 
 - Expense Input: User-friendly interface for adding expenses with details like amount, description, and category.
 - Expense Categorization: Categorize expenses (electricity, cleaning, etc.) using predefined categories.
@@ -9,7 +9,7 @@
 - Payment Reminders: Notifications for upcoming due dates and payment reminders.
 - Role Management: Role-based access control with admin roles to manage categories and view logs, and user roles to add expenses and view summaries.
 
-## Style Guidelines:
+## Style Guidelines
 
 - Primary color: Soft blue (#A0D2EB) to convey trust and serenity, nodding to financial contexts but avoiding starkness.
 - Background color: Light grey (#F5F5F5), almost white, to ensure legibility and create a clean, uncluttered look.

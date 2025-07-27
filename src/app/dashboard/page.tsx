@@ -1,49 +1,99 @@
+import { getAuth } from 'firebase-admin/auth';
 
-import { ApartmentShareApp } from '@/components/apartment-share-app';
-import { getCategories, getAnnouncements, getUser } from '@/lib/firestore';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth as adminAuth } from 'firebase-admin';
+
+import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+import { getAnnouncements, getCategories, getUser } from '@/lib/firestore';
+
+import { ApartmentShareApp } from '@/components/apartment-share-app';
 
 async function getAuthenticatedUser() {
-    const sessionCookie = cookies().get('session')?.value;
-    if (!sessionCookie) return null;
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('session')?.value;
+  const userRoleCookie = cookieStore.get('user-role')?.value;
 
-    try {
-        const adminApp = getFirebaseAdminApp(); // Initialize admin app if not already
-        const decodedClaims = await adminAuth(adminApp).verifySessionCookie(sessionCookie, true);
-        const user = await getUser(decodedClaims.uid);
-        if (!user) return null;
-        
-        return user;
-    } catch (error) {
-        console.error("Session verification failed:", error);
-        return null;
+  console.log('=== Authentication Debug ===');
+  console.log('Session cookie exists:', !!sessionCookie);
+  console.log('User role cookie:', userRoleCookie);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+
+  if (!sessionCookie) {
+    console.log('No session cookie found, returning null');
+    return null;
+  }
+
+  console.log('Session cookie length:', sessionCookie.length);
+  console.log('Session cookie starts with:', sessionCookie.substring(0, 20));
+
+  try {
+    const adminApp = getFirebaseAdminApp();
+    console.log('✅ Admin app initialized successfully');
+
+    console.log('🔍 Attempting session cookie verification');
+    const decodedClaims = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
+    console.log('✅ Session cookie verified successfully, UID:', decodedClaims.uid);
+
+    const user = await getUser(decodedClaims.uid);
+    console.log('User from Firestore:', user ? 'Found' : 'Not found');
+    if (!user) return null;
+
+    return user;
+  } catch (error: unknown) {
+    console.error('❌ Session verification failed:');
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', (error as { constructor?: { name?: string } })?.constructor?.name);
+    console.error('Error message:', (error as { message?: string })?.message);
+    console.error('Error code:', (error as { code?: string })?.code);
+    console.error('Full error:', error);
+
+    // Check if we should clear the session based on the error type
+    if (shouldClearSession(error)) {
+      console.log('🧹 Clearing invalid session cookies due to:', getAuthErrorMessage(error));
+      const cookieStore = await cookies();
+      cookieStore.delete('session');
+      cookieStore.delete('user-role');
+      return null;
     }
+
+    // Development fallback: if we have a user-role cookie, create a basic user object
+    if (process.env.NODE_ENV === 'development' && userRoleCookie) {
+      console.warn('🔄 Using development fallback for user authentication');
+      return {
+        id: 'dev-user',
+        name: 'Development User',
+        email: 'dev@example.com',
+        role: userRoleCookie as 'admin' | 'user',
+        apartment: 'dev-apartment',
+      };
+    }
+
+    return null;
+  }
 }
 
-
 export default async function DashboardPage() {
-    const user = await getAuthenticatedUser();
+  const user = await getAuthenticatedUser();
 
-    if (!user) {
-        redirect('/login');
-    }
+  if (!user) {
+    redirect('/login');
+  }
 
-    const initialCategories = await getCategories();
-    const initialAnnouncements = await getAnnouncements(user.role || 'tenant');
+  const initialCategories = await getCategories();
+  const initialAnnouncements = await getAnnouncements(user.role === 'admin' ? 'admin' : 'user');
 
-    // Data fetching will now be handled client-side based on user's apartment
-    // We pass empty arrays to avoid prop-drilling large initial datasets
-    const initialUsers = [];
-    const initialExpenses = [];
-    
+  // Data fetching will now be handled client-side based on user's apartment
+  // We pass empty arrays to avoid prop-drilling large initial datasets
+  const initialUsers = [];
+  const initialExpenses = [];
 
-    return <ApartmentShareApp
-        initialUsers={initialUsers}
-        initialCategories={initialCategories}
-        initialExpenses={initialExpenses}
-        initialAnnouncements={initialAnnouncements}
-    />;
+  return (
+    <ApartmentShareApp
+      initialUsers={initialUsers}
+      initialCategories={initialCategories}
+      initialExpenses={initialExpenses}
+      initialAnnouncements={initialAnnouncements}
+    />
+  );
 }

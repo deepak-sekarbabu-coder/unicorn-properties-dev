@@ -1,9 +1,14 @@
-"use client";
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import type { Category } from '@/lib/types';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,13 +19,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import { useToast } from '@/hooks/use-toast';
-import type { Category } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
-import { Icons, IconName } from './icons';
+
+import { IconName, Icons } from './icons';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -52,14 +70,14 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-        onAddCategory(data);
-        toast({
-          title: 'Category Added',
-          description: `The "${data.name}" category has been created.`,
-        });
-        setIsSaving(false);
-        setOpen(false);
-        form.reset();
+      onAddCategory(data);
+      toast({
+        title: 'Category Added',
+        description: `The "${data.name}" category has been created.`,
+      });
+      setIsSaving(false);
+      setOpen(false);
+      form.reset();
     }, 1000);
   };
 
@@ -69,9 +87,7 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Category</DialogTitle>
-          <DialogDescription>
-            Create a new category for tracking expenses.
-          </DialogDescription>
+          <DialogDescription>Create a new category for tracking expenses.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -113,7 +129,9 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Add Category
@@ -125,4 +143,3 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
     </Dialog>
   );
 }
-    

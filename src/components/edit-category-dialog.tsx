@@ -1,9 +1,14 @@
-"use client";
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import type { Category } from '@/lib/types';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,11 +19,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
 import { useToast } from '@/hooks/use-toast';
-import type { Category } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
+
 import { CategoryIcon } from './category-icon';
 
 const categorySchema = z.object({
@@ -33,7 +45,11 @@ interface EditCategoryDialogProps {
   onUpdateCategory: (category: Category) => void;
 }
 
-export function EditCategoryDialog({ children, category, onUpdateCategory }: EditCategoryDialogProps) {
+export function EditCategoryDialog({
+  children,
+  category,
+  onUpdateCategory,
+}: EditCategoryDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
@@ -43,27 +59,27 @@ export function EditCategoryDialog({ children, category, onUpdateCategory }: Edi
       name: category.name,
     },
   });
-  
+
   React.useEffect(() => {
-    if(category){
-        form.reset({
-            name: category.name,
-        })
+    if (category) {
+      form.reset({
+        name: category.name,
+      });
     }
-  }, [category, form])
+  }, [category, form]);
 
   const onSubmit = (data: CategoryFormValues) => {
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-        const updatedCategory = { ...category, name: data.name };
-        onUpdateCategory(updatedCategory);
-        toast({
-          title: 'Category Updated',
-          description: `The category has been renamed to "${data.name}".`,
-        });
-        setIsSaving(false);
-        setOpen(false);
+      const updatedCategory = { ...category, name: data.name };
+      onUpdateCategory(updatedCategory);
+      toast({
+        title: 'Category Updated',
+        description: `The category has been renamed to "${data.name}".`,
+      });
+      setIsSaving(false);
+      setOpen(false);
     }, 1000);
   };
 
@@ -76,9 +92,7 @@ export function EditCategoryDialog({ children, category, onUpdateCategory }: Edi
             <CategoryIcon name={category.icon as any} className="h-10 w-10" />
             <DialogTitle>Edit Category</DialogTitle>
           </div>
-          <DialogDescription>
-            Update the details for this category.
-          </DialogDescription>
+          <DialogDescription>Update the details for this category.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -95,21 +109,23 @@ export function EditCategoryDialog({ children, category, onUpdateCategory }: Edi
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="icon"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Icon</FormLabel>
-                   <FormControl>
-                     <Input placeholder="Icon name" value={category.icon} disabled />
+                  <FormControl>
+                    <Input placeholder="Icon name" value={category.icon} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes

@@ -1,170 +1,186 @@
+import {
+  Timestamp,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from 'firebase/firestore';
-import type { User, Category, Expense, Announcement } from './types';
+import type { Announcement, Category, Expense, User } from './types';
 
 const removeUndefined = (obj: Record<string, any>) => {
-    Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
-    return obj;
-}
+  Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
+  return obj;
+};
 
 // Users
 export const getUsers = async (apartment?: string): Promise<User[]> => {
   let usersQuery = query(collection(db, 'users'));
   if (apartment) {
-      usersQuery = query(usersQuery, where('apartment', '==', apartment));
+    usersQuery = query(usersQuery, where('apartment', '==', apartment));
   }
   const userSnapshot = await getDocs(usersQuery);
-  return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+  return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as User);
 };
 
 export const getUser = async (id: string): Promise<User | null> => {
-    const userDoc = doc(db, 'users', id);
-    const userSnapshot = await getDoc(userDoc);
-    if(userSnapshot.exists()){
-        return {id: userSnapshot.id, ...userSnapshot.data()} as User;
-    }
-    return null;
-}
+  const userDoc = doc(db, 'users', id);
+  const userSnapshot = await getDoc(userDoc);
+  if (userSnapshot.exists()) {
+    return { id: userSnapshot.id, ...userSnapshot.data() } as User;
+  }
+  return null;
+};
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
-    const usersCol = collection(db, 'users');
-    const q = query(usersCol, where("email", "==", email));
-    const userSnapshot = await getDocs(q);
-    if (userSnapshot.empty) {
-        return null;
-    }
-    const doc = userSnapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as User;
-}
+  const usersCol = collection(db, 'users');
+  const q = query(usersCol, where('email', '==', email));
+  const userSnapshot = await getDocs(q);
+  if (userSnapshot.empty) {
+    return null;
+  }
+  const doc = userSnapshot.docs[0];
+  return { id: doc.id, ...doc.data() } as User;
+};
 
 export const addUser = async (user: Omit<User, 'id'>): Promise<User> => {
-    const usersCol = collection(db, 'users');
-    const cleanUser = removeUndefined(user);
-    const docRef = await addDoc(usersCol, cleanUser);
-    return { id: docRef.id, ...cleanUser } as User;
+  const usersCol = collection(db, 'users');
+  const cleanUser = removeUndefined(user);
+  const docRef = await addDoc(usersCol, cleanUser);
+  return { id: docRef.id, ...cleanUser } as User;
 };
 
 export const updateUser = async (id: string, user: Partial<User>): Promise<void> => {
-    const userDoc = doc(db, 'users', id);
-    const cleanUser = removeUndefined(user);
-    await updateDoc(userDoc, cleanUser);
+  const userDoc = doc(db, 'users', id);
+  const cleanUser = removeUndefined(user);
+  await updateDoc(userDoc, cleanUser);
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-    const userDoc = doc(db, 'users', id);
-    await deleteDoc(userDoc);
+  const userDoc = doc(db, 'users', id);
+  await deleteDoc(userDoc);
 };
 
 // Categories
 export const getCategories = async (): Promise<Category[]> => {
   const categoriesCol = collection(db, 'categories');
   const categorySnapshot = await getDocs(categoriesCol);
-  return categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+  return categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Category);
 };
 
 export const addCategory = async (category: Omit<Category, 'id'>): Promise<Category> => {
-    const categoriesCol = collection(db, 'categories');
-    const cleanCategory = removeUndefined(category);
-    const docRef = await addDoc(categoriesCol, cleanCategory);
-    return { id: docRef.id, ...cleanCategory } as Category;
+  const categoriesCol = collection(db, 'categories');
+  const cleanCategory = removeUndefined(category);
+  const docRef = await addDoc(categoriesCol, cleanCategory);
+  return { id: docRef.id, ...cleanCategory } as Category;
 };
 
 export const updateCategory = async (id: string, category: Partial<Category>): Promise<void> => {
-    const categoryDoc = doc(db, 'categories', id);
-    const cleanCategory = removeUndefined(category);
-    await updateDoc(categoryDoc, cleanCategory);
+  const categoryDoc = doc(db, 'categories', id);
+  const cleanCategory = removeUndefined(category);
+  await updateDoc(categoryDoc, cleanCategory);
 };
 
 export const deleteCategory = async (id: string): Promise<void> => {
-    const categoryDoc = doc(db, 'categories', id);
-    await deleteDoc(categoryDoc);
+  const categoryDoc = doc(db, 'categories', id);
+  await deleteDoc(categoryDoc);
 };
-
 
 // Expenses
 export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
   let expensesQuery = query(collection(db, 'expenses'));
-    if (apartment) {
-        expensesQuery = query(expensesQuery, where('apartment', '==', apartment));
-    }
+  if (apartment) {
+    expensesQuery = query(expensesQuery, where('apartment', '==', apartment));
+  }
   const expenseSnapshot = await getDocs(expensesQuery);
-  return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
+  return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
 };
 
-export const addExpense = async (expense: Omit<Expense, 'id'|'date'>): Promise<Expense> => {
-    const newExpense = {
-        ...expense,
-        date: new Date().toISOString()
-    }
-    const expensesCol = collection(db, 'expenses');
-    const cleanExpense = removeUndefined(newExpense);
-    const docRef = await addDoc(expensesCol, cleanExpense);
-    return { id: docRef.id, ...cleanExpense } as Expense;
+export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise<Expense> => {
+  const newExpense = {
+    ...expense,
+    date: new Date().toISOString(),
+  };
+  const expensesCol = collection(db, 'expenses');
+  const cleanExpense = removeUndefined(newExpense);
+  const docRef = await addDoc(expensesCol, cleanExpense);
+  return { id: docRef.id, ...cleanExpense } as Expense;
 };
 
 export const deleteExpense = async (id: string): Promise<void> => {
-    const expenseDoc = doc(db, 'expenses', id);
-    await deleteDoc(expenseDoc);
+  const expenseDoc = doc(db, 'expenses', id);
+  await deleteDoc(expenseDoc);
 };
 
 // Announcements
 export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announcement[]> => {
-    const announcementsCol = collection(db, 'announcements');
-    const now = Timestamp.now();
-    
-    const statusesToFetch = role === 'admin' 
-        ? ['approved', 'pending'] 
-        : ['approved'];
+  const announcementsCol = collection(db, 'announcements');
+  const now = Timestamp.now();
 
-    const q = query(
-        announcementsCol, 
-        where("expiresAt", ">", now),
-        where("status", "in", statusesToFetch)
-    );
-    const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            message: data.message,
-            status: data.status,
-            createdBy: data.createdBy,
-            createdAt: (data.createdAt.toDate()).toISOString(),
-            expiresAt: (data.expiresAt.toDate()).toISOString(),
-        }
-    });
-};
+  const statusesToFetch = role === 'admin' ? ['approved', 'pending'] : ['approved'];
 
-export const addAnnouncement = async (message: string, userId: string, userRole: 'admin' | 'user'): Promise<Announcement> => {
-    const now = new Date();
-    const expires = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+  const q = query(
+    announcementsCol,
+    where('expiresAt', '>', now),
+    where('status', 'in', statusesToFetch)
+  );
+  const snapshot = await getDocs(q);
 
-    const newAnnouncement = {
-        message,
-        createdBy: userId,
-        status: userRole === 'admin' ? 'approved' : 'pending',
-        createdAt: Timestamp.fromDate(now),
-        expiresAt: Timestamp.fromDate(expires),
-    };
-    const announcementsCol = collection(db, 'announcements');
-    const docRef = await addDoc(announcementsCol, newAnnouncement);
-    
+  return snapshot.docs.map(doc => {
+    const data = doc.data();
     return {
-        id: docRef.id,
-        message: newAnnouncement.message,
-        createdBy: newAnnouncement.createdBy,
-        status: newAnnouncement.status,
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
+      id: doc.id,
+      message: data.message,
+      status: data.status,
+      createdBy: data.createdBy,
+      createdAt: data.createdAt.toDate().toISOString(),
+      expiresAt: data.expiresAt.toDate().toISOString(),
     };
+  });
 };
 
-export const updateAnnouncementStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-    const announcementDoc = doc(db, 'announcements', id);
-    if (status === 'rejected') {
-        await deleteDoc(announcementDoc);
-    } else {
-        await updateDoc(announcementDoc, { status });
-    }
+export const addAnnouncement = async (
+  message: string,
+  userId: string,
+  userRole: 'admin' | 'user'
+): Promise<Announcement> => {
+  const now = new Date();
+  const expires = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+
+  const newAnnouncement = {
+    message,
+    createdBy: userId,
+    status: userRole === 'admin' ? 'approved' : 'pending',
+    createdAt: Timestamp.fromDate(now),
+    expiresAt: Timestamp.fromDate(expires),
+  };
+  const announcementsCol = collection(db, 'announcements');
+  const docRef = await addDoc(announcementsCol, newAnnouncement);
+
+  return {
+    id: docRef.id,
+    message: newAnnouncement.message,
+    createdBy: newAnnouncement.createdBy,
+    status: newAnnouncement.status,
+    createdAt: now.toISOString(),
+    expiresAt: expires.toISOString(),
+  };
+};
+
+export const updateAnnouncementStatus = async (
+  id: string,
+  status: 'approved' | 'rejected'
+): Promise<void> => {
+  const announcementDoc = doc(db, 'announcements', id);
+  if (status === 'rejected') {
+    await deleteDoc(announcementDoc);
+  } else {
+    await updateDoc(announcementDoc, { status });
+  }
 };
