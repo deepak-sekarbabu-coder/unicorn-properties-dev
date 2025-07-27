@@ -18,6 +18,28 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Netlify configuration
+  output: 'standalone',
+  trailingSlash: false,
+  // Ensure proper handling of dynamic routes
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
+  },
+  // Handle client-side routing
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
