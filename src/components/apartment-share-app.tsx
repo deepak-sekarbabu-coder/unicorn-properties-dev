@@ -1015,17 +1015,79 @@ export function ApartmentShareApp({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid w-full gap-2">
-            <Textarea
-              placeholder="Type your message here..."
-              maxLength={500}
-              value={announcementMessage}
-              onChange={e => setAnnouncementMessage(e.target.value)}
-            />
+          <div className="grid w-full gap-2" style={{ contain: 'layout' }}>
+            <div
+              className="relative"
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                contain: 'layout style'
+              }}
+            >
+              <Textarea
+                ref={(el) => {
+                  if (el && document.activeElement === el) {
+                    // Prevent scroll on re-render
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    setTimeout(() => {
+                      window.scrollTo(0, scrollTop);
+                      el.focus();
+                    }, 0);
+                  }
+                }}
+                placeholder="Type your message here..."
+                maxLength={500}
+                value={announcementMessage}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                  setAnnouncementMessage(value);
+
+                  // Prevent scroll jump immediately
+                  window.scrollTo(scrollLeft, scrollTop);
+
+                  // Also prevent it after React re-render
+                  requestAnimationFrame(() => {
+                    window.scrollTo(scrollLeft, scrollTop);
+                  });
+                }}
+                disabled={isSending}
+                className="min-h-[100px] resize-none focus:ring-2 focus:ring-offset-0"
+                rows={4}
+                style={{
+                  position: 'relative',
+                  scrollMarginTop: '0px'
+                }}
+                onFocus={(e) => {
+                  // Prevent scroll when focusing
+                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                  // Prevent default focus scroll behavior
+                  setTimeout(() => {
+                    window.scrollTo(scrollLeft, scrollTop);
+                  }, 0);
+                }}
+                onKeyDown={(e) => {
+                  // Prevent any scroll on key events
+                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                  setTimeout(() => {
+                    window.scrollTo(scrollLeft, scrollTop);
+                  }, 0);
+                }}
+              />
+            </div>
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">{announcementMessage.length} / 500</p>
               <Button
-                onClick={handleSendAnnouncement}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSendAnnouncement();
+                }}
                 disabled={isSending || !announcementMessage.trim()}
               >
                 {role === 'admin' ? (
