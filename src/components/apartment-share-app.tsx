@@ -147,6 +147,18 @@ export function ApartmentShareApp({
   const [userSearch, setUserSearch] = React.useState('');
   const [announcementMessage, setAnnouncementMessage] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Maintain focus during re-renders
+  React.useEffect(() => {
+    if (textareaRef.current && document.activeElement !== textareaRef.current) {
+      // Only refocus if the textarea was previously focused
+      const shouldRefocus = textareaRef.current.dataset.wasFocused === 'true';
+      if (shouldRefocus) {
+        textareaRef.current.focus();
+      }
+    }
+  });
 
   const [showApartmentDialog, setShowApartmentDialog] = React.useState(false);
 
@@ -1025,34 +1037,32 @@ export function ApartmentShareApp({
               }}
             >
               <Textarea
-                ref={(el) => {
-                  if (el && document.activeElement === el) {
-                    // Prevent scroll on re-render
-                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    setTimeout(() => {
-                      window.scrollTo(0, scrollTop);
-                      el.focus();
-                    }, 0);
-                  }
-                }}
+                ref={textareaRef}
                 placeholder="Type your message here..."
                 maxLength={500}
                 value={announcementMessage}
-                onChange={(e) => {
+                onChange={React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
                   const value = e.target.value;
+                  const cursorPosition = e.target.selectionStart;
                   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
+                  // Mark as focused for re-render handling
+                  if (textareaRef.current) {
+                    textareaRef.current.dataset.wasFocused = 'true';
+                  }
+
                   setAnnouncementMessage(value);
 
-                  // Prevent scroll jump immediately
-                  window.scrollTo(scrollLeft, scrollTop);
-
-                  // Also prevent it after React re-render
+                  // Maintain focus and cursor position after state update
                   requestAnimationFrame(() => {
+                    if (textareaRef.current) {
+                      textareaRef.current.focus();
+                      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+                    }
                     window.scrollTo(scrollLeft, scrollTop);
                   });
-                }}
+                }, [])}
                 disabled={isSending}
                 className="min-h-[100px] resize-none focus:ring-2 focus:ring-offset-0"
                 rows={4}
@@ -1060,24 +1070,15 @@ export function ApartmentShareApp({
                   position: 'relative',
                   scrollMarginTop: '0px'
                 }}
-                onFocus={(e) => {
-                  // Prevent scroll when focusing
-                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-                  // Prevent default focus scroll behavior
-                  setTimeout(() => {
-                    window.scrollTo(scrollLeft, scrollTop);
-                  }, 0);
+                onFocus={() => {
+                  if (textareaRef.current) {
+                    textareaRef.current.dataset.wasFocused = 'true';
+                  }
                 }}
-                onKeyDown={(e) => {
-                  // Prevent any scroll on key events
-                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-                  setTimeout(() => {
-                    window.scrollTo(scrollLeft, scrollTop);
-                  }, 0);
+                onBlur={() => {
+                  if (textareaRef.current) {
+                    textareaRef.current.dataset.wasFocused = 'false';
+                  }
                 }}
               />
             </div>
