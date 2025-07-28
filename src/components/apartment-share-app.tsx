@@ -625,10 +625,14 @@ export function ApartmentShareApp({
     const monthlySpending = Array.from({ length: 6 })
       .map((_, i) => {
         const monthDate = subMonths(new Date(), i);
+        const monthKey = format(monthDate, 'yyyy-MM');
         const total = expenses
-          .filter(e => format(new Date(e.date), 'yyyy-MM') === format(monthDate, 'yyyy-MM'))
-          .reduce((sum, e) => sum + e.amount, 0);
-        return { name: format(monthDate, 'MMM'), total };
+          .filter(e => format(new Date(e.date), 'yyyy-MM') === monthKey)
+          .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        return { 
+          name: format(monthDate, 'MMM'), 
+          total: Number(total.toFixed(2)) 
+        };
       })
       .reverse();
 
