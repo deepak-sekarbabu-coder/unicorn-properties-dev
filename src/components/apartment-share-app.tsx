@@ -223,7 +223,8 @@ export function ApartmentShareApp({
 
   const role = user?.role || 'user';
 
-  const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
+  // Calculate total expenses for all time and per user share
+  const totalExpenses = expenses.reduce((acc, expense) => acc + (Number(expense.amount) || 0), 0);
   const perUserShare = users.length > 0 ? totalExpenses / users.length : 0;
 
   React.useEffect(() => {
@@ -912,19 +913,19 @@ export function ApartmentShareApp({
                     Total amount you paid: ₹
                     {expenses
                       .filter(e => e.paidByApartment === currentUserApartment)
-                      .reduce((sum, e) => sum + e.amount, 0)
+                      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
                       .toFixed(2)}
                   </p>
                   <p>
                     Total amount still owed to you: ₹
-                    {Object.values(currentApartmentBalance.isOwed)
-                      .reduce((sum, amount) => sum + amount, 0)
+                    {Object.values(currentApartmentBalance.isOwed || {})
+                      .reduce((sum, amount) => sum + (Number(amount) || 0), 0)
                       .toFixed(2)}
                   </p>
                   <p>
                     Total amount you still owe: ₹
-                    {Object.values(currentApartmentBalance.owes)
-                      .reduce((sum, amount) => sum + amount, 0)
+                    {Object.values(currentApartmentBalance.owes || {})
+                      .reduce((sum, amount) => sum + (Number(amount) || 0), 0)
                       .toFixed(2)}
                   </p>
                   <p>
@@ -1733,6 +1734,20 @@ export function ApartmentShareApp({
     );
   };
 
+  // Calculate monthly expenses for the current month
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const monthlyExpenses = expenses
+    .filter(expense => {
+      const expenseDate = new Date(expense.date);
+      return (
+        expenseDate.getMonth() === currentMonth &&
+        expenseDate.getFullYear() === currentYear
+      );
+    })
+    .reduce((total, expense) => total + (Number(expense.amount) || 0), 0);
+
   return (
     <>
       <SidebarProvider>
@@ -1745,7 +1760,7 @@ export function ApartmentShareApp({
                 <CardDescription>Sum of all shared expenses in your apartment.</CardDescription>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <div className="text-2xl font-bold">₹{totalExpenses.toFixed(2)}</div>
+                <div className="text-2xl font-bold">₹{monthlyExpenses.toFixed(2)}</div>
               </CardContent>
             </Card>
           </SidebarFooter>

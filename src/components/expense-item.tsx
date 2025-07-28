@@ -149,12 +149,12 @@ export function ExpenseItem({
             </div>
           </div>
           <div className="text-right space-y-1">
-            <div className="text-2xl font-bold">₹{calculation.originalAmount.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{typeof calculation.originalAmount === 'number' ? calculation.originalAmount.toFixed(2) : '0.00'}</div>
             {calculation.adjustedAmount !== calculation.originalAmount && (
               <div className="text-sm text-muted-foreground">
                 Outstanding:{' '}
                 <span className="text-red-600 font-medium">
-                  ₹{calculation.adjustedAmount.toFixed(2)}
+                  ₹{typeof calculation.adjustedAmount === 'number' ? calculation.adjustedAmount.toFixed(2) : '0.00'}
                 </span>
               </div>
             )}
@@ -205,7 +205,7 @@ export function ExpenseItem({
 
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">
-                      ₹{calculation.perApartmentShare.toFixed(2)}
+                      ₹{typeof calculation.perApartmentShare === 'number' ? calculation.perApartmentShare.toFixed(2) : '0.00'}
                     </span>
 
                     {(isOwner || isCurrentUser) && (
