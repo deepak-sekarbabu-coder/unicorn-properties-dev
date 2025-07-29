@@ -88,3 +88,5 @@ For detailed information about the application, please see the documentation in 
 - [Role Structure](docs/ROLE_STRUCTURE.md) - User roles and permissions
 - [Expense Division Feature](docs/EXPENSE_DIVISION_FEATURE.md) - Advanced expense tracking
 - [Netlify Deployment](docs/NETLIFY_DEPLOYMENT.md) - Deployment guide
+- [Netlify Troubleshooting](docs/NETLIFY_TROUBLESHOOTING.md) - Troubleshooting guide for Netlify deployment
+- [Blueprint](docs/blueprint.md) - The application blueprint

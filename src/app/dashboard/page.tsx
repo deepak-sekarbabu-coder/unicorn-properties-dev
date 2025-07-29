@@ -6,7 +6,7 @@ import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 import { getAnnouncements, getCategories, getUserByEmail } from '@/lib/firestore';
 
-import { ApartmentShareApp } from '@/components/apartment-share-app';
+import { UnicornPropertiesApp } from '@/components/unicorn-properties-app';
 
 async function getAuthenticatedUser() {
   const cookieStore = await cookies();
@@ -90,17 +90,15 @@ export default async function DashboardPage() {
   if (!user) {
     console.log('🔄 Server-side auth failed - using client-side protection');
     const { ProtectedRoute } = await import('@/components/protected-route');
-    const { ApartmentShareApp } = await import('@/components/apartment-share-app');
+    const { UnicornPropertiesApp } = await import('@/components/unicorn-properties-app');
 
     // Get basic data that doesn't require user context
     const initialCategories = await getCategories();
 
     return (
       <ProtectedRoute>
-        <ApartmentShareApp
-          initialUsers={[]}
+        <UnicornPropertiesApp
           initialCategories={initialCategories}
-          initialExpenses={[]}
           initialAnnouncements={[]}
         />
       </ProtectedRoute>
@@ -113,14 +111,9 @@ export default async function DashboardPage() {
 
   // Data fetching will now be handled client-side based on user's apartment
   // We pass empty arrays to avoid prop-drilling large initial datasets
-  const initialUsers = [];
-  const initialExpenses = [];
-
   return (
-    <ApartmentShareApp
-      initialUsers={initialUsers}
+    <UnicornPropertiesApp
       initialCategories={initialCategories}
-      initialExpenses={initialExpenses}
       initialAnnouncements={initialAnnouncements}
     />
   );

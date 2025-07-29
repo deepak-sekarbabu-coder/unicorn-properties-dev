@@ -115,15 +115,15 @@ import { Skeleton } from './ui/skeleton';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
 
-interface ApartmentShareAppProps {
+interface UnicornPropertiesAppProps {
   initialCategories: Category[];
   initialAnnouncements: Announcement[];
 }
 
-export function ApartmentShareApp({
+export function UnicornPropertiesApp({
   initialCategories,
   initialAnnouncements,
-}: ApartmentShareAppProps) {
+}: UnicornPropertiesAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
