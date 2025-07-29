@@ -42,6 +42,15 @@ This project is a modern web application built with the following technologies:
 
 The application will be available at `http://localhost:3000`.
 
+### Available Scripts
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm run genkit:dev` - Start Genkit development server
+
 ## 3. Project Structure
 
 The codebase is organized into the following key directories:
@@ -89,22 +98,22 @@ The codebase is organized into the following key directories:
 ### State Management
 
 - **Global State**: The primary global state is authentication, managed in `AuthContext`. It stores the currently logged-in user and handles login/logout logic.
-- **Local/Component State**: The core application state (users, expenses, categories) is managed within the `ApartmentShareApp` component using `React.useState`. Data is passed down to child components via props, and updates are handled by callback functions (e.g., `onAddExpense`, `onUpdateUser`). This keeps the data flow predictable.
+- **Local/Component State**: The core application state (users, expenses, categories) is managed within the `UnicornPropertiesApp` component using `React.useState`. Data is passed down to child components via props, and updates are handled by callback functions (e.g., `onAddExpense`, `onUpdateUser`). This keeps the data flow predictable.
 
 ### Authentication and Onboarding
 
 Authentication is handled by **Firebase Authentication**. The `AuthContext` (`src/context/auth-context.tsx`) wraps the Firebase SDK to provide a simplified authentication flow, supporting both email/password and Google Sign-In. The `onAuthStateChanged` listener keeps the app's user state in sync with Firebase. User session is persisted using `browserLocalPersistence`.
 
-A key feature is the **new user onboarding flow**. When a user logs in for the first time and their profile is missing an `apartment` value, the `ApartmentShareApp` component will automatically present the `SelectApartmentDialog`. This ensures all users have an apartment assigned to their profile.
+A key feature is the **new user onboarding flow**. When a user logs in for the first time and their profile is missing an `apartment` value, the `UnicornPropertiesApp` component will automatically present the `SelectApartmentDialog`. This ensures all users have an apartment assigned to their profile.
 
 ### Data Flow & Backend
 
 The application uses **Firestore** as its database. All database interactions are centralized in `src/lib/firestore.ts`.
 
 1. The `DashboardPage` (`src/app/dashboard/page.tsx`) is a Server Component that fetches the initial data (users, expenses, etc.) from Firestore.
-2. This data is passed as props to the main client component, `ApartmentShareApp`.
-3. `ApartmentShareApp` stores this data in its state and is responsible for all Create, Read, Update, and Delete (CRUD) operations.
-4. When a user performs an action (e.g., adding an expense), the relevant component calls a handler function in `ApartmentShareApp`.
+2. This data is passed as props to the main client component, `UnicornPropertiesApp`.
+3. `UnicornPropertiesApp` stores this data in its state and is responsible for all Create, Read, Update, and Delete (CRUD) operations.
+4. When a user performs an action (e.g., adding an expense), the relevant component calls a handler function in `UnicornPropertiesApp`.
 5. This handler function then calls the appropriate function in `src/lib/firestore.ts` to update the database.
 6. The local state is then updated with the new data, causing the UI to re-render.
 
@@ -136,5 +145,51 @@ Push notifications are implemented using **Firebase Cloud Messaging (FCM)**.
 The UI is built with **ShadCN UI** components, which are styled using **Tailwind CSS**. The theme (colors, fonts, etc.) is configured in `tailwind.config.ts` and the global CSS variables are defined in `src/app/globals.css`.
 
 ---
+
+## 5. Technical Improvements
+
+### Architecture Updates
+
+- **Next.js 15.3.3**: Latest framework version with App Router
+- **TypeScript**: Full type safety throughout the application
+- **Modular Structure**: Well-organized component and utility structure
+- **Firebase Integration**: Complete Firebase ecosystem integration
+
+### New Components
+
+- `outstanding-balance.tsx` - Outstanding amount display
+- `payment-distribution.tsx` - Payment status visualization
+- `protected-route.tsx` - Route protection component
+- `expense-item.tsx` - Enhanced expense display
+
+### Utility Functions
+
+- `expense-utils.ts` - Expense calculation logic
+- `payment-utils.ts` - Payment-related utilities
+- `auth-utils.ts` - Authentication helpers
+- `use-apartments.ts` - Apartment management hook
+
+### API Structure
+
+- `/api/auth/session` - Session management
+- `/api/health` - Health check endpoint
+- `/api/test` - Deployment verification
+
+## 6. Future Enhancements
+
+### Potential Enhancements
+
+- Additional payment methods integration
+- Advanced analytics and reporting
+- Mobile app development
+- Multi-language support
+- Enhanced notification system
+
+### Maintenance Tasks
+
+- Regular dependency updates
+- Performance optimization
+- Security audits
+- User feedback integration
 
 This should give you a solid foundation for understanding and contributing to the project. Happy coding!

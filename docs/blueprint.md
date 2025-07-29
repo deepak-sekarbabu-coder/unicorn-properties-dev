@@ -1,13 +1,18 @@
-# **App Name**: ApartmentShare
+# Unicorn Properties Blueprint
 
 ## Core Features
 
-- Expense Input: User-friendly interface for adding expenses with details like amount, description, and category.
-- Expense Categorization: Categorize expenses (electricity, cleaning, etc.) using predefined categories.
-- Automated Cost Distribution: Automatic calculation of each owner's share based on the total expense and number of owners.
-- Balance Tracking: Display of current balances for each owner, showing what they owe or are owed.
-- Payment Reminders: Notifications for upcoming due dates and payment reminders.
-- Role Management: Role-based access control with admin roles to manage categories and view logs, and user roles to add expenses and view summaries.
+- **Advanced Expense Division**: Automatically divides expenses across apartments and tracks payment status.
+- **Outstanding Balance Tracking**: Prominently displays total outstanding amounts with visual indicators.
+- **Payment Management**: Mark apartments as paid when they settle their share.
+- **User Balances**: A clear dashboard view shows who owes money and who is owed money.
+- **Dual Role System**: Separate authentication roles (user/admin) and property roles (tenant/owner).
+- **Admin Management**: Comprehensive admin panel for managing users, expense categories, and all expenses.
+- **Announcement System**: Users can submit announcements for group approval with admin moderation.
+- **User Profiles**: Complete profile management with apartment assignment and role selection.
+- **Push Notifications**: Integrated with Firebase Cloud Messaging for real-time updates.
+- **Data Export**: Export all expense data to CSV format.
+- **Analytics**: Visual spending insights with charts and category breakdowns.
 
 ## Style Guidelines
 

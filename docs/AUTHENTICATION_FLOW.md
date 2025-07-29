@@ -152,3 +152,33 @@ The system handles various error scenarios:
 - User data corruption
 
 All errors are logged and users receive appropriate feedback messages.
+
+## Testing the Flow
+
+1. **New User Test**:
+   - Sign up with new email/Google account
+   - Should create user with role 'user'
+   - Should redirect to dashboard
+   - Should show onboarding dialog
+
+2. **Existing User Test**:
+   - Sign in with existing account
+   - Should find user in Firestore
+   - Should redirect to dashboard
+   - Should show main app (no onboarding if complete)
+
+3. **Error Handling Test**:
+   - Try invalid credentials
+   - Should show error message
+   - Should not redirect
+   - Should maintain login form state
+
+## Troubleshooting
+
+If authentication is still not working:
+
+1. **Check Browser Console**: Look for error messages during login
+2. **Check Network Tab**: Verify API calls are succeeding
+3. **Check Firestore**: Ensure user documents exist with correct email field
+4. **Check Firebase Auth**: Verify users are being created in Firebase Auth
+5. **Check Session Cookies**: Verify session cookies are being set
