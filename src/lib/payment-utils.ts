@@ -24,6 +24,19 @@ export function distributePayment(
   category: string = 'Utilities',
   dueDate?: Date
 ): PaymentDistribution {
+  // Check if this is a cleaning expense - if so, don't split it
+  if (category.toLowerCase() === 'cleaning') {
+    return {
+      totalAmount: 0, // No amount owed by other apartments
+      payingApartment,
+      otherApartments: [], // No other apartments owe anything
+      description,
+      category,
+      dueDate,
+      totalWithPayerShare: amount, // Only the paying apartment bears the cost
+    };
+  }
+
   // Filter out the paying apartment
   const otherApartments = allApartments.filter(apt => apt.id !== payingApartment.id);
 

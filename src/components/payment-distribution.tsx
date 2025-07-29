@@ -263,42 +263,62 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
 
         {distribution && (
           <div className="mt-8 space-y-6">
-            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium text-green-800">Payment Distribution</h3>
-                  <p className="text-sm text-green-700 mt-1">
-                    {distribution.otherApartments.length} apartments will each owe{' '}
-                    <span className="font-semibold">
-                      ₹{distribution.otherApartments[0]?.share.toFixed(2)}
-                    </span>{' '}
-                    to {distribution.payingApartment.name}.
-                  </p>
-                  <p className="text-sm text-green-700 mt-1">
-                    {distribution.payingApartment.id === currentApartmentId ? (
-                      <span>
-                        Your apartment is owed{' '}
-                        <span className="font-semibold">
-                          ₹{distribution.totalAmount.toFixed(2)}
-                        </span>{' '}
-                        in total.
-                      </span>
-                    ) : (
-                      <span>
-                        Your apartment&apos;s share:{' '}
-                        <span className="font-semibold">
-                          ₹
-                          {distribution.otherApartments
-                            .find(a => a.apartment.id === currentApartmentId)
-                            ?.share.toFixed(2) || '0.00'}
-                        </span>
-                      </span>
-                    )}
-                  </p>
+            {distribution.otherApartments.length === 0 ? (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-blue-800">No Split Required</h3>
+                    <p className="text-sm text-blue-700 mt-1">
+                      This cleaning expense will not be split among other apartments.
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {distribution.payingApartment.name} will bear the full cost of{' '}
+                      <span className="font-semibold">
+                        ₹{distribution.totalWithPayerShare.toFixed(2)}
+                      </span>.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-green-800">Payment Distribution</h3>
+                    <p className="text-sm text-green-700 mt-1">
+                      {distribution.otherApartments.length} apartments will each owe{' '}
+                      <span className="font-semibold">
+                        ₹{distribution.otherApartments[0]?.share.toFixed(2)}
+                      </span>{' '}
+                      to {distribution.payingApartment.name}.
+                    </p>
+                    <p className="text-sm text-green-700 mt-1">
+                      {distribution.payingApartment.id === currentApartmentId ? (
+                        <span>
+                          Your apartment is owed{' '}
+                          <span className="font-semibold">
+                            ₹{distribution.totalAmount.toFixed(2)}
+                          </span>{' '}
+                          in total.
+                        </span>
+                      ) : (
+                        <span>
+                          Your apartment&apos;s share:{' '}
+                          <span className="font-semibold">
+                            ₹
+                            {distribution.otherApartments
+                              .find(a => a.apartment.id === currentApartmentId)
+                              ?.share.toFixed(2) || '0.00'}
+                          </span>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="border rounded-lg divide-y">
               <div className="grid grid-cols-2 p-4 bg-gray-50 rounded-t-lg">
@@ -330,25 +350,30 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
                 </div>
               </div>
 
-              <div className="p-4 border-b">
-                <h4 className="font-medium mb-3">Payment Distribution</h4>
-                <div className="space-y-3">
-                  {distribution.otherApartments.map(({ apartment, share }) => (
-                    <div key={apartment.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                        <span>{apartment.name}</span>
+              {distribution.otherApartments.length > 0 && (
+                <div className="p-4 border-b">
+                  <h4 className="font-medium mb-3">Payment Distribution</h4>
+                  <div className="space-y-3">
+                    {distribution.otherApartments.map(({ apartment, share }) => (
+                      <div key={apartment.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                          <span>{apartment.name}</span>
+                        </div>
+                        <span className="font-medium">₹{share.toFixed(2)}</span>
                       </div>
-                      <span className="font-medium">₹{share.toFixed(2)}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="p-4 bg-gray-50 rounded-b-lg">
                 <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
                   <div className="text-sm text-muted-foreground text-center sm:text-left">
-                    {distribution.otherApartments.length} apartments will be notified
+                    {distribution.otherApartments.length === 0
+                      ? 'No payment requests needed for cleaning expenses'
+                      : `${distribution.otherApartments.length} apartments will be notified`
+                    }
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <Button
@@ -358,18 +383,20 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
                       disabled={isSending}
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Cancel
+                      {distribution.otherApartments.length === 0 ? 'Done' : 'Cancel'}
                     </Button>
-                    <Button onClick={handleSendRequests} className="flex-1" disabled={isSending}>
-                      {isSending ? (
-                        'Sending...'
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Send Requests
-                        </>
-                      )}
-                    </Button>
+                    {distribution.otherApartments.length > 0 && (
+                      <Button onClick={handleSendRequests} className="flex-1" disabled={isSending}>
+                        {isSending ? (
+                          'Sending...'
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Requests
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

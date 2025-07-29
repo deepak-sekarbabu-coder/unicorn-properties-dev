@@ -37,7 +37,7 @@ import * as React from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { migrateAllExpenses } from '@/lib/expense-migration';
+
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
@@ -182,11 +182,8 @@ export function ApartmentShareApp({
           const allUsers = await firestore.getUsers();
           const allExpenses = await firestore.getExpenses();
 
-          // Migrate expenses to new format
-          const migratedExpenses = await migrateAllExpenses(allExpenses, allApartments);
-
           setUsers(allUsers);
-          setExpenses(migratedExpenses);
+          setExpenses(allExpenses);
         } else {
           // For regular users, fetch their apartment&apos;s users and all relevant expenses
           const apartmentUsers = await firestore.getUsers(user.apartment);
@@ -194,10 +191,7 @@ export function ApartmentShareApp({
           // Get all expenses where the user's apartment is either the payer or owes a share
           const allExpenses = await firestore.getExpenses();
 
-          // Migrate expenses to new format
-          const migratedExpenses = await migrateAllExpenses(allExpenses, allApartments);
-
-          const relevantExpenses = migratedExpenses.filter(
+          const relevantExpenses = allExpenses.filter(
             expense =>
               expense.paidByApartment === user.apartment ||
               expense.owedByApartments?.includes(user.apartment)
@@ -365,39 +359,61 @@ export function ApartmentShareApp({
 
     const payingApartmentId = user.apartment;
 
-    // Get all unique apartment IDs (7 apartments total)
-    const allApartmentIds = apartments.map(apt => apt.id);
+    // Check if this is a cleaning expense - if so, don't split it
+    const category = getCategoryById(newExpenseData.categoryId);
+    const isCleaningExpense = category?.name.toLowerCase() === 'cleaning';
 
-    // Calculate per-apartment share (divide by 7 apartments)
-    const perApartmentShare = newExpenseData.amount / allApartmentIds.length;
+    let expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'>;
+    let successMessage: string;
 
-    // All other apartments owe money (excluding the paying apartment)
-    const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
+    if (isCleaningExpense) {
+      // For cleaning expenses, only the paying apartment bears the cost
+      expenseWithApartmentDebts = {
+        ...newExpenseData,
+        paidByApartment: payingApartmentId,
+        owedByApartments: [], // No other apartments owe anything
+        perApartmentShare: 0, // No sharing
+        paidByApartments: [], // Initialize as empty
+      };
+      successMessage = `₹${newExpenseData.amount} cleaning expense added. Only your apartment will bear this cost.`;
+    } else {
+      // Get all unique apartment IDs (7 apartments total)
+      const allApartmentIds = apartments.map(apt => apt.id);
 
-    console.log('[handleAddExpense] payingApartmentId:', payingApartmentId);
-    console.log('[handleAddExpense] allApartmentIds:', allApartmentIds);
-    console.log('[handleAddExpense] owingApartments:', owingApartments);
-    console.log('[handleAddExpense] perApartmentShare:', perApartmentShare);
+      // Calculate per-apartment share (divide by 7 apartments)
+      const perApartmentShare = newExpenseData.amount / allApartmentIds.length;
 
-    // Create expense with apartment debts
-    const expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'> = {
-      ...newExpenseData,
-      paidByApartment: payingApartmentId,
-      owedByApartments: owingApartments,
-      perApartmentShare,
-      paidByApartments: [], // Initialize as empty - no one has paid yet
-    };
+      // All other apartments owe money (excluding the paying apartment)
+      const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
+
+      console.log('[handleAddExpense] payingApartmentId:', payingApartmentId);
+      console.log('[handleAddExpense] allApartmentIds:', allApartmentIds);
+      console.log('[handleAddExpense] owingApartments:', owingApartments);
+      console.log('[handleAddExpense] perApartmentShare:', perApartmentShare);
+
+      // Create expense with apartment debts
+      expenseWithApartmentDebts = {
+        ...newExpenseData,
+        paidByApartment: payingApartmentId,
+        owedByApartments: owingApartments,
+        perApartmentShare,
+        paidByApartments: [], // Initialize as empty - no one has paid yet
+      };
+
+      // Show success message
+      const totalOwedByOthers = owingApartments.length * perApartmentShare;
+      successMessage = `₹${newExpenseData.amount} expense split among ${allApartmentIds.length} apartments. Your share: ₹${perApartmentShare.toFixed(2)}. You are owed ₹${totalOwedByOthers.toFixed(2)} from others.`;
+    }
+
     console.log('[handleAddExpense] expenseWithApartmentDebts:', expenseWithApartmentDebts);
 
     const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
     console.log('[handleAddExpense] newExpense from Firestore:', newExpense);
     setExpenses(prev => [newExpense, ...prev]);
 
-    // Show success message
-    const totalOwedByOthers = owingApartments.length * perApartmentShare;
     toast({
       title: 'Expense Added',
-      description: `₹${newExpenseData.amount} expense split among ${allApartmentIds.length} apartments. Your share: ₹${perApartmentShare.toFixed(2)}. You are owed ₹${totalOwedByOthers.toFixed(2)} from others.`,
+      description: successMessage,
     });
   };
 
@@ -1652,8 +1668,8 @@ export function ApartmentShareApp({
   const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
-          .slice(0, limit)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, limit)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleExpenseUpdate = (updatedExpense: Expense) => {
@@ -1672,6 +1688,7 @@ export function ApartmentShareApp({
             expense={expense}
             apartments={apartments}
             users={users}
+            categories={categories}
             currentUserApartment={currentUserApartment}
             isOwner={expense.paidByApartment === currentUserApartment}
             onExpenseUpdate={handleExpenseUpdate}

@@ -31,6 +31,7 @@ interface ExpenseItemProps {
   expense: Expense;
   apartments: Apartment[];
   users: User[];
+  categories?: { id: string; name: string }[];
   currentUserApartment?: string;
   isOwner: boolean; // Whether current user's apartment is the one that paid
   onExpenseUpdate?: (updatedExpense: Expense) => void;
@@ -40,6 +41,7 @@ export function ExpenseItem({
   expense,
   apartments,
   users,
+  categories,
   currentUserApartment,
   isOwner,
   onExpenseUpdate,
@@ -49,6 +51,10 @@ export function ExpenseItem({
 
   const calculation = calculateExpenseAmounts(expense);
   const payingApartment = apartments.find(apt => apt.id === expense.paidByApartment);
+
+  // Check if this is a cleaning expense
+  const category = categories?.find(c => c.id === expense.categoryId);
+  const isCleaningExpense = category?.name.toLowerCase() === 'cleaning';
 
   // Helper function to get users for an apartment
   const getUsersForApartment = (apartmentId: string) => {
@@ -163,26 +169,29 @@ export function ExpenseItem({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Payment Status Overview */}
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">
-              {calculation.paidApartments.length} of {expense.owedByApartments?.length || 0} paid
-            </span>
+        {/* Payment Status Overview - Hidden for cleaning expenses */}
+        {!isCleaningExpense && (
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                {calculation.paidApartments.length} of {expense.owedByApartments?.length || 0} paid
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant={calculation.unpaidApartments.length === 0 ? 'default' : 'secondary'}>
+                {calculation.unpaidApartments.length === 0 ? 'Fully Paid' : 'Pending'}
+              </Badge>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Badge variant={calculation.unpaidApartments.length === 0 ? 'default' : 'secondary'}>
-              {calculation.unpaidApartments.length === 0 ? 'Fully Paid' : 'Pending'}
-            </Badge>
-          </div>
-        </div>
+        )}
 
-        {/* Apartment Payment Status */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Payment Status by Apartment</h4>
+        {/* Apartment Payment Status - Hidden for cleaning expenses */}
+        {!isCleaningExpense && (
           <div className="space-y-2">
-            {expense.owedByApartments?.map(apartmentId => {
+            <h4 className="text-sm font-medium">Payment Status by Apartment</h4>
+            <div className="space-y-2">
+              {expense.owedByApartments?.map(apartmentId => {
               const apartment = apartments.find(apt => apt.id === apartmentId);
               const isPaid = calculation.paidApartments.includes(apartmentId);
               const isCurrentUser = apartmentId === currentUserApartment;
@@ -253,6 +262,7 @@ export function ExpenseItem({
             })}
           </div>
         </div>
+        )}
 
         {/* Receipt Dialog */}
         {expense.receipt && (
