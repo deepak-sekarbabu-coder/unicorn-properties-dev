@@ -12,21 +12,25 @@ export interface ExpenseCalculation {
 export function calculateExpenseAmounts(expense: Expense): ExpenseCalculation {
   const { amount, owedByApartments = [], paidByApartments = [], perApartmentShare } = expense;
 
+  // Ensure amount and perApartmentShare are numbers
+  const numericAmount = Number(amount) || 0;
+  const numericPerApartmentShare = Number(perApartmentShare) || 0;
+
   // Get apartments that still owe money
   const unpaidApartments = owedByApartments.filter(
     apartmentId => !paidByApartments.includes(apartmentId)
   );
 
   // Calculate adjusted amount (excluding contributions from paid apartments)
-  const adjustedAmount = unpaidApartments.length * perApartmentShare;
+  const adjustedAmount = unpaidApartments.length * numericPerApartmentShare;
 
   return {
-    originalAmount: amount,
+    originalAmount: numericAmount,
     adjustedAmount,
     totalOutstanding: adjustedAmount,
     paidApartments: paidByApartments,
     unpaidApartments,
-    perApartmentShare,
+    perApartmentShare: numericPerApartmentShare,
   };
 }
 

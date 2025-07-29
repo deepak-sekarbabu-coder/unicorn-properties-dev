@@ -629,9 +629,9 @@ export function ApartmentShareApp({
         const total = expenses
           .filter(e => format(new Date(e.date), 'yyyy-MM') === monthKey)
           .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-        return { 
-          name: format(monthDate, 'MMM'), 
-          total: Number(total.toFixed(2)) 
+        return {
+          name: format(monthDate, 'MMM'),
+          total: Number(total.toFixed(2)),
         };
       })
       .reverse();
@@ -817,6 +817,9 @@ export function ApartmentShareApp({
 
   const DashboardView = () => (
     <div className="grid gap-6">
+      {/* Outstanding Balance Alert */}
+      <OutstandingBalance expenses={expenses} currentUserApartment={currentUserApartment} />
+
       {/* Apartment Balances */}
       {currentApartmentBalance && (
         <Card>
@@ -1038,7 +1041,7 @@ export function ApartmentShareApp({
               style={{
                 position: 'relative',
                 zIndex: 1,
-                contain: 'layout style'
+                contain: 'layout style',
               }}
             >
               <Textarea
@@ -1073,7 +1076,7 @@ export function ApartmentShareApp({
                 rows={4}
                 style={{
                   position: 'relative',
-                  scrollMarginTop: '0px'
+                  scrollMarginTop: '0px',
                 }}
                 onFocus={() => {
                   if (textareaRef.current) {
@@ -1090,7 +1093,7 @@ export function ApartmentShareApp({
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">{announcementMessage.length} / 500</p>
               <Button
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   handleSendAnnouncement();
                 }}
@@ -1741,14 +1744,11 @@ export function ApartmentShareApp({
   // Calculate monthly expenses for the current month
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  
+
   const monthlyExpenses = expenses
     .filter(expense => {
       const expenseDate = new Date(expense.date);
-      return (
-        expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear
-      );
+      return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
     })
     .reduce((total, expense) => total + (Number(expense.amount) || 0), 0);
 
