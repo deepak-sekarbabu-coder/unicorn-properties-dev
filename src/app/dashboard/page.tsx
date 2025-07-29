@@ -97,10 +97,7 @@ export default async function DashboardPage() {
 
     return (
       <ProtectedRoute>
-        <UnicornPropertiesApp
-          initialCategories={initialCategories}
-          initialAnnouncements={[]}
-        />
+        <UnicornPropertiesApp initialCategories={initialCategories} initialAnnouncements={[]} />
       </ProtectedRoute>
     );
   }

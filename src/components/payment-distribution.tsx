@@ -276,7 +276,8 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
                       {distribution.payingApartment.name} will bear the full cost of{' '}
                       <span className="font-semibold">
                         ₹{distribution.totalWithPayerShare.toFixed(2)}
-                      </span>.
+                      </span>
+                      .
                     </p>
                   </div>
                 </div>
@@ -372,8 +373,7 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
                   <div className="text-sm text-muted-foreground text-center sm:text-left">
                     {distribution.otherApartments.length === 0
                       ? 'No payment requests needed for cleaning expenses'
-                      : `${distribution.otherApartments.length} apartments will be notified`
-                    }
+                      : `${distribution.otherApartments.length} apartments will be notified`}
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
                     <Button
