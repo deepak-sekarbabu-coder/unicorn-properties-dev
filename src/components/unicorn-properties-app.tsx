@@ -1215,9 +1215,9 @@ export function UnicornPropertiesApp({
     const filteredData = analyticsData.categorySpending.filter(item => item.total > 0);
 
     return (
-      <div className="grid gap-4 sm:gap-6">
+      <div className="grid gap-4 sm:gap-6 w-full max-w-full overflow-x-hidden">
         {/* Month Filter */}
-        <Card>
+        <Card className="w-full max-w-full overflow-x-auto">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg sm:text-xl">Analytics Filters</CardTitle>
             <CardDescription className="text-sm">
@@ -1225,8 +1225,8 @@ export function UnicornPropertiesApp({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
                 <label htmlFor="analytics-month" className="text-sm font-medium whitespace-nowrap">
                   Month:
                 </label>
@@ -1259,7 +1259,7 @@ export function UnicornPropertiesApp({
         </Card>
 
         {!hasData ? (
-          <Card>
+          <Card className="w-full max-w-full overflow-x-auto">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <PieChart className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No Data Available</h3>
@@ -1271,8 +1271,8 @@ export function UnicornPropertiesApp({
         ) : (
           <>
             {/* Charts Grid */}
-            <div className="grid gap-4 sm:gap-6">
-              <Card>
+            <div className="grid gap-4 sm:gap-6 w-full max-w-full">
+              <Card className="w-full max-w-full overflow-x-auto">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg sm:text-xl">Spending by Category</CardTitle>
                   <CardDescription className="text-sm">
@@ -1283,9 +1283,9 @@ export function UnicornPropertiesApp({
                     .
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-6">
+                <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-x-auto">
                   {filteredData.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8">
+                    <div className="flex flex-col items-center justify-center py-8 w-full">
                       <p className="text-sm text-muted-foreground">
                         No expenses found for the selected period.
                       </p>
@@ -1293,7 +1293,7 @@ export function UnicornPropertiesApp({
                   ) : (
                     <ChartContainer
                       config={{}}
-                      className="h-[250px] sm:h-[300px] lg:h-[350px] w-full"
+                      className="h-[250px] sm:h-[300px] lg:h-[350px] w-full min-w-[280px] max-w-full overflow-x-auto"
                     >
                       <BarChart data={filteredData} accessibilityLayer>
                         <CartesianGrid vertical={false} />
@@ -1320,7 +1320,7 @@ export function UnicornPropertiesApp({
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="w-full max-w-full overflow-x-auto">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg sm:text-xl">Spending Over Time</CardTitle>
                   <CardDescription className="text-sm">
@@ -1329,10 +1329,10 @@ export function UnicornPropertiesApp({
                       ' (Category breakdown filtered by selected month above)'}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-6">
+                <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-x-auto">
                   <ChartContainer
                     config={{}}
-                    className="h-[250px] sm:h-[300px] lg:h-[350px] w-full"
+                    className="h-[250px] sm:h-[300px] lg:h-[350px] w-full min-w-[280px] max-w-full overflow-x-auto"
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analyticsData.monthlySpending}>
