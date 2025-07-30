@@ -66,22 +66,18 @@ export function ExpenseItem({
     return users.filter(user => user.apartment === apartmentId);
   };
 
-  // Helper function to format apartment display with users
+  // Helper function to format apartment display with owner(s)
   const formatApartmentWithUsers = (apartmentId: string, showYou: boolean = false) => {
-    const apartment = apartments.find(apt => apt.id === apartmentId);
-    const apartmentUsers = getUsersForApartment(apartmentId);
-    const userNames = apartmentUsers.map(user => user.name).join(', ');
-
-    const apartmentName = apartment?.name || 'Unknown Apartment';
+    // Use apartmentId as the apartment name
+    const apartmentName = apartmentId;
+    // Find owners for this apartment
+    const owners = users.filter(
+      user => user.apartment === apartmentId && (user.propertyRole === 'owner' || user.propertyRole === 'tenant')
+    );
+    const ownerNames = owners.map(user => user.name).join(', ');
     const youSuffix = showYou ? ' (You)' : '';
-
-    if (userNames) {
-      // For mobile, show shorter format if text is too long
-      const fullText = `${apartmentName} - ${userNames}${youSuffix}`;
-      if (fullText.length > 30) {
-        return `${apartmentName}${youSuffix}`;
-      }
-      return fullText;
+    if (ownerNames) {
+      return `${apartmentName} (Owner: ${ownerNames})${youSuffix}`;
     }
     return `${apartmentName}${youSuffix}`;
   };
@@ -255,8 +251,15 @@ export function ExpenseItem({
             <h4 className="text-sm font-medium">Payment Status by Apartment</h4>
             <div className="space-y-2">
               {expense.owedByApartments?.map(apartmentId => {
+                // Enable button if current user is owner of this apartment or if this is their apartment
+                const isCurrentUser = currentUserApartment === apartmentId;
+                const isOwnerOfThisApartment = users.some(
+                  user =>
+                    user.id === (typeof window !== 'undefined' ? localStorage.getItem('userId') : undefined) &&
+                    user.apartment === apartmentId &&
+                    user.propertyRole === 'owner'
+                );
                 const isPaid = calculation.paidApartments.includes(apartmentId);
-                const isCurrentUser = apartmentId === currentUserApartment;
 
                 return (
                   <div
@@ -279,7 +282,7 @@ export function ExpenseItem({
                         ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
                       </span>
 
-                      {(isOwner || isCurrentUser) && (
+                      {(isOwnerOfThisApartment || isCurrentUser) && (
                         <div className="flex gap-1">
                           {isPaid ? (
                             <Button
@@ -289,7 +292,7 @@ export function ExpenseItem({
                               disabled={!!loadingMap[apartmentId]}
                               className="h-6 px-2"
                               title={
-                                isCurrentUser && !isOwner
+                                isCurrentUser && !isOwnerOfThisApartment
                                   ? 'Mark as unpaid'
                                   : 'Mark as unpaid (Owner)'
                               }
@@ -327,7 +330,9 @@ export function ExpenseItem({
                               disabled={!!loadingMap[apartmentId]}
                               className="h-6 px-2"
                               title={
-                                isCurrentUser && !isOwner ? 'Mark as paid' : 'Mark as paid (Owner)'
+                                isCurrentUser && !isOwnerOfThisApartment
+                                  ? 'Mark as paid'
+                                  : 'Mark as paid (Owner)'
                               }
                             >
                               {loadingMap[apartmentId] ? (
@@ -358,7 +363,7 @@ export function ExpenseItem({
                           )}
                         </div>
                       )}
-                      {!isOwner && !isCurrentUser && (
+                      {!isOwnerOfThisApartment && !isCurrentUser && (
                         <Badge variant={isPaid ? 'default' : 'destructive'} className="text-xs">
                           {isPaid ? 'Paid' : 'Pending'}
                         </Badge>
