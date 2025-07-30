@@ -50,7 +50,6 @@ export function ExpenseItem({
   const [loadingMap, setLoadingMap] = useState<{ [apartmentId: string]: boolean }>({});
 
   const calculation = calculateExpenseAmounts(expense);
-  const payingApartment = apartments.find(apt => apt.id === expense.paidByApartment);
 
   // Check if this is a cleaning expense
   const category = categories?.find(c => c.id === expense.categoryId);
@@ -192,31 +191,30 @@ export function ExpenseItem({
             <h4 className="text-sm font-medium">Payment Status by Apartment</h4>
             <div className="space-y-2">
               {expense.owedByApartments?.map(apartmentId => {
-              const apartment = apartments.find(apt => apt.id === apartmentId);
-              const isPaid = calculation.paidApartments.includes(apartmentId);
-              const isCurrentUser = apartmentId === currentUserApartment;
+                const isPaid = calculation.paidApartments.includes(apartmentId);
+                const isCurrentUser = apartmentId === currentUserApartment;
 
-              return (
-                <div
-                  key={apartmentId}
-                  className={`flex items-center justify-between p-2 rounded-lg border ${
-                    isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
-                    />
-                    <span className="text-sm font-medium">
-                      {formatApartmentWithUsers(apartmentId, isCurrentUser)}
-                    </span>
-                  </div>
+                return (
+                  <div
+                    key={apartmentId}
+                    className={`flex items-center justify-between p-2 rounded-lg border ${
+                      isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
+                      />
+                      <span className="text-sm font-medium">
+                        {formatApartmentWithUsers(apartmentId, isCurrentUser)}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
-                    </span>
-
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
+                      </span>
+                      
                     {(isOwner || isCurrentUser) && (
                       <div className="flex gap-1">
                         {isPaid ? (
@@ -258,18 +256,17 @@ export function ExpenseItem({
                         )}
                       </div>
                     )}
-
-                    {!isOwner && !isCurrentUser && (
-                      <Badge variant={isPaid ? 'default' : 'destructive'} className="text-xs">
-                        {isPaid ? 'Paid' : 'Pending'}
-                      </Badge>
-                    )}
+                      {!isOwner && !isCurrentUser && (
+                        <Badge variant={isPaid ? 'default' : 'destructive'} className="text-xs">
+                          {isPaid ? 'Paid' : 'Pending'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         )}
 
         {/* Receipt Dialog */}

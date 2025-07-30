@@ -37,7 +37,6 @@ import * as React from 'react';
 
 import { useRouter } from 'next/navigation';
 
-
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
@@ -240,26 +239,8 @@ export function UnicornPropertiesApp({
     }
   }, [user]);
 
-  const userBalances = React.useMemo(() => {
-    return users.map(u => {
-      const totalPaid = expenses
-        .filter(e => e.paidByApartment === u.apartment)
-        .reduce((acc, e) => acc + e.amount, 0);
-      const balance = totalPaid - perUserShare;
-      return { ...u, balance };
-    });
-  }, [users, expenses, perUserShare]);
-
   const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
   const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
-
-  const handleLogoClick = () => {
-    if (user) {
-      setView('dashboard');
-    } else {
-      router.push('/login');
-    }
-  };
 
   // Navigation component that can access sidebar context
   const NavigationMenu = () => {
@@ -821,7 +802,7 @@ export function UnicornPropertiesApp({
     }
 
     return balances;
-  }, [expenses, apartments, debugExpenseCalculations]);
+  }, [expenses, apartments, debugExpenseCalculations, currentUserApartment]);
 
   // Get balances for the current user's apartment
   const currentApartmentBalance = currentUserApartment
@@ -1668,8 +1649,8 @@ export function UnicornPropertiesApp({
   const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
-        .slice(0, limit)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, limit)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleExpenseUpdate = (updatedExpense: Expense) => {

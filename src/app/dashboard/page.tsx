@@ -30,15 +30,15 @@ async function getAuthenticatedUser() {
     const adminApp = getFirebaseAdminApp();
     console.log('✅ Admin app initialized successfully');
 
-    console.log('🔍 Attempting session cookie verification');
-    const decodedClaims = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
-    console.log('✅ Session cookie verified successfully, UID:', decodedClaims.uid);
+    console.log('🔍 Attempting ID token verification');
+    const decodedToken = await getAuth(adminApp).verifyIdToken(sessionCookie);
+    console.log('✅ ID token verified successfully, UID:', decodedToken.uid);
 
     // Get user by email since Firebase UID != Firestore document ID
-    const user = await getUserByEmail(decodedClaims.email || '');
+    const user = await getUserByEmail(decodedToken.email || '');
     console.log('User from Firestore:', user ? 'Found' : 'Not found');
     if (!user) {
-      console.log('❌ User not found in Firestore for email:', decodedClaims.email);
+      console.log('❌ User not found in Firestore for email:', decodedToken.email);
       return null;
     }
 
@@ -97,10 +97,7 @@ export default async function DashboardPage() {
 
     return (
       <ProtectedRoute>
-        <UnicornPropertiesApp
-          initialCategories={initialCategories}
-          initialAnnouncements={[]}
-        />
+        <UnicornPropertiesApp initialCategories={initialCategories} initialAnnouncements={[]} />
       </ProtectedRoute>
     );
   }
