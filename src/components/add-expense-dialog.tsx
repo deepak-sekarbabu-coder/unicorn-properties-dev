@@ -98,7 +98,8 @@ export function AddExpenseDialog({
     }
 
     if (!currentUser.apartment) {
-      toast('Error', {
+      toast({
+        title: 'Error',
         description: 'You must belong to an apartment to add an expense.',
       });
       return;
@@ -115,7 +116,8 @@ export function AddExpenseDialog({
     };
 
     onAddExpense(expenseData);
-    toast('Expense Added!', {
+    toast({
+      title: 'Expense Added!',
       description: `"${data.description}" for ₹${data.amount} has been logged.`,
     });
     setOpen(false);
@@ -198,6 +200,9 @@ export function AddExpenseDialog({
               )}
             />
             <DialogFooter>
+              <Button type="button" variant="destructive" onClick={() => { setOpen(false); form.reset(); }}>
+                Cancel
+              </Button>
               <Button type="submit">Add Expense</Button>
             </DialogFooter>
           </form>
