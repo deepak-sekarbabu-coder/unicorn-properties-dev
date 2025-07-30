@@ -117,18 +117,18 @@ export function ExpensesView({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+    <Card className="w-full max-w-full overflow-x-visible">
+      <CardHeader className="w-full max-w-full">
+        <div className="flex flex-col gap-4 w-full max-w-full">
+          <div className="flex flex-col gap-4 w-full sm:flex-row sm:items-start sm:justify-between">
+            <div className="w-full min-w-0">
               <CardTitle>All Expenses</CardTitle>
               <CardDescription>
                 A complete log of all shared expenses for your apartment.
               </CardDescription>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-              <div className="relative">
+            <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:items-center sm:gap-2 sm:flex-shrink-0">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
@@ -138,22 +138,22 @@ export function ExpensesView({
                   onChange={e => setExpenseSearch(e.target.value)}
                 />
               </div>
-              <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto">
+              <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto whitespace-nowrap">
                 <FileDown className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 gap-2 w-full sm:grid-cols-2 lg:grid-cols-4">
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by category" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(c => (
                   <SelectItem key={c.id} value={c.id}>
                     <div className="flex items-center gap-2">
-                      {c.icon && <CategoryIcon name={c.icon} className="h-6 w-6" />}
+                      {c.icon && <CategoryIcon name={c.icon} className="h-4 w-4" />}
                       <span>{c.name}</span>
                     </div>
                   </SelectItem>
@@ -161,8 +161,8 @@ export function ExpensesView({
               </SelectContent>
             </Select>
             <Select value={filterPaidBy} onValueChange={setFilterPaidBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by paid by" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Apartments" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Apartments</SelectItem>
@@ -174,8 +174,8 @@ export function ExpensesView({
               </SelectContent>
             </Select>
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by month" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Months" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Months</SelectItem>
@@ -189,14 +189,14 @@ export function ExpensesView({
             <Button
               variant="ghost"
               onClick={onClearFilters}
-              className="sm:col-span-2 lg:col-span-1"
+              className="w-full sm:col-span-2 lg:col-span-1"
             >
               Clear Filters
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="w-full max-w-full overflow-x-auto">
         <ExpensesList
           expenses={filteredExpenses}
           apartments={apartments}

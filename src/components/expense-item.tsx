@@ -76,7 +76,12 @@ export function ExpenseItem({
     const youSuffix = showYou ? ' (You)' : '';
 
     if (userNames) {
-      return `${apartmentName} - ${userNames}${youSuffix}`;
+      // For mobile, show shorter format if text is too long
+      const fullText = `${apartmentName} - ${userNames}${youSuffix}`;
+      if (fullText.length > 30) {
+        return `${apartmentName}${youSuffix}`;
+      }
+      return fullText;
     }
     return `${apartmentName}${youSuffix}`;
   };
@@ -144,33 +149,37 @@ export function ExpenseItem({
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
             {category?.icon && (
               <CategoryIcon name={category.icon} className="mt-1 flex-shrink-0" />
             )}
-            <div className="space-y-1">
-              <CardTitle className="text-lg">{expense.description}</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {category && (
-                  <>
-                    <span className="font-medium text-foreground">{category.name}</span>
-                    <span>•</span>
-                  </>
-                )}
-                <span>{format(new Date(expense.date), 'MMM d, yyyy')}</span>
-                <span>•</span>
-                <span>Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
-                {expense.receipt && (
-                  <>
-                    <span>•</span>
-                    <Receipt className="h-4 w-4" />
-                  </>
-                )}
+            <div className="space-y-1 min-w-0 flex-1">
+              <CardTitle className="text-lg leading-tight">{expense.description}</CardTitle>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  {category && (
+                    <>
+                      <span className="font-medium text-foreground">{category.name}</span>
+                      <span className="hidden sm:inline">•</span>
+                    </>
+                  )}
+                  <span>{format(new Date(expense.date), 'MMM d, yyyy')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline">•</span>
+                  <span className="truncate">Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
+                  {expense.receipt && (
+                    <>
+                      <span>•</span>
+                      <Receipt className="h-4 w-4 flex-shrink-0" />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-          <div className="text-right space-y-1">
+          <div className="flex flex-col items-end gap-2 sm:text-right">
             <div className="text-2xl font-bold">₹{(Number(expense.amount) || 0).toFixed(2)}</div>
             {calculation.adjustedAmount !== calculation.originalAmount && (
               <div className="text-sm text-muted-foreground">
@@ -186,7 +195,7 @@ export function ExpenseItem({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:bg-red-100 mt-2"
+                  className="text-red-600 hover:bg-red-100"
                   onClick={() => setShowDeleteDialog(true)}
                   title="Delete Expense"
                 >
@@ -225,9 +234,9 @@ export function ExpenseItem({
       <CardContent className="space-y-4">
         {/* Payment Status Overview - Hidden for cleaning expenses */}
         {!isCleaningExpense && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm font-medium">
                 {calculation.paidApartments.length} of {expense.owedByApartments?.length || 0} paid
               </span>
@@ -252,20 +261,20 @@ export function ExpenseItem({
                 return (
                   <div
                     key={apartmentId}
-                    className={`flex items-center justify-between p-2 rounded-lg border ${
+                    className={`flex flex-col gap-2 p-2 rounded-lg border sm:flex-row sm:items-center sm:justify-between ${
                       isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <div
-                        className={`h-2 w-2 rounded-full ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
+                        className={`h-2 w-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
                       />
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium truncate">
                         {formatApartmentWithUsers(apartmentId, isCurrentUser)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 sm:justify-end">
                       <span className="text-sm font-medium">
                         ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
                       </span>
