@@ -47,7 +47,7 @@ export function ExpenseItem({
   onExpenseUpdate,
 }: ExpenseItemProps) {
   const { toast } = useToast();
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [loadingMap, setLoadingMap] = useState<{ [apartmentId: string]: boolean }>({});
 
   const calculation = calculateExpenseAmounts(expense);
 
@@ -79,7 +79,7 @@ export function ExpenseItem({
     const isCurrentUserPayment = apartmentId === currentUserApartment;
     if (!isOwner && !isCurrentUserPayment) return;
 
-    setIsUpdating(true);
+    setLoadingMap(prev => ({ ...prev, [apartmentId]: true }));
     try {
       const updatedExpense = markApartmentAsPaid(expense, apartmentId);
       await updateExpense(expense.id, { paidByApartments: updatedExpense.paidByApartments });
@@ -101,7 +101,7 @@ export function ExpenseItem({
         variant: 'destructive',
       });
     } finally {
-      setIsUpdating(false);
+      setLoadingMap(prev => ({ ...prev, [apartmentId]: false }));
     }
   };
 
@@ -109,7 +109,7 @@ export function ExpenseItem({
     const isCurrentUserPayment = apartmentId === currentUserApartment;
     if (!isOwner && !isCurrentUserPayment) return;
 
-    setIsUpdating(true);
+    setLoadingMap(prev => ({ ...prev, [apartmentId]: true }));
     try {
       const updatedExpense = markApartmentAsUnpaid(expense, apartmentId);
       await updateExpense(expense.id, { paidByApartments: updatedExpense.paidByApartments });
@@ -131,7 +131,7 @@ export function ExpenseItem({
         variant: 'destructive',
       });
     } finally {
-      setIsUpdating(false);
+      setLoadingMap(prev => ({ ...prev, [apartmentId]: false }));
     }
   };
 
@@ -214,41 +214,48 @@ export function ExpenseItem({
                       <span className="text-sm font-medium">
                         ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
                       </span>
-
-                      {(isOwner || isCurrentUser) && (
-                        <div className="flex gap-1">
-                          {isPaid ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkUnpaid(apartmentId)}
-                              disabled={isUpdating}
-                              className="h-6 px-2"
-                              title={
-                                isCurrentUser && !isOwner
-                                  ? 'Mark as unpaid'
-                                  : 'Mark as unpaid (Owner)'
-                              }
-                            >
+                      
+                    {(isOwner || isCurrentUser) && (
+                      <div className="flex gap-1">
+                        {isPaid ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkUnpaid(apartmentId)}
+                            disabled={!!loadingMap[apartmentId]}
+                            className="h-6 px-2"
+                            title={
+                              isCurrentUser && !isOwner
+                                ? 'Mark as unpaid'
+                                : 'Mark as unpaid (Owner)'
+                            }
+                          >
+                            {loadingMap[apartmentId] ? (
+                              <svg className="animate-spin mr-1 h-3 w-3 text-gray-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle className="opacity-25" cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" /><path className="opacity-75" fill="currentColor" d="M15 8a7 7 0 01-7 7V13a5 5 0 005-5h2z" /></svg>
+                            ) : (
                               <X className="h-3 w-3" />
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkPaid(apartmentId)}
-                              disabled={isUpdating}
-                              className="h-6 px-2"
-                              title={
-                                isCurrentUser && !isOwner ? 'Mark as paid' : 'Mark as paid (Owner)'
-                              }
-                            >
+                            )}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkPaid(apartmentId)}
+                            disabled={!!loadingMap[apartmentId]}
+                            className="h-6 px-2"
+                            title={
+                              isCurrentUser && !isOwner ? 'Mark as paid' : 'Mark as paid (Owner)'
+                            }
+                          >
+                            {loadingMap[apartmentId] ? (
+                              <svg className="animate-spin mr-1 h-3 w-3 text-gray-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle className="opacity-25" cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" /><path className="opacity-75" fill="currentColor" d="M15 8a7 7 0 01-7 7V13a5 5 0 005-5h2z" /></svg>
+                            ) : (
                               <Check className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
-
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                       {!isOwner && !isCurrentUser && (
                         <Badge variant={isPaid ? 'default' : 'destructive'} className="text-xs">
                           {isPaid ? 'Paid' : 'Pending'}
