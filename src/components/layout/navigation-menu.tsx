@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LineChart, Package2, PieChart, Settings, AlertTriangle, Wrench } from 'lucide-react';
+import { AlertTriangle, Home, LineChart, Package2, PieChart, Settings, Wrench } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -16,7 +16,14 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'fault-reporting' | 'current-faults';
+type View =
+  | 'dashboard'
+  | 'expenses'
+  | 'admin'
+  | 'analytics'
+  | 'community'
+  | 'fault-reporting'
+  | 'current-faults';
 
 interface NavigationMenuProps {
   user: User | null;

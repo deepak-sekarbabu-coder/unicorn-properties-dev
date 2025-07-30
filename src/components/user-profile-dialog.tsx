@@ -49,7 +49,9 @@ const profileSchema = z.object({
       files => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
       'Only .jpg, .jpeg, .png and .webp formats are supported.'
     ),
-  apartment: z.enum(['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'], { required_error: 'Apartment is required' }),
+  apartment: z.enum(['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'], {
+    required_error: 'Apartment is required',
+  }),
   propertyRole: z.enum(['tenant', 'owner'], { required_error: 'Role is required' }),
 });
 
@@ -185,8 +187,10 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                         {...field}
                       >
                         <option value="">Select Apartment</option>
-                        {["G1", "F1", "F2", "S1", "S2", "T1", "T2"].map(code => (
-                          <option key={code} value={code}>{code}</option>
+                        {['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'].map(code => (
+                          <option key={code} value={code}>
+                            {code}
+                          </option>
                         ))}
                       </select>
                     </FormControl>

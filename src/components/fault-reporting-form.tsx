@@ -1,10 +1,15 @@
+'use client';
+
+import { useAuth } from '@/context/auth-context';
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { addFault } from '@/lib/firestore';
+
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/context/auth-context';
-import { addFault } from '@/lib/firestore';
 
 export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
   const { user } = useAuth();
@@ -82,12 +87,7 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
           </div>
           <div>
             <label className="block font-medium mb-1">Attach Images</label>
-            <Input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-            />
+            <Input type="file" accept="image/*" multiple onChange={handleImageChange} />
             <div className="flex flex-wrap gap-2 mt-2">
               {images.map((img, i) => (
                 <img

@@ -199,10 +199,14 @@ export function AddExpenseDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter>
+            <DialogFooter className="flex flex-col gap-2">
+              <Button type="submit" className="w-full">
+                Add Expense
+              </Button>
               <Button
                 type="button"
                 variant="destructive"
+                className="w-full"
                 onClick={() => {
                   setOpen(false);
                   form.reset();
@@ -210,7 +214,6 @@ export function AddExpenseDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Expense</Button>
             </DialogFooter>
           </form>
         </Form>

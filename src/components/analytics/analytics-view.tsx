@@ -244,6 +244,37 @@ export function AnalyticsView({
                         fontSize={11}
                         height={40}
                         interval={0}
+                        tick={props => {
+                          // Custom tick: month on first line, year on second
+                          const { x, y, payload } = props;
+                          const date = new Date(payload.value + '-01');
+                          const month = date.toLocaleString('default', { month: 'short' });
+                          const year = date.getFullYear();
+                          return (
+                            <g transform={`translate(${x},${y})`}>
+                              <text
+                                x={0}
+                                y={0}
+                                dy={8}
+                                textAnchor="middle"
+                                fill="#888"
+                                fontSize="11"
+                              >
+                                {month}
+                              </text>
+                              <text
+                                x={0}
+                                y={0}
+                                dy={22}
+                                textAnchor="middle"
+                                fill="#bbb"
+                                fontSize="10"
+                              >
+                                {year}
+                              </text>
+                            </g>
+                          );
+                        }}
                       />
                       <YAxis
                         fontSize={11}

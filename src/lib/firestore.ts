@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Announcement, Apartment, Category, Expense, Poll, User, Fault } from './types';
+import type { Announcement, Apartment, Category, Expense, Fault, Poll, User } from './types';
 
 const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
@@ -280,7 +280,9 @@ export const getFaults = async (): Promise<Fault[]> => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Fault);
 };
 
-export const addFault = async (fault: Omit<Fault, 'id' | 'reportedAt' | 'fixed'>): Promise<Fault> => {
+export const addFault = async (
+  fault: Omit<Fault, 'id' | 'reportedAt' | 'fixed'>
+): Promise<Fault> => {
   const newFault = {
     ...fault,
     reportedAt: new Date().toISOString(),

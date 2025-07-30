@@ -23,10 +23,18 @@ import { Sidebar, SidebarFooter, SidebarInset, SidebarProvider } from '@/compone
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
-import { FaultReportingForm } from './fault-reporting-form';
-import { CurrentFaultsList } from './current-faults-list';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'fault-reporting' | 'current-faults';
+import { CurrentFaultsList } from './current-faults-list';
+import { FaultReportingForm } from './fault-reporting-form';
+
+type View =
+  | 'dashboard'
+  | 'expenses'
+  | 'admin'
+  | 'analytics'
+  | 'community'
+  | 'fault-reporting'
+  | 'current-faults';
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];

@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { getFaults, updateFault, deleteFault } from '@/lib/firestore';
+'use client';
+
 import { useAuth } from '@/context/auth-context';
+
+import React, { useEffect, useState } from 'react';
+
+import { deleteFault, getFaults, updateFault } from '@/lib/firestore';
 import type { Fault, User } from '@/lib/types';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function CurrentFaultsList() {
   const { user } = useAuth();
@@ -75,7 +80,11 @@ export function CurrentFaultsList() {
                       <Button size="sm" onClick={() => handleMarkFixed(fault.id)}>
                         Mark as Fixed
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(fault.id)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(fault.id)}
+                      >
                         Delete
                       </Button>
                     </div>

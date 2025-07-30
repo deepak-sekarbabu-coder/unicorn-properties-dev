@@ -20,7 +20,15 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'announcement' | 'fault-reporting' | 'current-faults';
+type View =
+  | 'dashboard'
+  | 'expenses'
+  | 'admin'
+  | 'analytics'
+  | 'community'
+  | 'announcement'
+  | 'fault-reporting'
+  | 'current-faults';
 export type { View };
 
 interface PageHeaderProps {
