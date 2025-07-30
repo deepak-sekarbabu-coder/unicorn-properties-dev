@@ -28,6 +28,7 @@ Unicorn Properties is a modern web application for managing shared apartment exp
 ```
 
 **Key files:**
+
 - `src/lib/firestore.ts`: All Firestore CRUD logic (users, expenses, categories, announcements)
 - `src/context/auth-context.tsx`: Global authentication state and logic
 - `src/lib/types.ts`: TypeScript types for all core entities
@@ -51,6 +52,7 @@ Unicorn Properties is a modern web application for managing shared apartment exp
 - **AI Integration**: Genkit flows in `src/ai/` enable AI-powered features (see docs).
 
 **Data Flow Example:**
+
 1. User logs in (auth state managed globally).
 2. App fetches users, expenses, and categories from Firestore via `src/lib/firestore.ts`.
 3. Data is stored in local state in the main app component and passed to child components.
@@ -85,6 +87,7 @@ npm run dev
 Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 **Troubleshooting:**
+
 - If you see errors about missing Firebase config, double-check your `.env.local` file.
 - For Netlify deployment, see [`docs/NETLIFY_DEPLOYMENT.md`](docs/NETLIFY_DEPLOYMENT.md) and [`docs/NETLIFY_TROUBLESHOOTING.md`](docs/NETLIFY_TROUBLESHOOTING.md).
 

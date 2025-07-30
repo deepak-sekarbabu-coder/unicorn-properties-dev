@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/auth-context';
 import { format, subMonths } from 'date-fns';
+
 import * as React from 'react';
 
 import * as firestore from '@/lib/firestore';
@@ -18,12 +19,7 @@ import { NavigationMenu } from '@/components/layout/navigation-menu';
 import { PageHeader } from '@/components/layout/page-header';
 import { SelectApartmentDialog } from '@/components/select-apartment-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Sidebar,
-  SidebarFooter,
-  SidebarInset,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
+import { Sidebar, SidebarFooter, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
@@ -34,9 +30,7 @@ interface UnicornPropertiesAppProps {
   initialCategories: Category[];
 }
 
-export function UnicornPropertiesApp({
-  initialCategories,
-}: UnicornPropertiesAppProps) {
+export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
   const [view, setView] = React.useState<View>('dashboard');
@@ -283,7 +277,10 @@ export function UnicornPropertiesApp({
   };
 
   // Handler for announcement approval/rejection
-  const handleAnnouncementDecision = async (announcementId: string, decision: 'approved' | 'rejected') => {
+  const handleAnnouncementDecision = async (
+    announcementId: string,
+    decision: 'approved' | 'rejected'
+  ) => {
     try {
       await firestore.updateAnnouncementStatus(announcementId, decision);
       setAnnouncements(prev =>
@@ -397,12 +394,14 @@ export function UnicornPropertiesApp({
       analyticsMonth === 'all'
         ? expenses.filter(e => e.date && e.amount != null) // Filter out invalid expenses
         : expenses.filter(e => {
-          try {
-            return e.date && e.amount != null && format(new Date(e.date), 'yyyy-MM') === analyticsMonth;
-          } catch {
-            return false;
-          }
-        });
+            try {
+              return (
+                e.date && e.amount != null && format(new Date(e.date), 'yyyy-MM') === analyticsMonth
+              );
+            } catch {
+              return false;
+            }
+          });
 
     const categorySpending = categories.map(category => {
       const total = filteredExpenses
@@ -535,6 +534,16 @@ export function UnicornPropertiesApp({
             onDeleteCategory={handleDeleteCategory}
             getUserById={getUserById}
             onAnnouncementDecision={handleAnnouncementDecision}
+            onAddPoll={async data => {
+              // Add poll to Firestore
+              await firestore.addPoll({
+                question: data.question,
+                options: data.options,
+                createdBy: user?.id || '',
+                expiresAt: data.expiresAt,
+                isActive: true,
+              });
+            }}
           />
         );
       case 'expenses':
@@ -615,8 +624,12 @@ export function UnicornPropertiesApp({
         perApartmentShare: expense.perApartmentShare,
         totalStillOwed: unpaidApartments.length * expense.perApartmentShare,
         isCurrentUserPaying: expense.paidByApartment === currentUserApartment,
-        isCurrentUserOwing: currentUserApartment ? expense.owedByApartments?.includes(currentUserApartment) : false,
-        hasCurrentUserPaid: currentUserApartment ? expense.paidByApartments?.includes(currentUserApartment) : false,
+        isCurrentUserOwing: currentUserApartment
+          ? expense.owedByApartments?.includes(currentUserApartment)
+          : false,
+        hasCurrentUserPaid: currentUserApartment
+          ? expense.paidByApartments?.includes(currentUserApartment)
+          : false,
       });
     });
     console.log('=== END DEBUG ===');
@@ -733,8 +746,6 @@ export function UnicornPropertiesApp({
     setExpenses(prev => prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp)));
   };
 
-
-
   // Calculate monthly expenses for the current month
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -801,5 +812,3 @@ export function UnicornPropertiesApp({
     </>
   );
 }
-
-

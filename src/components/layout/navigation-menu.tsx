@@ -1,117 +1,115 @@
 'use client';
 
 import { Home, LineChart, Package2, PieChart, Settings } from 'lucide-react';
+
 import * as React from 'react';
 
 import type { User } from '@/lib/types';
 
 import { Users } from '@/components/ui/lucide';
 import {
-    SidebarContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
 
 interface NavigationMenuProps {
-    user: User | null;
-    view: View;
-    setView: (view: View) => void;
-    role: string;
+  user: User | null;
+  view: View;
+  setView: (view: View) => void;
+  role: string;
 }
 
 export function NavigationMenu({ user, view, setView, role }: NavigationMenuProps) {
-    const { setOpenMobile, isMobile } = useSidebar();
+  const { setOpenMobile, isMobile } = useSidebar();
 
-    const handleNavigation = (newView: View) => {
-        setView(newView);
-        // Close mobile sidebar when navigating
-        if (isMobile) {
-            setOpenMobile(false);
-        }
-    };
+  const handleNavigation = (newView: View) => {
+    setView(newView);
+    // Close mobile sidebar when navigating
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
-    const handleLogoNavigation = () => {
-        if (user) {
-            setView('dashboard');
-            if (isMobile) {
-                setOpenMobile(false);
-            }
-        }
-        // If user is not logged in, the parent component should handle navigation
-    };
+  const handleLogoNavigation = () => {
+    if (user) {
+      setView('dashboard');
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    }
+    // If user is not logged in, the parent component should handle navigation
+  };
 
-    return (
-        <>
-            <SidebarHeader>
-                <div
-                    className="flex items-center gap-2 p-2 cursor-pointer"
-                    onClick={handleLogoNavigation}
-                >
-                    <Package2 className="h-6 w-6 text-primary" />
-                    <span className="text-lg font-semibold">Unicorn Properties</span>
-                </div>
-            </SidebarHeader>
-            <SidebarContent>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('dashboard')}
-                            isActive={view === 'dashboard'}
-                            tooltip="Dashboard"
-                        >
-                            <Home />
-                            Dashboard
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('expenses')}
-                            isActive={view === 'expenses'}
-                            tooltip="All Expenses"
-                        >
-                            <LineChart />
-                            All Expenses
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('analytics')}
-                            isActive={view === 'analytics'}
-                            tooltip="Analytics"
-                        >
-                            <PieChart />
-                            Analytics
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('community')}
-                            isActive={view === 'community'}
-                            tooltip="Community"
-                        >
-                            <Users />
-                            Community
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {role === 'admin' && (
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                onClick={() => handleNavigation('admin')}
-                                isActive={view === 'admin'}
-                                tooltip="Admin"
-                            >
-                                <Settings />
-                                Admin
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    )}
-                </SidebarMenu>
-            </SidebarContent>
-        </>
-    );
+  return (
+    <>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoNavigation}>
+          <Package2 className="h-6 w-6 text-primary" />
+          <span className="text-lg font-semibold">Unicorn Properties</span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('dashboard')}
+              isActive={view === 'dashboard'}
+              tooltip="Dashboard"
+            >
+              <Home />
+              Dashboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('expenses')}
+              isActive={view === 'expenses'}
+              tooltip="All Expenses"
+            >
+              <LineChart />
+              All Expenses
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('analytics')}
+              isActive={view === 'analytics'}
+              tooltip="Analytics"
+            >
+              <PieChart />
+              Analytics
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('community')}
+              isActive={view === 'community'}
+              tooltip="Community"
+            >
+              <Users />
+              Community
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {role === 'admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('admin')}
+                isActive={view === 'admin'}
+                tooltip="Admin"
+              >
+                <Settings />
+                Admin
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+        </SidebarMenu>
+      </SidebarContent>
+    </>
+  );
 }

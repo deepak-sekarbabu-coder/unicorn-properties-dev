@@ -60,3 +60,20 @@ export type Notification = {
   createdAt: string; // ISO date string
   dueDate?: string; // ISO date string
 };
+
+// --- Polling Feature ---
+export type PollOption = {
+  id: string;
+  text: string;
+};
+
+export type Poll = {
+  id: string; // Firestore doc ID
+  question: string;
+  options: PollOption[];
+  createdBy: string; // Admin user ID
+  createdAt: string; // ISO date
+  expiresAt?: string; // Optional ISO date
+  votes: { [apartmentId: string]: string }; // apartmentId -> optionId
+  isActive: boolean;
+};

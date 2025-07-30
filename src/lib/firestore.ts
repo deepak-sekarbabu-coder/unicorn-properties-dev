@@ -6,27 +6,28 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   query,
   updateDoc,
   where,
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Announcement, Apartment, Category, Expense, User } from './types';
+import type { Announcement, Apartment, Category, Expense, Poll, User } from './types';
 
 const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
   return obj;
 };
 
-// Apartments
+// --- Apartments ---
 export const getApartments = async (): Promise<Apartment[]> => {
   const apartmentsQuery = query(collection(db, 'apartments'));
   const apartmentSnapshot = await getDocs(apartmentsQuery);
   return apartmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
 };
 
-// Users
+// --- Users ---
 export const getUsers = async (apartment?: string): Promise<User[]> => {
   let usersQuery = query(collection(db, 'users'));
   if (apartment) {
@@ -48,14 +49,11 @@ export const getUser = async (id: string): Promise<User | null> => {
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   const usersCol = collection(db, 'users');
   const q = query(usersCol, where('email', '==', email));
-
   try {
     const userSnapshot = await getDocs(q);
-
     if (userSnapshot.empty) {
       return null;
     }
-
     const doc = userSnapshot.docs[0];
     const userData = { id: doc.id, ...doc.data() } as User;
     return userData;
@@ -83,7 +81,7 @@ export const deleteUser = async (id: string): Promise<void> => {
   await deleteDoc(userDoc);
 };
 
-// Categories
+// --- Categories ---
 export const getCategories = async (): Promise<Category[]> => {
   const categoriesCol = collection(db, 'categories');
   const categorySnapshot = await getDocs(categoriesCol);
@@ -108,17 +106,15 @@ export const deleteCategory = async (id: string): Promise<void> => {
   await deleteDoc(categoryDoc);
 };
 
-// Expenses
+// --- Expenses ---
 export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
   const expensesQuery = query(collection(db, 'expenses'));
   const expenseSnapshot = await getDocs(expensesQuery);
   const allExpenses = expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
-
   if (!apartment) {
     return allExpenses;
   }
-
-  // Return expenses where the apartment is either the payer or one of the oweing apartments
+  // Return expenses where the apartment is either the payer or one of the owing apartments
   return allExpenses.filter(
     expense =>
       expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
@@ -126,17 +122,14 @@ export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise<Expense> => {
-  console.log('[addExpense] Input:', expense);
   const newExpense = {
     ...expense,
     date: new Date().toISOString(),
-    paidByApartments: expense.paidByApartments || [], // Initialize empty array if not provided
+    paidByApartments: expense.paidByApartments || [],
   };
   const expensesCol = collection(db, 'expenses');
   const cleanExpense = removeUndefined(newExpense);
-  console.log('[addExpense] Cleaned Expense:', cleanExpense);
   const docRef = await addDoc(expensesCol, cleanExpense);
-  console.log('[addExpense] Firestore docRef.id:', docRef.id);
   return { id: docRef.id, ...cleanExpense } as Expense;
 };
 
@@ -151,20 +144,17 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await deleteDoc(expenseDoc);
 };
 
-// Announcements
+// --- Announcements ---
 export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announcement[]> => {
   const announcementsCol = collection(db, 'announcements');
   const now = Timestamp.now();
-
   const statusesToFetch = role === 'admin' ? ['approved', 'pending'] : ['approved'];
-
   const q = query(
     announcementsCol,
     where('expiresAt', '>', now),
     where('status', 'in', statusesToFetch)
   );
   const snapshot = await getDocs(q);
-
   return snapshot.docs.map(doc => {
     const data = doc.data();
     return {
@@ -185,7 +175,6 @@ export const addAnnouncement = async (
 ): Promise<Announcement> => {
   const now = new Date();
   const expires = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
-
   const newAnnouncement = {
     message,
     createdBy: userId,
@@ -195,7 +184,6 @@ export const addAnnouncement = async (
   };
   const announcementsCol = collection(db, 'announcements');
   const docRef = await addDoc(announcementsCol, newAnnouncement);
-
   return {
     id: docRef.id,
     message: newAnnouncement.message,
@@ -216,4 +204,71 @@ export const updateAnnouncementStatus = async (
   } else {
     await updateDoc(announcementDoc, { status });
   }
+};
+
+// --- Polling Feature ---
+export const getPolls = async (activeOnly = false): Promise<Poll[]> => {
+  const pollsCol = collection(db, 'polls');
+  let q = query(pollsCol);
+  if (activeOnly) {
+    q = query(pollsCol, where('isActive', '==', true));
+  }
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Poll);
+};
+
+export const listenToPolls = (cb: (polls: Poll[]) => void, activeOnly = false) => {
+  const pollsCol = collection(db, 'polls');
+  let q = query(pollsCol);
+  if (activeOnly) {
+    q = query(pollsCol, where('isActive', '==', true));
+  }
+  return onSnapshot(q, snapshot => {
+    cb(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Poll[]));
+  });
+};
+
+export const addPoll = async (poll: Omit<Poll, 'id' | 'createdAt' | 'votes'>): Promise<Poll> => {
+  const now = new Date().toISOString();
+  const newPoll = {
+    ...poll,
+    createdAt: now,
+    votes: {},
+  };
+  const pollsCol = collection(db, 'polls');
+  const docRef = await addDoc(pollsCol, newPoll);
+  return { id: docRef.id, ...newPoll } as Poll;
+};
+
+export const voteOnPoll = async (
+  pollId: string,
+  apartmentId: string,
+  optionId: string
+): Promise<void> => {
+  const pollDoc = doc(db, 'polls', pollId);
+  const pollSnap = await getDoc(pollDoc);
+  if (!pollSnap.exists()) throw new Error('Poll not found');
+  const poll = pollSnap.data() as Poll;
+  if (poll.votes && poll.votes[apartmentId]) {
+    throw new Error('This apartment has already voted.');
+  }
+  const update = { [`votes.${apartmentId}`]: optionId };
+  await updateDoc(pollDoc, update);
+};
+
+export const getPollResults = async (pollId: string): Promise<Poll | null> => {
+  const pollDoc = doc(db, 'polls', pollId);
+  const pollSnap = await getDoc(pollDoc);
+  if (!pollSnap.exists()) return null;
+  return { id: pollSnap.id, ...pollSnap.data() } as Poll;
+};
+
+export const closePoll = async (pollId: string): Promise<void> => {
+  const pollDoc = doc(db, 'polls', pollId);
+  await updateDoc(pollDoc, { isActive: false });
+};
+
+export const deletePoll = async (pollId: string): Promise<void> => {
+  const pollDoc = doc(db, 'polls', pollId);
+  await deleteDoc(pollDoc);
 };

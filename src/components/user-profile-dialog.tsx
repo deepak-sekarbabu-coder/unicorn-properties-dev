@@ -193,20 +193,30 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-              <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
+            <DialogFooter className="flex flex-col gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <Button type="submit" disabled={isSaving} className="flex-1">
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Changes
                 </Button>
-                <Button type="button" variant="ghost" className="w-full sm:w-auto text-red-600 hover:bg-red-50" onClick={() => setOpen(false)}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => setOpen(false)}
+                >
                   Cancel
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleResetPassword}
+                  className="flex-1"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Reset Password
+                </Button>
               </div>
-              <Button type="button" variant="outline" onClick={handleResetPassword} className="w-full sm:w-auto mt-2 sm:mt-0">
-                <KeyRound className="mr-2 h-4 w-4" />
-                Reset Password
-              </Button>
             </DialogFooter>
           </form>
         </Form>
