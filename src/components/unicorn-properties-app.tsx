@@ -1863,16 +1863,20 @@ function CommunityView({ users, apartments }: { users: User[]; apartments: Apart
                   ) : (
                     apartment.users.map(user => (
                       <li key={user.id} className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-8 w-8 flex-shrink-0">
                           <AvatarImage src={user.avatar} alt={user.name} />
-                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{user.name ? user.name.charAt(0) : '?'}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="font-medium">{user.name}</span>
-                          <span className="text-xs text-muted-foreground">{user.propertyRole}</span>
-                          {user.phone && (
-                            <span className="text-xs text-muted-foreground">{user.phone}</span>
-                          )}
+                          <span className="font-medium text-base" aria-label="Resident Name">
+                            {user.name || <span className="italic text-muted-foreground">Unnamed</span>}
+                          </span>
+                          <span className="text-xs text-muted-foreground" aria-label="Property Role">
+                            {user.propertyRole || <span className="italic">No role</span>}
+                          </span>
+                          <span className="text-xs text-muted-foreground" aria-label="Phone Number">
+                            {user.phone ? user.phone : <span className="italic">No phone</span>}
+                          </span>
                         </div>
                       </li>
                     ))
