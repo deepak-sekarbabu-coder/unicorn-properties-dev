@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Announcement, Apartment, Category, Expense, Poll, User } from './types';
+import type { Announcement, Apartment, Category, Expense, Poll, User, Fault } from './types';
 
 const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
@@ -271,4 +271,32 @@ export const closePoll = async (pollId: string): Promise<void> => {
 export const deletePoll = async (pollId: string): Promise<void> => {
   const pollDoc = doc(db, 'polls', pollId);
   await deleteDoc(pollDoc);
+};
+
+// --- Faults ---
+export const getFaults = async (): Promise<Fault[]> => {
+  const faultsCol = collection(db, 'faults');
+  const snapshot = await getDocs(faultsCol);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Fault);
+};
+
+export const addFault = async (fault: Omit<Fault, 'id' | 'reportedAt' | 'fixed'>): Promise<Fault> => {
+  const newFault = {
+    ...fault,
+    reportedAt: new Date().toISOString(),
+    fixed: false,
+  };
+  const faultsCol = collection(db, 'faults');
+  const docRef = await addDoc(faultsCol, newFault);
+  return { id: docRef.id, ...newFault } as Fault;
+};
+
+export const updateFault = async (id: string, fault: Partial<Fault>): Promise<void> => {
+  const faultDoc = doc(db, 'faults', id);
+  await updateDoc(faultDoc, fault);
+};
+
+export const deleteFault = async (id: string): Promise<void> => {
+  const faultDoc = doc(db, 'faults', id);
+  await deleteDoc(faultDoc);
 };

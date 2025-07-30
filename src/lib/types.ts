@@ -77,3 +77,14 @@ export type Poll = {
   votes: { [apartmentId: string]: string }; // apartmentId -> optionId
   isActive: boolean;
 };
+
+export type Fault = {
+  id: string;
+  images: string[]; // URLs or base64
+  location: string;
+  description: string;
+  reportedBy: string; // User ID
+  reportedAt: string; // ISO date string
+  fixed: boolean;
+  fixedAt?: string; // ISO date string
+};

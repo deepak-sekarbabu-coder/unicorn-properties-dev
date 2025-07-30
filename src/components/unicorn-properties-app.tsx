@@ -23,8 +23,10 @@ import { Sidebar, SidebarFooter, SidebarInset, SidebarProvider } from '@/compone
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
+import { FaultReportingForm } from './fault-reporting-form';
+import { CurrentFaultsList } from './current-faults-list';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'announcement';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'fault-reporting' | 'current-faults';
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];
@@ -583,6 +585,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         );
       case 'community':
         return <CommunityView users={users} apartments={apartments} />;
+      case 'fault-reporting':
+        return <FaultReportingForm onReport={() => setView('current-faults')} />;
+      case 'current-faults':
+        return <CurrentFaultsList />;
       default:
         return (
           <DashboardView

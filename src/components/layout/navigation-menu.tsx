@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LineChart, Package2, PieChart, Settings } from 'lucide-react';
+import { Home, LineChart, Package2, PieChart, Settings, AlertTriangle, Wrench } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -16,7 +16,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'fault-reporting' | 'current-faults';
 
 interface NavigationMenuProps {
   user: User | null;
@@ -94,6 +94,26 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
             >
               <Users />
               Community
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('fault-reporting')}
+              isActive={view === 'fault-reporting'}
+              tooltip="Report a Fault"
+            >
+              <AlertTriangle />
+              Fault Reporting
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('current-faults')}
+              isActive={view === 'current-faults'}
+              tooltip="Current Faults"
+            >
+              <Wrench />
+              Current Faults
             </SidebarMenuButton>
           </SidebarMenuItem>
           {role === 'admin' && (
