@@ -200,7 +200,14 @@ export function AddExpenseDialog({
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="destructive" onClick={() => { setOpen(false); form.reset(); }}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  setOpen(false);
+                  form.reset();
+                }}
+              >
                 Cancel
               </Button>
               <Button type="submit">Add Expense</Button>

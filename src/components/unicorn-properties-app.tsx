@@ -76,6 +76,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Users } from '@/components/ui/lucide';
 import {
   Select,
   SelectContent,
@@ -112,7 +113,7 @@ import { useToast } from '@/hooks/use-toast';
 
 import { Skeleton } from './ui/skeleton';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];
@@ -306,6 +307,16 @@ export function UnicornPropertiesApp({
               >
                 <PieChart />
                 Analytics
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('community')}
+                isActive={view === 'community'}
+                tooltip="Community"
+              >
+                <Users />
+                Community
               </SidebarMenuButton>
             </SidebarMenuItem>
             {role === 'admin' && (
@@ -688,6 +699,8 @@ export function UnicornPropertiesApp({
         return <ExpensesView />;
       case 'analytics':
         return <AnalyticsView />;
+      case 'community':
+        return <CommunityView users={users} apartments={apartments} />;
       default:
         return <DashboardView />;
     }
@@ -1684,6 +1697,7 @@ export function UnicornPropertiesApp({
     if (view === 'expenses') title = 'All Expenses';
     if (view === 'admin') title = 'Admin Panel';
     if (view === 'analytics') title = 'Analytics';
+    if (view === 'community') title = 'Community Directory';
     return (
       <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">
         <SidebarTrigger className="md:hidden" />
@@ -1795,5 +1809,52 @@ export function UnicornPropertiesApp({
         />
       )}
     </>
+  );
+}
+
+function CommunityView({ users, apartments }: { users: User[]; apartments: Apartment[] }) {
+  const grouped = React.useMemo(() => {
+    const map: Record<string, Apartment & { users: User[] }> = {};
+    apartments.forEach(apt => {
+      map[apt.id] = { ...apt, users: [] };
+    });
+    users.forEach(user => {
+      if (user.apartment && map[user.apartment]) {
+        map[user.apartment].users.push(user);
+      }
+    });
+    return Object.values(map);
+  }, [users, apartments]);
+
+  return (
+    <div className="grid gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Community Directory</CardTitle>
+          <CardDescription>See all apartments and their residents.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {grouped.map(apartment => (
+              <div key={apartment.id} className="border rounded-lg p-4 bg-muted">
+                <h3 className="font-semibold text-lg mb-2">{apartment.name}</h3>
+                <ul className="space-y-1">
+                  {apartment.users.length === 0 ? (
+                    <li className="text-muted-foreground text-sm">No residents</li>
+                  ) : (
+                    apartment.users.map(user => (
+                      <li key={user.id} className="flex items-center gap-2">
+                        <span className="font-medium">{user.name}</span>
+                        <span className="text-xs text-muted-foreground">{user.propertyRole}</span>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
