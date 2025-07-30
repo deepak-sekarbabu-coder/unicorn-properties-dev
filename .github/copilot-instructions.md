@@ -2,13 +2,12 @@
 
 ## Project Overview
 
-- **Unicorn Properties** is a Next.js (App Router) web app for managing shared apartment expenses, user roles, and notifications.
-- Core features: advanced expense division, outstanding balance tracking, dual role system (auth/property), admin panel, push notifications, and analytics.
+Unicorn Properties is a Next.js (App Router) web app for managing shared apartment expenses, user roles, and notifications. It is designed for a 7-apartment community, with advanced expense division, outstanding balance tracking, dual role system (auth/property), admin panel, push notifications, and analytics.
 
 ## Architecture & Data Flow
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, ShadCN UI, Radix UI.
-- **State**: Auth is global (React Context in `src/context/auth-context.tsx`); app data (users, expenses, categories) is local to `UnicornPropertiesApp` and passed via props.
+- **State**: Auth is global (React Context in `src/context/auth-context.tsx`). App data (users, expenses, categories) is local to `UnicornPropertiesApp` and passed via props.
 - **Backend**: Firebase (Firestore for data, Auth for login, FCM for notifications). All DB logic is in `src/lib/firestore.ts`.
 - **AI**: Genkit flows in `src/ai/` for AI-powered features.
 - **API**: Next.js API routes in `src/app/api/` (auth/session, health, test).
