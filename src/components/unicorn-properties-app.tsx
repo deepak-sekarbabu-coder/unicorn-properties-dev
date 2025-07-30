@@ -1838,14 +1838,23 @@ function CommunityView({ users, apartments }: { users: User[]; apartments: Apart
             {grouped.map(apartment => (
               <div key={apartment.id} className="border rounded-lg p-4 bg-muted">
                 <h3 className="font-semibold text-lg mb-2">{apartment.name}</h3>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {apartment.users.length === 0 ? (
                     <li className="text-muted-foreground text-sm">No residents</li>
                   ) : (
                     apartment.users.map(user => (
-                      <li key={user.id} className="flex items-center gap-2">
-                        <span className="font-medium">{user.name}</span>
-                        <span className="text-xs text-muted-foreground">{user.propertyRole}</span>
+                      <li key={user.id} className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.avatar} alt={user.name} />
+                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-xs text-muted-foreground">{user.propertyRole}</span>
+                          {user.phone && (
+                            <span className="text-xs text-muted-foreground">{user.phone}</span>
+                          )}
+                        </div>
                       </li>
                     ))
                   )}
