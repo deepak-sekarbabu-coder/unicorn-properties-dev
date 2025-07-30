@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LineChart, Package2, PieChart, Settings } from 'lucide-react';
+import { Home, LineChart, Package2, PieChart, Settings, Megaphone } from 'lucide-react';
 import * as React from 'react';
 
 import type { User } from '@/lib/types';
@@ -15,7 +15,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'announcement';
 
 interface NavigationMenuProps {
     user: User | null;
@@ -96,6 +96,16 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
                         >
                             <Users />
                             Community
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            onClick={() => handleNavigation('announcement')}
+                            isActive={view === 'announcement'}
+                            tooltip="Announcement"
+                        >
+                            <Megaphone />
+                            Announcement
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     {role === 'admin' && (

@@ -23,6 +23,7 @@ interface ExpensesViewProps {
     expenses: Expense[];
     categories: Category[];
     apartments: Apartment[];
+    users: User[];
     expenseSearch: string;
     setExpenseSearch: (search: string) => void;
     filterCategory: string;
@@ -34,13 +35,18 @@ interface ExpensesViewProps {
     filteredExpenses: Expense[];
     expenseMonths: string[];
     onClearFilters: () => void;
-    ExpensesList: React.ComponentType<{ expenses: Expense[] }>;
+    ExpensesList: React.ComponentType<any>;
+    currentUserApartment: string | undefined;
+    currentUserRole: string;
+    onExpenseUpdate: (expense: Expense) => void;
+    onExpenseDelete?: (expenseId: string) => void;
 }
 
 export function ExpensesView({
     expenses,
     categories,
     apartments,
+    users,
     expenseSearch,
     setExpenseSearch,
     filterCategory,
@@ -53,6 +59,10 @@ export function ExpensesView({
     expenseMonths,
     onClearFilters,
     ExpensesList,
+    currentUserApartment,
+    currentUserRole,
+    onExpenseUpdate,
+    onExpenseDelete,
 }: ExpensesViewProps) {
     const { toast } = useToast();
 
@@ -182,7 +192,16 @@ export function ExpensesView({
                 </div>
             </CardHeader>
             <CardContent>
-                <ExpensesList expenses={filteredExpenses} />
+                <ExpensesList
+                  expenses={filteredExpenses}
+                  apartments={apartments}
+                  users={users}
+                  categories={categories}
+                  currentUserApartment={currentUserApartment}
+                  currentUserRole={currentUserRole}
+                  onExpenseUpdate={onExpenseUpdate}
+                  onExpenseDelete={onExpenseDelete}
+                />
             </CardContent>
         </Card>
     );

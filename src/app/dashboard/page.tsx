@@ -30,9 +30,9 @@ async function getAuthenticatedUser() {
     const adminApp = getFirebaseAdminApp();
     console.log('✅ Admin app initialized successfully');
 
-    console.log('🔍 Attempting ID token verification');
-    const decodedToken = await getAuth(adminApp).verifyIdToken(sessionCookie);
-    console.log('✅ ID token verified successfully, UID:', decodedToken.uid);
+    console.log('🔍 Attempting session cookie verification');
+    const decodedToken = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
+    console.log('✅ Session cookie verified successfully, UID:', decodedToken.uid);
 
     // Get user by email since Firebase UID != Firestore document ID
     const user = await getUserByEmail(decodedToken.email || '');

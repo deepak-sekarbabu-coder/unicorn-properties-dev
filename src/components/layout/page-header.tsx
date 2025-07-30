@@ -20,6 +20,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
+export type { View };
 
 interface PageHeaderProps {
     view: View;

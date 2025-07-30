@@ -5,12 +5,14 @@ import { Bell, Megaphone, Send, TrendingDown, TrendingUp, Wallet } from 'lucide-
 import * as React from 'react';
 
 import type { Announcement, Apartment, Expense, User } from '@/lib/types';
+import { Category } from '@/lib/types';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { OutstandingBalance } from '@/components/outstanding-balance';
+import { AnnouncementMenu } from '@/components/announcement-menu';
 
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,7 +22,10 @@ interface DashboardViewProps {
     expenses: Expense[];
     announcements: Announcement[];
     apartments: Apartment[];
+    users: User[];
+    categories: Category[];
     currentUserApartment: string | undefined;
+    currentUserRole: string;
     apartmentBalances: Record<string, {
         name: string;
         balance: number;
@@ -31,7 +36,9 @@ interface DashboardViewProps {
     setAnnouncementMessage: (message: string) => void;
     isSending: boolean;
     onSendAnnouncement: () => void;
-    ExpensesList: React.ComponentType<{ expenses: Expense[]; limit?: number }>;
+    onExpenseUpdate: (expense: Expense) => void;
+    onExpenseDelete?: (expenseId: string) => void;
+    ExpensesList: React.ComponentType<any>;
 }
 
 export function DashboardView({
@@ -40,26 +47,23 @@ export function DashboardView({
     expenses,
     announcements,
     apartments,
+    users,
+    categories,
     currentUserApartment,
+    currentUserRole,
     apartmentBalances,
     announcementMessage,
     setAnnouncementMessage,
     isSending,
     onSendAnnouncement,
+    onExpenseUpdate,
+    onExpenseDelete,
     ExpensesList,
 }: DashboardViewProps) {
     const { toast } = useToast();
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-    // Maintain focus during re-renders
-    React.useEffect(() => {
-        if (textareaRef.current && document.activeElement !== textareaRef.current) {
-            const shouldRefocus = textareaRef.current.dataset.wasFocused === 'true';
-            if (shouldRefocus) {
-                textareaRef.current.focus();
-            }
-        }
-    });
+    // Use a state to track focus instead of DOM attributes
+    const [isTextareaFocused, setIsTextareaFocused] = React.useState(false);
 
     const currentApartmentBalance = currentUserApartment
         ? apartmentBalances[currentUserApartment]
@@ -170,7 +174,17 @@ export function DashboardView({
                         <CardDescription>The last 5 expenses added to your apartment.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ExpensesList expenses={expenses} limit={5} />
+                        <ExpensesList
+                            expenses={expenses}
+                            limit={5}
+                            apartments={apartments}
+                            users={users}
+                            categories={categories}
+                            currentUserApartment={currentUserApartment}
+                            currentUserRole={currentUserRole}
+                            onExpenseUpdate={onExpenseUpdate}
+                            onExpenseDelete={onExpenseDelete}
+                        />
                     </CardContent>
                 </Card>
 
@@ -244,94 +258,6 @@ export function DashboardView({
                     </CardContent>
                 </Card>
             </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Submit an Announcement</CardTitle>
-                    <CardDescription>
-                        {role === 'admin'
-                            ? 'Send a notification to all users. It will disappear after 2 days.'
-                            : 'Submit an announcement for admin approval. It will be reviewed shortly.'}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid w-full gap-2" style={{ contain: 'layout' }}>
-                        <div
-                            className="relative"
-                            style={{
-                                position: 'relative',
-                                zIndex: 1,
-                                contain: 'layout style',
-                            }}
-                        >
-                            <Textarea
-                                ref={textareaRef}
-                                placeholder="Type your message here..."
-                                maxLength={500}
-                                value={announcementMessage}
-                                onChange={React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                                    const value = e.target.value;
-                                    const cursorPosition = e.target.selectionStart;
-                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-                                    if (textareaRef.current) {
-                                        textareaRef.current.dataset.wasFocused = 'true';
-                                    }
-
-                                    setAnnouncementMessage(value);
-
-                                    requestAnimationFrame(() => {
-                                        if (textareaRef.current) {
-                                            textareaRef.current.focus();
-                                            textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
-                                        }
-                                        window.scrollTo(scrollLeft, scrollTop);
-                                    });
-                                }, [setAnnouncementMessage])}
-                                disabled={isSending}
-                                className="min-h-[100px] resize-none focus:ring-2 focus:ring-offset-0"
-                                rows={4}
-                                style={{
-                                    position: 'relative',
-                                    scrollMarginTop: '0px',
-                                }}
-                                onFocus={() => {
-                                    if (textareaRef.current) {
-                                        textareaRef.current.dataset.wasFocused = 'true';
-                                    }
-                                }}
-                                onBlur={() => {
-                                    if (textareaRef.current) {
-                                        textareaRef.current.dataset.wasFocused = 'false';
-                                    }
-                                }}
-                            />
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <p className="text-sm text-muted-foreground">{announcementMessage.length} / 500</p>
-                            <Button
-                                onClick={e => {
-                                    e.preventDefault();
-                                    onSendAnnouncement();
-                                }}
-                                disabled={isSending || !announcementMessage.trim()}
-                            >
-                                {role === 'admin' ? (
-                                    <Megaphone className="mr-2 h-4 w-4" />
-                                ) : (
-                                    <Send className="mr-2 h-4 w-4" />
-                                )}
-                                {isSending
-                                    ? 'Sending...'
-                                    : role === 'admin'
-                                        ? 'Send Announcement'
-                                        : 'Submit for Review'}
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 }
