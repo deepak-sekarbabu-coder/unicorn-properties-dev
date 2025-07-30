@@ -49,3 +49,4 @@ firebase.json
 # environment variables
 .env*.local
 !.env.example
+.trae/.ignore
