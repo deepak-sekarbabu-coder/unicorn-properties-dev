@@ -72,7 +72,9 @@ export function ExpenseItem({
     const apartmentName = apartmentId;
     // Find owners for this apartment
     const owners = users.filter(
-      user => user.apartment === apartmentId && (user.propertyRole === 'owner' || user.propertyRole === 'tenant')
+      user =>
+        user.apartment === apartmentId &&
+        (user.propertyRole === 'owner' || user.propertyRole === 'tenant')
     );
     const ownerNames = owners.map(user => user.name).join(', ');
     const youSuffix = showYou ? ' (You)' : '';
@@ -84,7 +86,14 @@ export function ExpenseItem({
 
   const handleMarkPaid = async (apartmentId: string) => {
     const isCurrentUserPayment = apartmentId === currentUserApartment;
-    if (!isOwner && !isCurrentUserPayment) return;
+    const isPayer = currentUserApartment === expense.paidByApartment;
+    const currentUser = users.find(user => user.apartment === currentUserApartment);
+    const isOwnerOrTenant =
+      currentUser &&
+      (currentUser.propertyRole === 'owner' || currentUser.propertyRole === 'tenant');
+
+    // Allow if: user is owner/tenant of their own apartment, or user is the payer (can mark all)
+    if (!isOwnerOrTenant && !isPayer) return;
 
     setLoadingMap(prev => ({ ...prev, [apartmentId]: true }));
     try {
@@ -93,13 +102,13 @@ export function ExpenseItem({
       onExpenseUpdate?.(updatedExpense);
 
       const apartment = apartments.find(apt => apt.id === apartmentId);
-      const isUserMarkingOwnPayment = isCurrentUserPayment && !isOwner;
+      const isUserMarkingOwnPayment = isCurrentUserPayment && !isPayer;
 
       toast({
         title: 'Payment Marked',
         description: isUserMarkingOwnPayment
           ? 'Your payment has been marked as paid'
-          : `${apartment?.name || 'Apartment'} marked as paid`,
+          : `${apartmentId} marked as paid`,
       });
     } catch {
       toast({
@@ -114,7 +123,14 @@ export function ExpenseItem({
 
   const handleMarkUnpaid = async (apartmentId: string) => {
     const isCurrentUserPayment = apartmentId === currentUserApartment;
-    if (!isOwner && !isCurrentUserPayment) return;
+    const isPayer = currentUserApartment === expense.paidByApartment;
+    const currentUser = users.find(user => user.apartment === currentUserApartment);
+    const isOwnerOrTenant =
+      currentUser &&
+      (currentUser.propertyRole === 'owner' || currentUser.propertyRole === 'tenant');
+
+    // Allow if: user is owner/tenant of their own apartment, or user is the payer (can mark all)
+    if (!isOwnerOrTenant && !isPayer) return;
 
     setLoadingMap(prev => ({ ...prev, [apartmentId]: true }));
     try {
@@ -123,13 +139,13 @@ export function ExpenseItem({
       onExpenseUpdate?.(updatedExpense);
 
       const apartment = apartments.find(apt => apt.id === apartmentId);
-      const isUserMarkingOwnPayment = isCurrentUserPayment && !isOwner;
+      const isUserMarkingOwnPayment = isCurrentUserPayment && !isPayer;
 
       toast({
         title: 'Payment Unmarked',
         description: isUserMarkingOwnPayment
           ? 'Your payment has been marked as unpaid'
-          : `${apartment?.name || 'Apartment'} marked as unpaid`,
+          : `${apartmentId} marked as unpaid`,
       });
     } catch {
       toast({
@@ -251,14 +267,19 @@ export function ExpenseItem({
             <h4 className="text-sm font-medium">Payment Status by Apartment</h4>
             <div className="space-y-2">
               {expense.owedByApartments?.map(apartmentId => {
-                // Enable button if current user is owner of this apartment or if this is their apartment
+                // Enable button if:
+                // - current user is owner or tenant of this apartment
+                // - current user apartment matches this apartment
+                // - current user apartment is the payer (can toggle for all)
                 const isCurrentUser = currentUserApartment === apartmentId;
-                const isOwnerOfThisApartment = users.some(
-                  user =>
-                    user.id === (typeof window !== 'undefined' ? localStorage.getItem('userId') : undefined) &&
-                    user.apartment === apartmentId &&
-                    user.propertyRole === 'owner'
-                );
+                // Get current user info
+                const currentUser = users.find(user => user.apartment === currentUserApartment);
+                // Check if current user is owner/tenant of this specific apartment
+                const isOwnerOrTenantOfThisApartment =
+                  isCurrentUser &&
+                  currentUser &&
+                  (currentUser.propertyRole === 'owner' || currentUser.propertyRole === 'tenant');
+                const isPayer = currentUserApartment === expense.paidByApartment;
                 const isPaid = calculation.paidApartments.includes(apartmentId);
 
                 return (
@@ -282,7 +303,7 @@ export function ExpenseItem({
                         ₹{(Number(expense.perApartmentShare) || 0).toFixed(2)}
                       </span>
 
-                      {(isOwnerOfThisApartment || isCurrentUser) && (
+                      {(isOwnerOrTenantOfThisApartment || isPayer) && (
                         <div className="flex gap-1">
                           {isPaid ? (
                             <Button
@@ -292,9 +313,7 @@ export function ExpenseItem({
                               disabled={!!loadingMap[apartmentId]}
                               className="h-6 px-2"
                               title={
-                                isCurrentUser && !isOwnerOfThisApartment
-                                  ? 'Mark as unpaid'
-                                  : 'Mark as unpaid (Owner)'
+                                isPayer ? 'Mark as unpaid (Payer can mark all)' : 'Mark as unpaid'
                               }
                             >
                               {loadingMap[apartmentId] ? (
@@ -329,11 +348,7 @@ export function ExpenseItem({
                               onClick={() => handleMarkPaid(apartmentId)}
                               disabled={!!loadingMap[apartmentId]}
                               className="h-6 px-2"
-                              title={
-                                isCurrentUser && !isOwnerOfThisApartment
-                                  ? 'Mark as paid'
-                                  : 'Mark as paid (Owner)'
-                              }
+                              title={isPayer ? 'Mark as paid (Payer can mark all)' : 'Mark as paid'}
                             >
                               {loadingMap[apartmentId] ? (
                                 <svg
@@ -363,7 +378,7 @@ export function ExpenseItem({
                           )}
                         </div>
                       )}
-                      {!isOwnerOfThisApartment && !isCurrentUser && (
+                      {!isOwnerOrTenantOfThisApartment && !isPayer && (
                         <Badge variant={isPaid ? 'default' : 'destructive'} className="text-xs">
                           {isPaid ? 'Paid' : 'Pending'}
                         </Badge>
