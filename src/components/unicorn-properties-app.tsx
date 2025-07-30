@@ -1,117 +1,32 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { format, formatDistanceToNow, subMonths } from 'date-fns';
-import {
-  Bell,
-  CheckCircle,
-  FileDown,
-  Home,
-  LineChart,
-  LogOut,
-  Megaphone,
-  Package2,
-  PieChart,
-  PlusCircle,
-  Search,
-  Send,
-  Settings,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-  XCircle,
-} from 'lucide-react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
-
+import { format, subMonths } from 'date-fns';
 import * as React from 'react';
-
-import { useRouter } from 'next/navigation';
 
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
 
-import { AddCategoryDialog } from '@/components/add-category-dialog';
-import { AddExpenseDialog } from '@/components/add-expense-dialog';
-import { AddUserDialog } from '@/components/add-user-dialog';
-import { CategoryIcon } from '@/components/category-icon';
-import { EditCategoryDialog } from '@/components/edit-category-dialog';
-import { EditUserDialog } from '@/components/edit-user-dialog';
-import { ExpenseItem } from '@/components/expense-item';
-import { Icons } from '@/components/icons';
-import { OutstandingBalance } from '@/components/outstanding-balance';
+import { AdminView } from '@/components/admin/admin-view';
+import { AnalyticsView } from '@/components/analytics/analytics-view';
+import { CommunityView } from '@/components/community/community-view';
+import { DashboardView } from '@/components/dashboard/dashboard-view';
+import { ExpensesList } from '@/components/expenses/expenses-list';
+import { ExpensesView } from '@/components/expenses/expenses-view';
+import { NavigationMenu } from '@/components/layout/navigation-menu';
+import { PageHeader } from '@/components/layout/page-header';
 import { SelectApartmentDialog } from '@/components/select-apartment-dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Users } from '@/components/ui/lucide';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
-  SidebarContent,
   SidebarFooter,
-  SidebarHeader,
   SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
 } from '@/components/ui/sidebar';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { UserProfileDialog } from '@/components/user-profile-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
-
-import { Skeleton } from './ui/skeleton';
 
 type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
 
@@ -126,7 +41,6 @@ export function UnicornPropertiesApp({
 }: UnicornPropertiesAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const [view, setView] = React.useState<View>('dashboard');
 
   const [users, setUsers] = React.useState<User[]>([]);
@@ -243,99 +157,7 @@ export function UnicornPropertiesApp({
   const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
   const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
 
-  // Navigation component that can access sidebar context
-  const NavigationMenu = () => {
-    const { setOpenMobile, isMobile } = useSidebar();
 
-    const handleNavigation = (newView: View) => {
-      setView(newView);
-      // Close mobile sidebar when navigating
-      if (isMobile) {
-        setOpenMobile(false);
-      }
-    };
-
-    const handleLogoNavigation = () => {
-      if (user) {
-        setView('dashboard');
-        if (isMobile) {
-          setOpenMobile(false);
-        }
-      } else {
-        router.push('/login');
-      }
-    };
-
-    return (
-      <>
-        <SidebarHeader>
-          <div
-            className="flex items-center gap-2 p-2 cursor-pointer"
-            onClick={handleLogoNavigation}
-          >
-            <Package2 className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Unicorn Properties</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigation('dashboard')}
-                isActive={view === 'dashboard'}
-                tooltip="Dashboard"
-              >
-                <Home />
-                Dashboard
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigation('expenses')}
-                isActive={view === 'expenses'}
-                tooltip="All Expenses"
-              >
-                <LineChart />
-                All Expenses
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigation('analytics')}
-                isActive={view === 'analytics'}
-                tooltip="Analytics"
-              >
-                <PieChart />
-                Analytics
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigation('community')}
-                isActive={view === 'community'}
-                tooltip="Community"
-              >
-                <Users />
-                Community
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {role === 'admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => handleNavigation('admin')}
-                  isActive={view === 'admin'}
-                  tooltip="Admin"
-                >
-                  <Settings />
-                  Admin
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
-        </SidebarContent>
-      </>
-    );
-  };
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     console.log('[handleAddExpense] Input:', newExpenseData);
@@ -616,16 +438,22 @@ export function UnicornPropertiesApp({
     // Filter expenses by selected month for analytics
     const filteredExpenses =
       analyticsMonth === 'all'
-        ? expenses
-        : expenses.filter(e => format(new Date(e.date), 'yyyy-MM') === analyticsMonth);
+        ? expenses.filter(e => e.date && e.amount != null) // Filter out invalid expenses
+        : expenses.filter(e => {
+          try {
+            return e.date && e.amount != null && format(new Date(e.date), 'yyyy-MM') === analyticsMonth;
+          } catch {
+            return false;
+          }
+        });
 
     const categorySpending = categories.map(category => {
       const total = filteredExpenses
         .filter(e => e.categoryId === category.id)
-        .reduce((sum, e) => sum + e.amount, 0);
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       return {
         name: category.name,
-        total,
+        total: Math.round(total * 100) / 100, // Ensure proper rounding
         fill: `hsl(var(--chart-${(categories.indexOf(category) % 5) + 1}))`,
       };
     });
@@ -635,11 +463,17 @@ export function UnicornPropertiesApp({
         const monthDate = subMonths(new Date(), i);
         const monthKey = format(monthDate, 'yyyy-MM');
         const total = expenses
-          .filter(e => format(new Date(e.date), 'yyyy-MM') === monthKey)
+          .filter(e => {
+            try {
+              return e.date && e.amount != null && format(new Date(e.date), 'yyyy-MM') === monthKey;
+            } catch {
+              return false;
+            }
+          })
           .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
         return {
-          name: format(monthDate, 'MMM'),
-          total: Number(total.toFixed(2)),
+          name: format(monthDate, 'MMM yyyy'),
+          total: Math.round(total * 100) / 100, // Ensure proper rounding
         };
       })
       .reverse();
@@ -691,18 +525,112 @@ export function UnicornPropertiesApp({
       );
     }
 
+    const ExpensesListComponent = React.useCallback(
+      ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => (
+        <ExpensesList
+          expenses={expenses}
+          limit={limit}
+          apartments={apartments}
+          users={users}
+          categories={categories}
+          currentUserApartment={currentUserApartment}
+          currentUserRole={role}
+          onExpenseUpdate={handleExpenseUpdate}
+          onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
+        />
+      ),
+      [apartments, users, categories, currentUserApartment, role]
+    );
+
     switch (view) {
       case 'admin':
-        if (role !== 'admin') return <DashboardView />;
-        return <AdminView />;
+        if (role !== 'admin') {
+          return (
+            <DashboardView
+              user={user}
+              role={role}
+              expenses={expenses}
+              announcements={announcements}
+              apartments={apartments}
+              currentUserApartment={currentUserApartment}
+              apartmentBalances={apartmentBalances}
+              announcementMessage={announcementMessage}
+              setAnnouncementMessage={setAnnouncementMessage}
+              isSending={isSending}
+              onSendAnnouncement={handleSendAnnouncement}
+              ExpensesList={ExpensesListComponent}
+            />
+          );
+        }
+        return (
+          <AdminView
+            users={users}
+            categories={categories}
+            announcements={announcements}
+            userSearch={userSearch}
+            setUserSearch={setUserSearch}
+            filteredUsers={filteredUsers}
+            pendingAnnouncements={pendingAnnouncements}
+            onAddUser={handleAddUser}
+            onUpdateUser={handleUpdateUserFromAdmin}
+            onDeleteUser={handleDeleteUser}
+            onAddCategory={handleAddCategory}
+            onUpdateCategory={handleUpdateCategory}
+            onDeleteCategory={handleDeleteCategory}
+            onAnnouncementDecision={handleAnnouncementDecision}
+            getUserById={getUserById}
+          />
+        );
       case 'expenses':
-        return <ExpensesView />;
+        return (
+          <ExpensesView
+            expenses={expenses}
+            categories={categories}
+            apartments={apartments}
+            expenseSearch={expenseSearch}
+            setExpenseSearch={setExpenseSearch}
+            filterCategory={filterCategory}
+            setFilterCategory={setFilterCategory}
+            filterPaidBy={filterPaidBy}
+            setFilterPaidBy={setFilterPaidBy}
+            filterMonth={filterMonth}
+            setFilterMonth={setFilterMonth}
+            filteredExpenses={filteredExpenses}
+            expenseMonths={expenseMonths}
+            onClearFilters={handleClearFilters}
+            ExpensesList={ExpensesListComponent}
+          />
+        );
       case 'analytics':
-        return <AnalyticsView />;
+        return (
+          <AnalyticsView
+            expenses={expenses}
+            categories={categories}
+            analyticsMonth={analyticsMonth}
+            setAnalyticsMonth={setAnalyticsMonth}
+            expenseMonths={expenseMonths}
+            analyticsData={analyticsData}
+          />
+        );
       case 'community':
         return <CommunityView users={users} apartments={apartments} />;
       default:
-        return <DashboardView />;
+        return (
+          <DashboardView
+            user={user}
+            role={role}
+            expenses={expenses}
+            announcements={announcements}
+            apartments={apartments}
+            currentUserApartment={currentUserApartment}
+            apartmentBalances={apartmentBalances}
+            announcementMessage={announcementMessage}
+            setAnnouncementMessage={setAnnouncementMessage}
+            isSending={isSending}
+            onSendAnnouncement={handleSendAnnouncement}
+            ExpensesList={ExpensesListComponent}
+          />
+        );
     }
   };
 
@@ -825,840 +753,6 @@ export function UnicornPropertiesApp({
   // Use apartment balance instead of user balance for notifications
   const loggedInUserBalance = currentApartmentBalance ? currentApartmentBalance.balance : 0;
 
-  const DashboardView = () => (
-    <div className="grid gap-6">
-      {/* Outstanding Balance Alert */}
-      <OutstandingBalance expenses={expenses} currentUserApartment={currentUserApartment} />
-
-      {/* Apartment Balances */}
-      {currentApartmentBalance && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Apartment Balances</CardTitle>
-            <CardDescription>Summary of amounts owed between apartments</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* What you are owed */}
-            {Object.entries(currentApartmentBalance.isOwed).map(
-              ([apartmentId, amount]) =>
-                amount > 0 && (
-                  <div
-                    key={`owed-${apartmentId}`}
-                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-green-100">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">owes your apartment</p>
-                      </div>
-                    </div>
-                    <span className="text-lg font-semibold text-green-700">
-                      ₹{amount.toFixed(2)}
-                    </span>
-                  </div>
-                )
-            )}
-
-            {/* What you owe */}
-            {Object.entries(currentApartmentBalance.owes).map(
-              ([apartmentId, amount]) =>
-                amount > 0 && (
-                  <div
-                    key={`owes-${apartmentId}`}
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-red-100">
-                        <TrendingDown className="h-5 w-5 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          You owe {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">for shared expenses</p>
-                      </div>
-                    </div>
-                    <span className="text-lg font-semibold text-red-700">₹{amount.toFixed(2)}</span>
-                  </div>
-                )
-            )}
-
-            {/* Net balance */}
-            {currentApartmentBalance.balance !== 0 && (
-              <div
-                className={`mt-4 p-4 rounded-lg ${currentApartmentBalance.balance > 0 ? 'bg-green-50' : 'bg-red-50'}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">
-                      {currentApartmentBalance.balance > 0
-                        ? 'Your apartment is owed'
-                        : 'Your apartment owes'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {currentApartmentBalance.balance > 0
-                        ? 'in total across all apartments'
-                        : 'in total to other apartments'}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xl font-bold ${currentApartmentBalance.balance > 0 ? 'text-green-700' : 'text-red-700'}`}
-                  >
-                    {currentApartmentBalance.balance > 0 ? '+' : ''}₹
-                    {Math.abs(currentApartmentBalance.balance).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Calculation verification for development */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Calculation Verification</h4>
-                <div className="text-xs space-y-1">
-                  <p>Total apartments: {apartments.length}</p>
-                  <p>
-                    Total expenses paid by your apartment:{' '}
-                    {expenses.filter(e => e.paidByApartment === currentUserApartment).length}
-                  </p>
-                  <p>
-                    Total amount you paid: ₹
-                    {expenses
-                      .filter(e => e.paidByApartment === currentUserApartment)
-                      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
-                      .toFixed(2)}
-                  </p>
-                  <p>
-                    Total amount still owed to you: ₹
-                    {Object.values(currentApartmentBalance.isOwed || {})
-                      .reduce((sum, amount) => sum + (Number(amount) || 0), 0)
-                      .toFixed(2)}
-                  </p>
-                  <p>
-                    Total amount you still owe: ₹
-                    {Object.values(currentApartmentBalance.owes || {})
-                      .reduce((sum, amount) => sum + (Number(amount) || 0), 0)
-                      .toFixed(2)}
-                  </p>
-                  <p>
-                    Your net balance: {currentApartmentBalance.balance >= 0 ? '+' : ''}₹
-                    {currentApartmentBalance.balance.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Expenses</CardTitle>
-            <CardDescription>The last 5 expenses added to your apartment.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExpensesList expenses={expenses} limit={5} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>Your personal reminders and balance status.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            {approvedAnnouncements
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .map(ann => (
-                <React.Fragment key={ann.id}>
-                  <div className="flex items-start gap-4">
-                    <Megaphone className="h-6 w-6 text-primary mt-1" />
-                    <div className="grid gap-1">
-                      <p className="text-sm font-medium">New Announcement</p>
-                      <p className="text-sm text-muted-foreground">{ann.message}</p>
-                      <p className="text-xs text-muted-foreground/80 pt-1">
-                        {formatDistanceToNow(new Date(ann.createdAt), { addSuffix: true })}
-                      </p>
-                    </div>
-                  </div>
-                  <Separator />
-                </React.Fragment>
-              ))}
-            <div className="flex items-center gap-4">
-              <Bell className="h-6 w-6 text-accent" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium">Welcome to Unicorn Properties, {user?.name}!</p>
-                <p className="text-sm text-muted-foreground">Here is a summary of your account.</p>
-              </div>
-            </div>
-            <Separator />
-            <div className="flex items-center gap-4">
-              <Wallet
-                className={`h-6 w-6 ${Math.abs(loggedInUserBalance) < 0.01 ? 'text-green-600' : loggedInUserBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}
-              />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium">
-                  Your balance is{' '}
-                  {Math.abs(loggedInUserBalance) < 0.01
-                    ? '₹0.00'
-                    : loggedInUserBalance >= 0
-                      ? `-₹${loggedInUserBalance.toFixed(2)}`
-                      : `+₹${Math.abs(loggedInUserBalance).toFixed(2)}`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {Math.abs(loggedInUserBalance) < 0.01
-                    ? 'You are all settled up.'
-                    : loggedInUserBalance > 0
-                      ? 'Others owe you money.'
-                      : 'You have outstanding balances.'}
-                </p>
-              </div>
-            </div>
-            {loggedInUserBalance < -0.01 && (
-              <>
-                <Separator />
-                <div className="flex items-center gap-4">
-                  <TrendingUp className="h-6 w-6 text-blue-500" />
-                  <div className="grid gap-1">
-                    <p className="text-sm font-medium">Settle Up Reminder</p>
-                    <p className="text-sm text-muted-foreground">
-                      Please pay your outstanding balance to keep the records updated.
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Submit an Announcement</CardTitle>
-          <CardDescription>
-            {role === 'admin'
-              ? 'Send a notification to all users. It will disappear after 2 days.'
-              : 'Submit an announcement for admin approval. It will be reviewed shortly.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid w-full gap-2" style={{ contain: 'layout' }}>
-            <div
-              className="relative"
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                contain: 'layout style',
-              }}
-            >
-              <Textarea
-                ref={textareaRef}
-                placeholder="Type your message here..."
-                maxLength={500}
-                value={announcementMessage}
-                onChange={React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const value = e.target.value;
-                  const cursorPosition = e.target.selectionStart;
-                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-                  // Mark as focused for re-render handling
-                  if (textareaRef.current) {
-                    textareaRef.current.dataset.wasFocused = 'true';
-                  }
-
-                  setAnnouncementMessage(value);
-
-                  // Maintain focus and cursor position after state update
-                  requestAnimationFrame(() => {
-                    if (textareaRef.current) {
-                      textareaRef.current.focus();
-                      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
-                    }
-                    window.scrollTo(scrollLeft, scrollTop);
-                  });
-                }, [])}
-                disabled={isSending}
-                className="min-h-[100px] resize-none focus:ring-2 focus:ring-offset-0"
-                rows={4}
-                style={{
-                  position: 'relative',
-                  scrollMarginTop: '0px',
-                }}
-                onFocus={() => {
-                  if (textareaRef.current) {
-                    textareaRef.current.dataset.wasFocused = 'true';
-                  }
-                }}
-                onBlur={() => {
-                  if (textareaRef.current) {
-                    textareaRef.current.dataset.wasFocused = 'false';
-                  }
-                }}
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">{announcementMessage.length} / 500</p>
-              <Button
-                onClick={e => {
-                  e.preventDefault();
-                  handleSendAnnouncement();
-                }}
-                disabled={isSending || !announcementMessage.trim()}
-              >
-                {role === 'admin' ? (
-                  <Megaphone className="mr-2 h-4 w-4" />
-                ) : (
-                  <Send className="mr-2 h-4 w-4" />
-                )}
-                {isSending
-                  ? 'Sending...'
-                  : role === 'admin'
-                    ? 'Send Announcement'
-                    : 'Submit for Review'}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const ExpensesView = () => (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <CardTitle>All Expenses</CardTitle>
-              <CardDescription>
-                A complete log of all shared expenses for your apartment.
-              </CardDescription>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search expenses..."
-                  className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
-                  value={expenseSearch}
-                  onChange={e => setExpenseSearch(e.target.value)}
-                />
-              </div>
-              <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto">
-                <FileDown className="mr-2 h-4 w-4" /> Export
-              </Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(c => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterPaidBy} onValueChange={setFilterPaidBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by paid by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Apartments</SelectItem>
-                {apartments.map(a => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by month" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Months</SelectItem>
-                {expenseMonths.map(month => (
-                  <SelectItem key={month} value={month}>
-                    {format(new Date(`${month}-02`), 'MMMM yyyy')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="ghost"
-              onClick={handleClearFilters}
-              className="sm:col-span-2 lg:col-span-1"
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ExpensesList expenses={filteredExpenses} />
-      </CardContent>
-    </Card>
-  );
-
-  const AnalyticsView = () => {
-    const hasData = expenses.length > 0;
-    const filteredData = analyticsData.categorySpending.filter(item => item.total > 0);
-
-    return (
-      <div className="grid gap-4 sm:gap-6 w-full max-w-full overflow-x-hidden">
-        {/* Month Filter */}
-        <Card className="w-full max-w-full overflow-x-auto">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg sm:text-xl">Analytics Filters</CardTitle>
-            <CardDescription className="text-sm">
-              Filter your spending analytics by month
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
-                <label htmlFor="analytics-month" className="text-sm font-medium whitespace-nowrap">
-                  Month:
-                </label>
-                <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
-                  <SelectTrigger className="w-full sm:w-[180px]" id="analytics-month">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Months</SelectItem>
-                    {expenseMonths.map(month => (
-                      <SelectItem key={month} value={month}>
-                        {format(new Date(month + '-01'), 'MMMM yyyy')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {analyticsMonth !== 'all' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setAnalyticsMonth('all')}
-                  className="w-full sm:w-auto"
-                >
-                  Clear Filter
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {!hasData ? (
-          <Card className="w-full max-w-full overflow-x-auto">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <PieChart className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Data Available</h3>
-              <p className="text-sm text-muted-foreground text-center max-w-md">
-                Add some expenses to see analytics and spending insights for your apartment.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Charts Grid */}
-            <div className="grid gap-4 sm:gap-6 w-full max-w-full">
-              <Card className="w-full max-w-full overflow-x-auto">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg sm:text-xl">Spending by Category</CardTitle>
-                  <CardDescription className="text-sm">
-                    A breakdown of expenses by category
-                    {analyticsMonth !== 'all'
-                      ? ` for ${format(new Date(analyticsMonth + '-01'), 'MMMM yyyy')}`
-                      : ' for your apartment'}
-                    .
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-x-auto">
-                  {filteredData.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 w-full">
-                      <p className="text-sm text-muted-foreground">
-                        No expenses found for the selected period.
-                      </p>
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{}}
-                      className="h-[250px] sm:h-[300px] lg:h-[350px] w-full min-w-[280px] max-w-full overflow-x-auto"
-                    >
-                      <BarChart data={filteredData} accessibilityLayer>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="name"
-                          tickLine={false}
-                          tickMargin={10}
-                          axisLine={false}
-                          fontSize={11}
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                          interval={0}
-                        />
-                        <YAxis fontSize={11} />
-                        <RechartsTooltip
-                          cursor={false}
-                          content={<ChartTooltipContent hideLabel />}
-                        />
-                        <Bar dataKey="total" radius={8} />
-                      </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="w-full max-w-full overflow-x-auto">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg sm:text-xl">Spending Over Time</CardTitle>
-                  <CardDescription className="text-sm">
-                    Total expenses over the last 6 months for your apartment.
-                    {analyticsMonth !== 'all' &&
-                      ' (Category breakdown filtered by selected month above)'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 w-full max-w-full overflow-x-auto">
-                  <ChartContainer
-                    config={{}}
-                    className="h-[250px] sm:h-[300px] lg:h-[350px] w-full min-w-[280px] max-w-full overflow-x-auto"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={analyticsData.monthlySpending}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis dataKey="name" fontSize={11} height={40} interval={0} />
-                        <YAxis fontSize={11} />
-                        <RechartsTooltip />
-                        <Legend />
-                        <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Spending" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
-      </div>
-    );
-  };
-
-  const AdminView = () => (
-    <div className="grid gap-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Add, edit, or remove users from the system.</CardDescription>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search users..."
-                  className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
-                  value={userSearch}
-                  onChange={e => setUserSearch(e.target.value)}
-                />
-              </div>
-              <AddUserDialog onAddUser={handleAddUser}>
-                <Button className="w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add User
-                </Button>
-              </AddUserDialog>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Mobile Card Layout */}
-          <div className="block md:hidden space-y-4">
-            {filteredUsers.map(u => (
-              <Card key={u.id} className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={u.avatar} alt={u.name} />
-                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{u.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {u.apartment || 'N/A'}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">{u.phone || 'N/A'}</p>
-                      <div className="flex gap-1 flex-wrap mt-2">
-                        <Badge
-                          variant={u.role === 'admin' ? 'default' : 'secondary'}
-                          className="capitalize text-xs"
-                        >
-                          {u.role}
-                        </Badge>
-                        {u.propertyRole && (
-                          <Badge variant="outline" className="capitalize text-xs">
-                            {u.propertyRole}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
-                    <EditUserDialog user={u} onUpdateUser={handleUpdateUserFromAdmin}>
-                      <Button variant="ghost" size="sm" className="h-8 px-2">
-                        Edit
-                      </Button>
-                    </EditUserDialog>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive h-8 px-2"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete{' '}
-                            <strong>{u.name}</strong>&apos;s account.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteUser(u.id)}
-                            className="bg-destructive hover:bg-destructive/90"
-                          >
-                            Delete User
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Desktop Table Layout */}
-          <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Apartment</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Roles</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map(u => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={u.avatar} alt={u.name} />
-                          <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{u.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{u.apartment || 'N/A'}</TableCell>
-                    <TableCell>{u.phone || 'N/A'}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        <Badge
-                          variant={u.role === 'admin' ? 'default' : 'secondary'}
-                          className="capitalize"
-                        >
-                          {u.role}
-                        </Badge>
-                        {u.propertyRole && (
-                          <Badge variant="outline" className="capitalize">
-                            {u.propertyRole}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <EditUserDialog user={u} onUpdateUser={handleUpdateUserFromAdmin}>
-                        <Button variant="ghost" size="sm">
-                          Edit
-                        </Button>
-                      </EditUserDialog>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete{' '}
-                              <strong>{u.name}</strong>&apos;s account.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteUser(u.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Delete User
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {pendingAnnouncements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Announcements</CardTitle>
-            <CardDescription>
-              Review and approve or reject announcements submitted by users.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {pendingAnnouncements.map(ann => (
-                <li key={ann.id} className="rounded-lg border p-4">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <p className="text-sm text-muted-foreground">
-                        From:{' '}
-                        <span className="font-medium text-foreground">
-                          {getUserById(ann.createdBy)?.name || 'Unknown User'}
-                        </span>
-                      </p>
-                      <p className="text-sm break-words">{ann.message}</p>
-                    </div>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 sm:shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 w-full sm:w-auto"
-                        onClick={() => handleAnnouncementDecision(ann.id, 'approved')}
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
-                        onClick={() => handleAnnouncementDecision(ann.id, 'rejected')}
-                      >
-                        <XCircle className="mr-2 h-4 w-4" /> Reject
-                      </Button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>Category Management</CardTitle>
-              <CardDescription>Manage expense categories for the group.</CardDescription>
-            </div>
-            <AddCategoryDialog onAddCategory={handleAddCategory}>
-              <Button className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
-              </Button>
-            </AddCategoryDialog>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div>
-            <ul className="space-y-2">
-              {categories.map(cat => (
-                <li
-                  key={cat.id}
-                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <CategoryIcon name={cat.icon as keyof typeof Icons} className="flex-shrink-0" />
-                    <span className="truncate">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 sm:flex-shrink-0">
-                    <EditCategoryDialog category={cat} onUpdateCategory={handleUpdateCategory}>
-                      <Button variant="ghost" size="sm" className="flex-1 sm:flex-initial">
-                        Edit
-                      </Button>
-                    </EditCategoryDialog>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive flex-1 sm:flex-initial"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the{' '}
-                            <strong>{cat.name}</strong> category.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="bg-destructive hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   const handleDeleteExpense = async (expenseId: string) => {
     try {
       await firestore.deleteExpense(expenseId);
@@ -1676,101 +770,11 @@ export function UnicornPropertiesApp({
     }
   };
 
-  const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
-    const relevantExpenses = limit
-      ? expenses
-          .slice(0, limit)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    const handleExpenseUpdate = (updatedExpense: Expense) => {
-      setExpenses(prev => prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp)));
-    };
-
-    if (relevantExpenses.length === 0) {
-      return <div className="text-center py-8 text-muted-foreground">No expenses found.</div>;
-    }
-
-    return (
-      <div className="space-y-4">
-        {relevantExpenses.map(expense => (
-          <ExpenseItem
-            key={expense.id}
-            expense={expense}
-            apartments={apartments}
-            users={users}
-            categories={categories}
-            currentUserApartment={currentUserApartment}
-            isOwner={expense.paidByApartment === currentUserApartment}
-            onExpenseUpdate={handleExpenseUpdate}
-            currentUserRole={role}
-            onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
-          />
-        ))}
-      </div>
-    );
+  const handleExpenseUpdate = (updatedExpense: Expense) => {
+    setExpenses(prev => prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp)));
   };
 
-  const PageHeader = () => {
-    let title = 'Dashboard';
-    if (view === 'expenses') title = 'All Expenses';
-    if (view === 'admin') title = 'Admin Panel';
-    if (view === 'analytics') title = 'Analytics';
-    if (view === 'community') title = 'Community Directory';
-    return (
-      <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">
-        <SidebarTrigger className="md:hidden" />
-        <h1 className="text-lg sm:text-xl font-semibold truncate flex-1">{title}</h1>
-        <div className="flex items-center gap-2 sm:gap-4">
-          {user && (
-            <AddExpenseDialog
-              categories={categories}
-              users={users}
-              onAddExpense={handleAddExpense}
-              currentUser={user}
-            >
-              <Button className="bg-accent hover:bg-accent/90">
-                <PlusCircle className="mr-2 h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Add Expense</span>
-              </Button>
-            </AddExpenseDialog>
-          )}
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel>
-                  <p className="truncate">{user.name}</p>
-                  <p className="font-normal text-muted-foreground truncate">
-                    {user.phone || user.email}
-                  </p>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <UserProfileDialog user={user} onUpdateUser={handleUpdateUser}>
-                  <DropdownMenuItem onSelect={e => e.preventDefault()}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                </UserProfileDialog>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      </header>
-    );
-  };
+
 
   // Calculate monthly expenses for the current month
   const currentMonth = new Date().getMonth();
@@ -1787,7 +791,7 @@ export function UnicornPropertiesApp({
     <>
       <SidebarProvider>
         <Sidebar>
-          <NavigationMenu />
+          <NavigationMenu user={user} view={view} setView={setView} role={role} />
           <SidebarFooter>
             <Card className="m-2">
               <CardHeader className="p-3">
@@ -1802,7 +806,15 @@ export function UnicornPropertiesApp({
         </Sidebar>
         <SidebarInset>
           <div className="flex flex-col min-h-screen">
-            <PageHeader />
+            <PageHeader
+              view={view}
+              user={user}
+              categories={categories}
+              users={users}
+              onAddExpense={handleAddExpense}
+              onUpdateUser={handleUpdateUser}
+              onLogout={logout}
+            />
             <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-background overflow-x-hidden">
               <div className="max-w-7xl mx-auto">
                 <MainContent />
@@ -1831,62 +843,4 @@ export function UnicornPropertiesApp({
   );
 }
 
-function CommunityView({ users, apartments }: { users: User[]; apartments: Apartment[] }) {
-  const grouped = React.useMemo(() => {
-    const map: Record<string, Apartment & { users: User[] }> = {};
-    apartments.forEach(apt => {
-      map[apt.id] = { ...apt, users: [] };
-    });
-    users.forEach(user => {
-      if (user.apartment && map[user.apartment]) {
-        map[user.apartment].users.push(user);
-      }
-    });
-    return Object.values(map);
-  }, [users, apartments]);
 
-  return (
-    <div className="grid gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Community Directory</CardTitle>
-          <CardDescription>See all apartments and their residents.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {grouped.map(apartment => (
-              <div key={apartment.id} className="border rounded-lg p-4 bg-muted">
-                <h3 className="font-semibold text-lg mb-2">{apartment.name}</h3>
-                <ul className="space-y-2">
-                  {apartment.users.length === 0 ? (
-                    <li className="text-muted-foreground text-sm">No residents</li>
-                  ) : (
-                    apartment.users.map(user => (
-                      <li key={user.id} className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarImage src={user.avatar} alt={user.name} />
-                          <AvatarFallback>{user.name ? user.name.charAt(0) : '?'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-base" aria-label="Resident Name">
-                            {user.name || <span className="italic text-muted-foreground">Unnamed</span>}
-                          </span>
-                          <span className="text-xs text-muted-foreground" aria-label="Property Role">
-                            {user.propertyRole || <span className="italic">No role</span>}
-                          </span>
-                          <span className="text-xs text-muted-foreground" aria-label="Phone Number">
-                            {user.phone ? user.phone : <span className="italic">No phone</span>}
-                          </span>
-                        </div>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
