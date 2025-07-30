@@ -175,28 +175,36 @@ export function AnalyticsView({
                   </ChartContainer>
                 )}
 
-                  {/* Category Legend with Icons */}
-                  {filteredData.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <h4 className="text-sm font-medium mb-3">Categories</h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {filteredData.map((item) => {
-                          const category = categories.find(cat => cat.name === item.name);
-                          return (
-                            <div key={item.name} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                              {category?.icon && (
-                                <CategoryIcon name={category.icon} className="h-5 w-5 flex-shrink-0" />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium truncate">{item.name}</p>
-                                <p className="text-xs text-muted-foreground">₹{item.total.toFixed(2)}</p>
-                              </div>
+                {/* Category Legend with Icons */}
+                {filteredData.length > 0 && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-3">Categories</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {filteredData.map(item => {
+                        const category = categories.find(cat => cat.name === item.name);
+                        return (
+                          <div
+                            key={item.name}
+                            className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
+                          >
+                            {category?.icon && (
+                              <CategoryIcon
+                                name={category.icon}
+                                className="h-5 w-5 flex-shrink-0"
+                              />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium truncate">{item.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                ₹{item.total.toFixed(2)}
+                              </p>
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -138,7 +138,11 @@ export function ExpensesView({
                   onChange={e => setExpenseSearch(e.target.value)}
                 />
               </div>
-              <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto whitespace-nowrap">
+              <Button
+                onClick={handleExportCSV}
+                variant="outline"
+                className="w-full sm:w-auto whitespace-nowrap"
+              >
                 <FileDown className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>

@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
-
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();

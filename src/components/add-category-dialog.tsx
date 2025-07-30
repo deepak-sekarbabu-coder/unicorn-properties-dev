@@ -112,10 +112,7 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
                   <FormLabel>Icon</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
-                      <Input
-                        placeholder="Enter emoji or icon name (e.g., 🏠 or Zap)"
-                        {...field}
-                      />
+                      <Input placeholder="Enter emoji or icon name (e.g., 🏠 or Zap)" {...field} />
                     </FormControl>
                     <div className="flex flex-wrap gap-2">
                       <p className="text-sm text-muted-foreground w-full">Quick select:</p>

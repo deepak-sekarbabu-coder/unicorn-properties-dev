@@ -151,9 +151,7 @@ export function ExpenseItem({
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            {category?.icon && (
-              <CategoryIcon name={category.icon} className="mt-1 flex-shrink-0" />
-            )}
+            {category?.icon && <CategoryIcon name={category.icon} className="mt-1 flex-shrink-0" />}
             <div className="space-y-1 min-w-0 flex-1">
               <CardTitle className="text-lg leading-tight">{expense.description}</CardTitle>
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 text-sm text-muted-foreground">
@@ -168,7 +166,9 @@ export function ExpenseItem({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline">•</span>
-                  <span className="truncate">Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
+                  <span className="truncate">
+                    Paid by {formatApartmentWithUsers(expense.paidByApartment)}
+                  </span>
                   {expense.receipt && (
                     <>
                       <span>•</span>
