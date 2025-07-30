@@ -28,16 +28,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'announcement';
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];
-  initialAnnouncements: Announcement[];
 }
 
 export function UnicornPropertiesApp({
   initialCategories,
-  initialAnnouncements,
 }: UnicornPropertiesAppProps) {
   const { user, logout, updateUser: updateAuthUser } = useAuth();
   const { toast } = useToast();
@@ -46,8 +44,8 @@ export function UnicornPropertiesApp({
   const [users, setUsers] = React.useState<User[]>([]);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
-  const [announcements, setAnnouncements] = React.useState<Announcement[]>(initialAnnouncements);
   const [apartments, setApartments] = React.useState<Apartment[]>([]);
+  const [announcements, setAnnouncements] = React.useState<Announcement[]>([]);
 
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
@@ -59,8 +57,6 @@ export function UnicornPropertiesApp({
   const [analyticsMonth, setAnalyticsMonth] = React.useState('all');
 
   const [userSearch, setUserSearch] = React.useState('');
-  const [announcementMessage, setAnnouncementMessage] = React.useState('');
-  const [isSending, setIsSending] = React.useState(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Maintain focus during re-renders
@@ -153,11 +149,6 @@ export function UnicornPropertiesApp({
       requestNotificationPermission(user.id);
     }
   }, [user]);
-
-  const pendingAnnouncements = announcements.filter(a => a.status === 'pending');
-  const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
-
-
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
     console.log('[handleAddExpense] Input:', newExpenseData);
@@ -291,58 +282,24 @@ export function UnicornPropertiesApp({
     });
   };
 
-  const handleSendAnnouncement = async () => {
-    if (!announcementMessage.trim() || !user) return;
-    setIsSending(true);
+  // Handler for announcement approval/rejection
+  const handleAnnouncementDecision = async (announcementId: string, decision: 'approved' | 'rejected') => {
     try {
-      const newAnnouncement = await firestore.addAnnouncement(
-        announcementMessage,
-        user.id,
-        role === 'admin' ? 'admin' : 'user'
+      await firestore.updateAnnouncementStatus(announcementId, decision);
+      setAnnouncements(prev =>
+        prev.map(a => (a.id === announcementId ? { ...a, status: decision } : a))
       );
-      if (newAnnouncement.status === 'approved') {
-        setAnnouncements(prev => [newAnnouncement, ...prev]);
-        toast({
-          title: 'Announcement Sent!',
-          description: 'Your message has been sent to all users.',
-        });
-      } else {
-        toast({
-          title: 'Announcement Submitted!',
-          description: 'Your message has been sent for admin review.',
-        });
-      }
-      setAnnouncementMessage('');
-    } catch {
+      toast({
+        title: 'Announcement Updated',
+        description: `Announcement has been ${decision}.`,
+      });
+    } catch (err) {
       toast({
         title: 'Error',
-        description: 'Failed to send announcement.',
+        description: 'Failed to update announcement status.',
         variant: 'destructive',
       });
-    } finally {
-      setIsSending(false);
     }
-  };
-
-  const handleAnnouncementDecision = async (
-    announcementId: string,
-    decision: 'approved' | 'rejected'
-  ) => {
-    await firestore.updateAnnouncementStatus(announcementId, decision);
-    if (decision === 'approved') {
-      const approvedAnnouncement = announcements.find(a => a.id === announcementId)!;
-      setAnnouncements(prev =>
-        prev.map(a =>
-          a.id === announcementId ? { ...approvedAnnouncement, status: 'approved' } : a
-        )
-      );
-    } else {
-      setAnnouncements(prev => prev.filter(a => a.id !== announcementId));
-    }
-    toast({
-      title: `Announcement ${decision === 'approved' ? 'Approved' : 'Rejected'}`,
-      description: `The announcement has been ${decision}.`,
-    });
   };
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
@@ -550,14 +507,13 @@ export function UnicornPropertiesApp({
               user={user}
               role={role}
               expenses={expenses}
-              announcements={announcements}
               apartments={apartments}
+              users={users}
+              categories={categories}
               currentUserApartment={currentUserApartment}
+              currentUserRole={role}
               apartmentBalances={apartmentBalances}
-              announcementMessage={announcementMessage}
-              setAnnouncementMessage={setAnnouncementMessage}
-              isSending={isSending}
-              onSendAnnouncement={handleSendAnnouncement}
+              onExpenseUpdate={handleExpenseUpdate}
               ExpensesList={ExpensesListComponent}
             />
           );
@@ -566,19 +522,19 @@ export function UnicornPropertiesApp({
           <AdminView
             users={users}
             categories={categories}
-            announcements={announcements}
             userSearch={userSearch}
             setUserSearch={setUserSearch}
             filteredUsers={filteredUsers}
-            pendingAnnouncements={pendingAnnouncements}
+            announcements={announcements}
+            pendingAnnouncements={announcements.filter(a => a.status === 'pending')}
             onAddUser={handleAddUser}
             onUpdateUser={handleUpdateUserFromAdmin}
             onDeleteUser={handleDeleteUser}
             onAddCategory={handleAddCategory}
             onUpdateCategory={handleUpdateCategory}
             onDeleteCategory={handleDeleteCategory}
-            onAnnouncementDecision={handleAnnouncementDecision}
             getUserById={getUserById}
+            onAnnouncementDecision={handleAnnouncementDecision}
           />
         );
       case 'expenses':
@@ -587,6 +543,10 @@ export function UnicornPropertiesApp({
             expenses={expenses}
             categories={categories}
             apartments={apartments}
+            users={users}
+            currentUserApartment={currentUserApartment}
+            currentUserRole={role}
+            onExpenseUpdate={handleExpenseUpdate}
             expenseSearch={expenseSearch}
             setExpenseSearch={setExpenseSearch}
             filterCategory={filterCategory}
@@ -620,14 +580,13 @@ export function UnicornPropertiesApp({
             user={user}
             role={role}
             expenses={expenses}
-            announcements={announcements}
             apartments={apartments}
+            users={users}
+            categories={categories}
             currentUserApartment={currentUserApartment}
+            currentUserRole={role}
             apartmentBalances={apartmentBalances}
-            announcementMessage={announcementMessage}
-            setAnnouncementMessage={setAnnouncementMessage}
-            isSending={isSending}
-            onSendAnnouncement={handleSendAnnouncement}
+            onExpenseUpdate={handleExpenseUpdate}
             ExpensesList={ExpensesListComponent}
           />
         );
@@ -656,8 +615,8 @@ export function UnicornPropertiesApp({
         perApartmentShare: expense.perApartmentShare,
         totalStillOwed: unpaidApartments.length * expense.perApartmentShare,
         isCurrentUserPaying: expense.paidByApartment === currentUserApartment,
-        isCurrentUserOwing: expense.owedByApartments?.includes(currentUserApartment),
-        hasCurrentUserPaid: expense.paidByApartments?.includes(currentUserApartment),
+        isCurrentUserOwing: currentUserApartment ? expense.owedByApartments?.includes(currentUserApartment) : false,
+        hasCurrentUserPaid: currentUserApartment ? expense.paidByApartments?.includes(currentUserApartment) : false,
       });
     });
     console.log('=== END DEBUG ===');
@@ -791,7 +750,7 @@ export function UnicornPropertiesApp({
     <>
       <SidebarProvider>
         <Sidebar>
-          <NavigationMenu user={user} view={view} setView={setView} role={role} />
+          <NavigationMenu user={user} view={view} setView={(v: View) => setView(v)} role={role} />
           <SidebarFooter>
             <Card className="m-2">
               <CardHeader className="p-3">

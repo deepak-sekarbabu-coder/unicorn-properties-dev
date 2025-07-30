@@ -1,10 +1,10 @@
 'use client';
 
-import { format, formatDistanceToNow } from 'date-fns';
-import { Bell, Megaphone, Send, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Bell, Send, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import * as React from 'react';
 
-import type { Announcement, Apartment, Expense, User } from '@/lib/types';
+import type { Apartment, Expense, User } from '@/lib/types';
 import { Category } from '@/lib/types';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { OutstandingBalance } from '@/components/outstanding-balance';
-import { AnnouncementMenu } from '@/components/announcement-menu';
 
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,7 +19,6 @@ interface DashboardViewProps {
     user: User | null;
     role: string;
     expenses: Expense[];
-    announcements: Announcement[];
     apartments: Apartment[];
     users: User[];
     categories: Category[];
@@ -32,10 +30,6 @@ interface DashboardViewProps {
         owes: Record<string, number>;
         isOwed: Record<string, number>;
     }>;
-    announcementMessage: string;
-    setAnnouncementMessage: (message: string) => void;
-    isSending: boolean;
-    onSendAnnouncement: () => void;
     onExpenseUpdate: (expense: Expense) => void;
     onExpenseDelete?: (expenseId: string) => void;
     ExpensesList: React.ComponentType<any>;
@@ -45,17 +39,12 @@ export function DashboardView({
     user,
     role,
     expenses,
-    announcements,
     apartments,
     users,
     categories,
     currentUserApartment,
     currentUserRole,
     apartmentBalances,
-    announcementMessage,
-    setAnnouncementMessage,
-    isSending,
-    onSendAnnouncement,
     onExpenseUpdate,
     onExpenseDelete,
     ExpensesList,
@@ -70,8 +59,6 @@ export function DashboardView({
         : null;
 
     const loggedInUserBalance = currentApartmentBalance ? currentApartmentBalance.balance : 0;
-
-    const approvedAnnouncements = announcements.filter(a => a.status === 'approved');
 
     return (
         <div className="grid gap-6">
@@ -194,23 +181,6 @@ export function DashboardView({
                         <CardDescription>Your personal reminders and balance status.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
-                        {approvedAnnouncements
-                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                            .map(ann => (
-                                <React.Fragment key={ann.id}>
-                                    <div className="flex items-start gap-4">
-                                        <Megaphone className="h-6 w-6 text-primary mt-1" />
-                                        <div className="grid gap-1">
-                                            <p className="text-sm font-medium">New Announcement</p>
-                                            <p className="text-sm text-muted-foreground">{ann.message}</p>
-                                            <p className="text-xs text-muted-foreground/80 pt-1">
-                                                {formatDistanceToNow(new Date(ann.createdAt), { addSuffix: true })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Separator />
-                                </React.Fragment>
-                            ))}
                         <div className="flex items-center gap-4">
                             <Bell className="h-6 w-6 text-accent" />
                             <div className="grid gap-1">

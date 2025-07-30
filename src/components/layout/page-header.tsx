@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
-type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community';
+type View = 'dashboard' | 'expenses' | 'admin' | 'analytics' | 'community' | 'announcement';
 export type { View };
 
 interface PageHeaderProps {
