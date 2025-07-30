@@ -133,7 +133,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
 
   // Calculate total expenses for all time and per user share
   const totalExpenses = expenses.reduce((acc, expense) => acc + (Number(expense.amount) || 0), 0);
-  const perUserShare = users.length > 0 ? totalExpenses / users.length : 0;
 
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -300,7 +299,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         title: 'Announcement Updated',
         description: `Announcement has been ${decision}.`,
       });
-    } catch (err) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to update announcement status.',
@@ -311,54 +310,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
   const getUserById = (id: string) => users.find(u => u.id === id);
-
-  const handleExportCSV = () => {
-    const csvRows = [];
-    const headers = [
-      'ID',
-      'Description',
-      'Amount',
-      'Date',
-      'Paid By Apartment',
-      'Category',
-      'Receipt URL',
-    ];
-    csvRows.push(headers.join(','));
-
-    for (const expense of expenses) {
-      const paidByApartment = expense.paidByApartment;
-      const apartment = apartments.find(a => a.id === paidByApartment);
-      const apartmentName = apartment?.name || paidByApartment;
-      const category = getCategoryById(expense.categoryId)?.name || 'N/A';
-      const formattedDate = format(new Date(expense.date), 'yyyy-MM-dd');
-      const values = [
-        expense.id,
-        `"${expense.description}"`,
-        expense.amount,
-        formattedDate,
-        apartmentName,
-        category,
-        expense.receipt || '',
-      ].join(',');
-      csvRows.push(values);
-    }
-
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'expenses.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: 'Export Successful',
-      description: 'Your expenses have been exported to expenses.csv.',
-    });
-  };
 
   const [filteredExpenses, setFilteredExpenses] = React.useState<Expense[]>([]);
 
@@ -453,6 +404,24 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     }
   }, [role, view]);
 
+  // Move ExpensesListComponent out of conditional and fix dependencies
+  const ExpensesListComponent = React.useCallback(
+    ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => (
+      <ExpensesList
+        expenses={expenses}
+        limit={limit}
+        apartments={apartments}
+        users={users}
+        categories={categories}
+        currentUserApartment={currentUserApartment}
+        currentUserRole={role}
+        onExpenseUpdate={handleExpenseUpdate}
+        onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
+      />
+    ),
+    [] // Remove unnecessary dependencies
+  );
+
   const MainContent = () => {
     if (isLoadingData) {
       return (
@@ -491,23 +460,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       );
     }
 
-    const ExpensesListComponent = React.useCallback(
-      ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => (
-        <ExpensesList
-          expenses={expenses}
-          limit={limit}
-          apartments={apartments}
-          users={users}
-          categories={categories}
-          currentUserApartment={currentUserApartment}
-          currentUserRole={role}
-          onExpenseUpdate={handleExpenseUpdate}
-          onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
-        />
-      ),
-      [apartments, users, categories, currentUserApartment, role]
-    );
-
     switch (view) {
       case 'admin':
         if (role !== 'admin') {
@@ -534,8 +486,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
             userSearch={userSearch}
             setUserSearch={setUserSearch}
             filteredUsers={filteredUsers}
-            announcements={announcements}
-            pendingAnnouncements={announcements.filter(a => a.status === 'pending')}
             onAddUser={handleAddUser}
             onUpdateUser={handleUpdateUserFromAdmin}
             onDeleteUser={handleDeleteUser}
@@ -735,9 +685,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const currentApartmentBalance = currentUserApartment
     ? apartmentBalances[currentUserApartment]
     : null;
-
-  // Use apartment balance instead of user balance for notifications
-  const loggedInUserBalance = currentApartmentBalance ? currentApartmentBalance.balance : 0;
 
   const handleDeleteExpense = async (expenseId: string) => {
     try {

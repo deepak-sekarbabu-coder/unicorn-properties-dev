@@ -1,7 +1,6 @@
 'use client';
 
-import { formatDistanceToNow } from 'date-fns';
-import { Bell, Send, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Bell, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -9,16 +8,13 @@ import type { Apartment, Expense, User } from '@/lib/types';
 import { Category } from '@/lib/types';
 
 import { OutstandingBalance } from '@/components/outstanding-balance';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardViewProps {
   user: User | null;
-  role: string;
   expenses: Expense[];
   apartments: Apartment[];
   users: User[];
@@ -41,7 +37,6 @@ interface DashboardViewProps {
 
 export function DashboardView({
   user,
-  role,
   expenses,
   apartments,
   users,
@@ -54,9 +49,6 @@ export function DashboardView({
   ExpensesList,
 }: DashboardViewProps) {
   const { toast } = useToast();
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-  // Use a state to track focus instead of DOM attributes
-  const [isTextareaFocused, setIsTextareaFocused] = React.useState(false);
 
   const currentApartmentBalance = currentUserApartment
     ? apartmentBalances[currentUserApartment]

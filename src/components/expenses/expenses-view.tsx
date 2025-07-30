@@ -37,7 +37,7 @@ interface ExpensesViewProps {
   filteredExpenses: Expense[];
   expenseMonths: string[];
   onClearFilters: () => void;
-  ExpensesList: React.ComponentType<any>;
+  ExpensesList: React.ComponentType<{ expenses: Expense[]; limit?: number }>;
   currentUserApartment: string | undefined;
   currentUserRole: string;
   onExpenseUpdate: (expense: Expense) => void;

@@ -28,13 +28,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-provider';
 
 import { CategoryIcon } from './category-icon';
@@ -52,7 +45,6 @@ interface AddCategoryDialogProps {
   onAddCategory: (category: Omit<Category, 'id'>) => void;
 }
 
-const availableIcons = Object.keys(Icons) as IconName[];
 const commonEmojis = ['🏠', '🍕', '🛒', '⚡', '🚗', '🏥', '🎬', '📱', '💡', '🧹', '🔧', '🎉'];
 
 export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialogProps) {

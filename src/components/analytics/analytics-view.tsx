@@ -2,16 +2,7 @@
 
 import { format } from 'date-fns';
 import { PieChart as LucidePieChart } from 'lucide-react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
 
 import * as React from 'react';
 

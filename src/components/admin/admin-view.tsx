@@ -1,6 +1,6 @@
 import { CheckCircle, PlusCircle, Search, Trash2, XCircle } from 'lucide-react';
 
-import type { Announcement, Category, PollOption, User } from '@/lib/types';
+import type { Category, PollOption, User } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { AddUserDialog } from '@/components/add-user-dialog';
@@ -38,7 +38,6 @@ import { AddPollDialog } from './add-poll-dialog';
 interface AdminViewProps {
   users: User[];
   categories: Category[];
-  announcements: Announcement[];
   userSearch: string;
   setUserSearch: (search: string) => void;
   filteredUsers: User[];
@@ -55,9 +54,7 @@ interface AdminViewProps {
 }
 
 export function AdminView({
-  users,
   categories,
-  announcements,
   userSearch,
   setUserSearch,
   filteredUsers,
@@ -72,6 +69,8 @@ export function AdminView({
   getUserById,
   onAddPoll,
 }: AdminViewProps) {
+  pendingAnnouncements = pendingAnnouncements || [];
+
   return (
     <div className="grid gap-6">
       <Card>

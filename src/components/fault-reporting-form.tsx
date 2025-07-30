@@ -53,8 +53,8 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
       setDescription('');
       setImages([]);
       if (onReport) onReport();
-    } catch (err: any) {
-      setError(err.message || 'Failed to report fault');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to report fault');
     } finally {
       setUploading(false);
     }
@@ -90,6 +90,7 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
             <Input type="file" accept="image/*" multiple onChange={handleImageChange} />
             <div className="flex flex-wrap gap-2 mt-2">
               {images.map((img, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={i}
                   src={img}

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import React, { useEffect, useState } from 'react';
 
 import { deleteFault, getFaults, updateFault } from '@/lib/firestore';
-import type { Fault, User } from '@/lib/types';
+import type { Fault } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ export function CurrentFaultsList() {
     try {
       const all = await getFaults();
       setFaults(all.filter(f => !f.fixed));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Failed to load faults');
     } finally {
       setLoading(false);
@@ -59,6 +59,7 @@ export function CurrentFaultsList() {
               {faults.map(fault => (
                 <div key={fault.id} className="border rounded-lg p-4 bg-muted">
                   <div className="flex flex-wrap gap-2 mb-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     {fault.images.map((img, i) => (
                       <img
                         key={i}
