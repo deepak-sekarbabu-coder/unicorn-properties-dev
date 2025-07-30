@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-provider';
 
+import { CategoryIcon } from './category-icon';
 import { IconName, Icons } from './icons';
 
 const categorySchema = z.object({
@@ -52,6 +53,7 @@ interface AddCategoryDialogProps {
 }
 
 const availableIcons = Object.keys(Icons) as IconName[];
+const commonEmojis = ['🏠', '🍕', '🛒', '⚡', '🚗', '🏥', '🎬', '📱', '💡', '🧹', '🔧', '🎉'];
 
 export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialogProps) {
   const [open, setOpen] = React.useState(false);
@@ -108,20 +110,35 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Icon</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <div className="space-y-2">
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an icon" />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="Enter emoji or icon name (e.g., 🏠 or Zap)"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {availableIcons.map(iconName => (
-                        <SelectItem key={iconName} value={iconName}>
-                          {iconName}
-                        </SelectItem>
+                    <div className="flex flex-wrap gap-2">
+                      <p className="text-sm text-muted-foreground w-full">Quick select:</p>
+                      {commonEmojis.map(emoji => (
+                        <Button
+                          key={emoji}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => field.onChange(emoji)}
+                        >
+                          {emoji}
+                        </Button>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                    {field.value && (
+                      <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                        <CategoryIcon name={field.value} className="h-6 w-6" />
+                        <span className="text-sm">Preview</span>
+                      </div>
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

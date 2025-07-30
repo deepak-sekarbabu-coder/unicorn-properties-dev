@@ -7,6 +7,7 @@ import * as React from 'react';
 
 import type { Apartment, Category, Expense, User } from '@/lib/types';
 
+import { CategoryIcon } from '@/components/category-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -151,7 +152,10 @@ export function ExpensesView({
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(c => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                    <div className="flex items-center gap-2">
+                      {c.icon && <CategoryIcon name={c.icon} className="h-6 w-6" />}
+                      <span>{c.name}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

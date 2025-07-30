@@ -34,6 +34,7 @@ import { CategoryIcon } from './category-icon';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
+  icon: z.string().min(1, 'An icon is required'),
 });
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
@@ -56,6 +57,7 @@ export function EditCategoryDialog({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: category.name,
+      icon: category.icon,
     },
   });
 
@@ -63,6 +65,7 @@ export function EditCategoryDialog({
     if (category) {
       form.reset({
         name: category.name,
+        icon: category.icon,
       });
     }
   }, [category, form]);
@@ -71,10 +74,10 @@ export function EditCategoryDialog({
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-      const updatedCategory = { ...category, name: data.name };
+      const updatedCategory = { ...category, name: data.name, icon: data.icon };
       onUpdateCategory(updatedCategory);
       toast('Category Updated', {
-        description: `The category has been renamed to "${data.name}".`,
+        description: `The category has been updated.`,
       });
       setIsSaving(false);
       setOpen(false);

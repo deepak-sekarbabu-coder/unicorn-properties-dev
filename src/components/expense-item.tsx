@@ -13,6 +13,7 @@ import {
 import { updateExpense } from '@/lib/firestore';
 import type { Apartment, Expense, User } from '@/lib/types';
 
+import { CategoryIcon } from '@/components/category-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +32,7 @@ interface ExpenseItemProps {
   expense: Expense;
   apartments: Apartment[];
   users: User[];
-  categories?: { id: string; name: string }[];
+  categories?: { id: string; name: string; icon?: string }[];
   currentUserApartment?: string;
   isOwner: boolean; // Whether current user's apartment is the one that paid
   onExpenseUpdate?: (updatedExpense: Expense) => void;
@@ -144,18 +145,29 @@ export function ExpenseItem({
     <Card className="w-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{expense.description}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{format(new Date(expense.date), 'MMM d, yyyy')}</span>
-              <span>•</span>
-              <span>Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
-              {expense.receipt && (
-                <>
-                  <span>•</span>
-                  <Receipt className="h-4 w-4" />
-                </>
-              )}
+          <div className="flex items-start gap-3">
+            {category?.icon && (
+              <CategoryIcon name={category.icon} className="mt-1 flex-shrink-0" />
+            )}
+            <div className="space-y-1">
+              <CardTitle className="text-lg">{expense.description}</CardTitle>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {category && (
+                  <>
+                    <span className="font-medium text-foreground">{category.name}</span>
+                    <span>•</span>
+                  </>
+                )}
+                <span>{format(new Date(expense.date), 'MMM d, yyyy')}</span>
+                <span>•</span>
+                <span>Paid by {formatApartmentWithUsers(expense.paidByApartment)}</span>
+                {expense.receipt && (
+                  <>
+                    <span>•</span>
+                    <Receipt className="h-4 w-4" />
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <div className="text-right space-y-1">
