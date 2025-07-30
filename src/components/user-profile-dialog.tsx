@@ -49,6 +49,8 @@ const profileSchema = z.object({
       files => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
       'Only .jpg, .jpeg, .png and .webp formats are supported.'
     ),
+  apartment: z.enum(['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'], { required_error: 'Apartment is required' }),
+  propertyRole: z.enum(['tenant', 'owner'], { required_error: 'Role is required' }),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -70,6 +72,8 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
       email: user.email,
       phone: user.phone || '',
       avatar: undefined,
+      apartment: user.apartment || '',
+      propertyRole: user.propertyRole || 'tenant',
     },
   });
 
@@ -79,6 +83,8 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
         name: user.name,
         email: user.email,
         phone: user.phone || '',
+        apartment: user.apartment || '',
+        propertyRole: user.propertyRole || 'tenant',
       });
     }
   }, [user, form]);
@@ -98,7 +104,14 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
       });
     }
 
-    const updatedUser = { ...user, name: data.name, phone: data.phone, avatar: avatarDataUrl };
+    const updatedUser = {
+      ...user,
+      name: data.name,
+      phone: data.phone,
+      avatar: avatarDataUrl,
+      apartment: data.apartment,
+      propertyRole: data.propertyRole,
+    };
     onUpdateUser(updatedUser);
     toast('Profile Updated', {
       description: 'Your profile information has been successfully updated.',
@@ -160,12 +173,27 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                   </FormItem>
                 )}
               />
-              <FormItem>
-                <FormLabel>Apartment</FormLabel>
-                <FormControl>
-                  <Input value={user.apartment || 'Not Assigned'} disabled />
-                </FormControl>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="apartment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apartment</FormLabel>
+                    <FormControl>
+                      <select
+                        className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        {...field}
+                      >
+                        <option value="">Select Apartment</option>
+                        {["G1", "F1", "F2", "S1", "S2", "T1", "T2"].map(code => (
+                          <option key={code} value={code}>{code}</option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <FormField
               control={form.control}
@@ -188,6 +216,38 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                   <FormLabel>Change Profile Picture</FormLabel>
                   <FormControl>
                     <Input type="file" accept="image/*" {...fileRef} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="propertyRole"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          value="tenant"
+                          checked={field.value === 'tenant'}
+                          onChange={() => field.onChange('tenant')}
+                        />
+                        Tenant
+                      </label>
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          value="owner"
+                          checked={field.value === 'owner'}
+                          onChange={() => field.onChange('owner')}
+                        />
+                        Owner
+                      </label>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
