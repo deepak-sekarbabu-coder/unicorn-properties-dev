@@ -4,102 +4,149 @@ Unicorn Properties is a modern web application for managing shared apartment exp
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/81d761ff-9a71-4099-b92b-52ada05f2198/deploy-status)](https://app.netlify.com/projects/unicornproperties/deploys)
 
-## Features
+---
 
-- **Advanced Expense Division**: Expenses are auto-divided among 7 apartments. The payer is excluded from what they owe. Payment status is tracked per apartment.
-- **Outstanding Balance Tracking**: Outstanding balances are displayed in red at the top of the dashboard.
-- **Payment Management**: Mark apartments as paid when they settle their share. Visual indicators for payment status.
-- **User Balances**: Dashboard shows who owes and who is owed at a glance.
-- **Dual Role System**: Each user has both an authentication role (`user`/`admin`) and a property role (`tenant`/`owner`). Onboarding triggers if missing.
-- **Admin Management**: Admin panel for managing users, categories, and expenses.
-- **Announcement System**: Users can submit announcements for admin approval. Admins can approve/reject instantly.
-- **User Profiles**: Profile management with apartment assignment and role selection. Mobile-optimized dialogs.
-- **Push Notifications**: Integrated with Firebase Cloud Messaging (FCM) for real-time updates.
-- **Data Export**: Export all expense data to CSV from the dashboard.
-- **Analytics**: Visual spending insights with charts and category breakdowns.
+## Project Structure
 
-## Tech Stack
+```
+/ ├── src/
+│   ├── app/           # Next.js App Router: pages, layouts, API routes
+│   ├── components/    # Reusable UI and feature components (dialogs, lists, admin, analytics, etc.)
+│   │   └── ui/        # ShadCN UI components (Button, Card, Dialog, etc.)
+│   ├── context/       # React Contexts (e.g., AuthContext for global auth state)
+│   ├── hooks/         # Custom React hooks (e.g., use-toast, use-apartments)
+│   ├── lib/           # Firestore logic, type definitions, utilities, backend logic
+│   ├── ai/            # Genkit AI flows and configuration
+│
+├── public/            # Static assets, favicon, service workers (FCM)
+├── docs/              # User and developer documentation (see below)
+├── netlify/           # Netlify functions and config
+├── .github/           # Copilot and workflow instructions
+├── package.json       # Project dependencies and scripts
+├── tailwind.config.ts # Tailwind CSS config
+├── netlify.toml       # Netlify deployment config
+```
 
-- **Framework**: Next.js (App Router)
-- **Language**: TypeScript
-- **UI**: React 18, Tailwind CSS, ShadCN UI, Radix UI
-- **State Management**: React Context API (auth global, app data local to main app)
-- **AI Integration**: Genkit (flows in `src/ai/`)
-- **Backend & Database**: Firebase (Firestore, Authentication, Cloud Messaging)
-- **Charts**: Recharts
-- **Forms**: React Hook Form with Zod validation
-- **Deployment**: Netlify with Firebase App Hosting support
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js (LTS version recommended)
-- Firebase project with Firestore and Authentication enabled
-- npm or yarn package manager
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd unicorn-properties
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-
-   cp .env.example .env.local
-
-   # Edit `.env.local` and fill in your Firebase config values as described in the docs
-
-4. **Run the development server**
-
-   ```bash
-   npm run dev
-   ```
-
-The application will be available at `http://localhost:3000`.
-
-## Scripts
-
-- `npm run dev` — Start development server (Turbopack, hot reload)
-- `npm run build` — Build for production
-- `npm run start` — Start production server
-- `npm run lint` — Run ESLint
-- `npm run format` — Format code with Prettier
-- `npm run genkit:dev` — Start Genkit AI development server
-
-## Documentation
-
-See the `/docs` directory for detailed guides:
-
-- [Developer Documentation](docs/DEVELOPER_DOCUMENTATION.md): Technical overview and setup
-- [User Documentation](docs/DOCUMENTATION.md): Feature guide and usage
-- [Authentication Flow](docs/AUTHENTICATION_FLOW.md): Auth system details
-- [Role Structure](docs/ROLE_STRUCTURE.md): User roles and permissions
-- [Expense Division Feature](docs/EXPENSE_DIVISION_FEATURE.md): Expense logic
-- [Netlify Deployment](docs/NETLIFY_DEPLOYMENT.md): Deployment guide
-- [Netlify Troubleshooting](docs/NETLIFY_TROUBLESHOOTING.md): Troubleshooting for Netlify
-- [Blueprint](docs/blueprint.md): Application blueprint and UI/UX guidelines
-
-## Key Conventions & Patterns
-
-- All Firestore logic is centralized in `src/lib/firestore.ts`.
-- Use dialog components in `src/components/` for all add/edit flows.
-- UI is built with ShadCN UI and Tailwind CSS. Use `src/lib/utils.ts` for class merging.
-- Dual role model: see `src/lib/types.ts` and `docs/ROLE_STRUCTURE.md`.
-- Outstanding balances: see `src/components/outstanding-balance.tsx`.
-- Expense division: see `src/lib/expense-utils.ts` and `src/components/expense-item.tsx`.
-- Push notifications: see `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
-- Test scripts are in the project root (e.g., `test-expense-calculation.js`).
+**Key files:**
+- `src/lib/firestore.ts`: All Firestore CRUD logic (users, expenses, categories, announcements)
+- `src/context/auth-context.tsx`: Global authentication state and logic
+- `src/lib/types.ts`: TypeScript types for all core entities
+- `src/lib/expense-utils.ts`: Expense division and payment tracking logic
+- `src/components/outstanding-balance.tsx`: Outstanding balance display
+- `src/components/expense-item.tsx`: Expense display and payment status
 
 ---
 
-For more, see `.github/copilot-instructions.md` and `/docs` for AI and developer guidance.
+## Architecture & Data Flow
+
+- **Frontend**: Built with Next.js (App Router), React 18, TypeScript, Tailwind CSS, and ShadCN UI. All UI logic is component-driven and uses dialogs for add/edit flows.
+- **State Management**:
+  - **Global**: Authentication state is managed via React Context (`AuthContext`).
+  - **Local**: App data (users, expenses, categories) is managed in the main app component and passed down via props.
+- **Backend**: Firebase (Firestore for data, Auth for login, FCM for notifications). All database logic is centralized in `src/lib/firestore.ts`.
+- **Expense Division**: Every expense is auto-divided among 7 apartments. The payer is excluded from what they owe. Payment status is tracked per apartment. See [`docs/EXPENSE_DIVISION_FEATURE.md`](docs/EXPENSE_DIVISION_FEATURE.md).
+- **Roles**: Each user has two roles: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding is triggered if either is missing. See [`docs/ROLE_STRUCTURE.md`](docs/ROLE_STRUCTURE.md).
+- **Notifications**: Push notifications use Firebase Cloud Messaging (FCM), with setup in `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
+- **Admin Panel**: Admins can manage users, categories, expenses, and approve/reject announcements.
+- **AI Integration**: Genkit flows in `src/ai/` enable AI-powered features (see docs).
+
+**Data Flow Example:**
+1. User logs in (auth state managed globally).
+2. App fetches users, expenses, and categories from Firestore via `src/lib/firestore.ts`.
+3. Data is stored in local state in the main app component and passed to child components.
+4. User actions (add expense, mark paid, etc.) trigger handler functions, which update Firestore and local state.
+5. UI updates automatically via React state.
+
+---
+
+## Quick Start
+
+Clone the repository and install dependencies:
+
+```bash
+git clone <repository-url>
+cd unicorn-properties
+npm install
+```
+
+Set up your environment:
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and fill in your Firebase config (see Firebase Console)
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) in your browser.
+
+**Troubleshooting:**
+- If you see errors about missing Firebase config, double-check your `.env.local` file.
+- For Netlify deployment, see [`docs/NETLIFY_DEPLOYMENT.md`](docs/NETLIFY_DEPLOYMENT.md) and [`docs/NETLIFY_TROUBLESHOOTING.md`](docs/NETLIFY_TROUBLESHOOTING.md).
+
+---
+
+## Practical Usage
+
+### Adding an Expense
+
+1. Click **Add Expense** in the header.
+2. Fill in the details (description, amount, payer, category).
+3. Click **Add Expense**. The amount is split among all apartments (payer excluded).
+4. Each apartment's share and payment status is tracked automatically.
+
+### Onboarding
+
+- On first login, you must select your apartment and property role (tenant/owner) to complete your profile. This ensures all users are properly assigned and can participate in expense tracking.
+
+### Admin Actions
+
+- Access the **Admin Panel** to manage users, categories, and expenses.
+- Approve or reject pending announcements submitted by users.
+- Assign or update user roles and apartments.
+
+### CSV Export
+
+- On the dashboard, click **Export CSV** to download all expense data for your apartment.
+
+### Notifications
+
+- Enable browser notifications to receive real-time updates (e.g., new announcements, payment reminders).
+- FCM token is saved to your user profile for push notifications.
+
+---
+
+## Contribution Guidelines
+
+We welcome contributions! To get started:
+
+1. **Fork** the repository and create a new feature branch.
+2. **Follow the code style**: TypeScript, Prettier, and ESLint are enforced.
+3. **Add or update tests** as needed (see test scripts in the project root).
+4. **Document your changes** in the relevant markdown files in `/docs`.
+5. **Submit a pull request** with a clear description of your changes.
+6. For major changes, **open an issue** first to discuss your proposal.
+
+---
+
+## Documentation & References
+
+- [Developer Documentation](docs/DEVELOPER_DOCUMENTATION.md): Technical overview, setup, and architecture
+- [User Guide](docs/DOCUMENTATION.md): Feature guide and practical usage
+- [Authentication Flow](docs/AUTHENTICATION_FLOW.md): Auth system, onboarding, and session management
+- [Role Structure](docs/ROLE_STRUCTURE.md): User roles, permissions, and onboarding logic
+- [Expense Division](docs/EXPENSE_DIVISION_FEATURE.md): Expense logic, payment tracking, and outstanding balances
+- [Netlify Deployment](docs/NETLIFY_DEPLOYMENT.md): Deployment and environment setup
+- [Blueprint](docs/blueprint.md): UI/UX guidelines and design patterns
+
+---
+
+## FAQ & Troubleshooting
+
+- For common issues, see [`docs/NETLIFY_TROUBLESHOOTING.md`](docs/NETLIFY_TROUBLESHOOTING.md) and in-app help dialogs.
+- If you encounter authentication or deployment issues, check the browser console and Netlify logs for details.
+- For more, see `.github/copilot-instructions.md` and `/docs` for AI and developer guidance.
