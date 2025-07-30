@@ -101,7 +101,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   email: firebaseUser.email,
                   avatar: firebaseUser.photoURL || undefined,
                   role: 'user', // Default authentication role for first-time users
-                  propertyRole: undefined, // Will be set during onboarding
+                  propertyRole: undefined,
+                  apartment: '',
                 };
                 appUser = await addUser(newUser);
                 console.log('✅ New user created:', appUser.id);

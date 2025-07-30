@@ -1659,6 +1659,23 @@ export function UnicornPropertiesApp({
     </div>
   );
 
+  const handleDeleteExpense = async (expenseId: string) => {
+    try {
+      await firestore.deleteExpense(expenseId);
+      setExpenses(prev => prev.filter(e => e.id !== expenseId));
+      toast({
+        title: 'Expense Deleted',
+        description: 'The expense has been successfully removed.',
+      });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete expense.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const ExpensesList = ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => {
     const relevantExpenses = limit
       ? expenses
@@ -1686,6 +1703,8 @@ export function UnicornPropertiesApp({
             currentUserApartment={currentUserApartment}
             isOwner={expense.paidByApartment === currentUserApartment}
             onExpenseUpdate={handleExpenseUpdate}
+            currentUserRole={role}
+            onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
           />
         ))}
       </div>

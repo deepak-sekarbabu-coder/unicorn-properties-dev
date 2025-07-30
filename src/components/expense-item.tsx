@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Check, Receipt, Users, X } from 'lucide-react';
+import { Check, Receipt, Trash2, Users, X } from 'lucide-react';
 
 import { useState } from 'react';
 
@@ -35,6 +35,8 @@ interface ExpenseItemProps {
   currentUserApartment?: string;
   isOwner: boolean; // Whether current user's apartment is the one that paid
   onExpenseUpdate?: (updatedExpense: Expense) => void;
+  currentUserRole?: string; // 'admin' or 'user'
+  onExpenseDelete?: (expenseId: string) => void;
 }
 
 export function ExpenseItem({
@@ -45,9 +47,12 @@ export function ExpenseItem({
   currentUserApartment,
   isOwner,
   onExpenseUpdate,
+  currentUserRole,
+  onExpenseDelete,
 }: ExpenseItemProps) {
   const { toast } = useToast();
   const [loadingMap, setLoadingMap] = useState<{ [apartmentId: string]: boolean }>({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const calculation = calculateExpenseAmounts(expense);
 
@@ -162,6 +167,44 @@ export function ExpenseItem({
                   ₹{(Number(calculation.adjustedAmount) || 0).toFixed(2)}
                 </span>
               </div>
+            )}
+            {/* Admin Delete Button */}
+            {currentUserRole === 'admin' && onExpenseDelete && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:bg-red-100 mt-2"
+                  onClick={() => setShowDeleteDialog(true)}
+                  title="Delete Expense"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                </Button>
+                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Expense</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this expense? This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setShowDeleteDialog(false);
+                          onExpenseDelete(expense.id);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
           </div>
         </div>
