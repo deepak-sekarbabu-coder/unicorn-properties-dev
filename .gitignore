@@ -50,3 +50,4 @@ firebase.json
 .env*.local
 !.env.example
 .trae/.ignore
+.kiro/settings/mcp.json
