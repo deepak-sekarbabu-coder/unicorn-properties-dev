@@ -4,6 +4,8 @@ import { useAuth } from '@/context/auth-context';
 
 import React, { useEffect, useState } from 'react';
 
+import Image from 'next/image';
+
 import { deleteFault, getFaults, updateFault } from '@/lib/firestore';
 import type { Fault } from '@/lib/types';
 
@@ -21,7 +23,7 @@ export function CurrentFaultsList() {
     try {
       const all = await getFaults();
       setFaults(all.filter(f => !f.fixed));
-    } catch (err: unknown) {
+    } catch {
       setError('Failed to load faults');
     } finally {
       setLoading(false);
@@ -61,10 +63,12 @@ export function CurrentFaultsList() {
                   <div className="flex flex-wrap gap-2 mb-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {fault.images.map((img, i) => (
-                      <img
+                      <Image
                         key={i}
                         src={img}
                         alt="Fault"
+                        width={80}
+                        height={80}
                         className="w-20 h-20 object-cover rounded border"
                       />
                     ))}

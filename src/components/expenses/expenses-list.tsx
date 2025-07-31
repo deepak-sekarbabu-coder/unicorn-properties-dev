@@ -6,7 +6,7 @@ import type { Apartment, Category, Expense, User } from '@/lib/types';
 
 import { ExpenseItem } from '@/components/expense-item';
 
-interface ExpensesListProps {
+export interface ExpensesListProps {
   expenses: Expense[];
   limit?: number;
   apartments: Apartment[];

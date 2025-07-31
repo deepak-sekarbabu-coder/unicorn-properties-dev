@@ -77,7 +77,7 @@ export const approveUser = async (id: string): Promise<void> => {
 
 export const updateUser = async (id: string, user: Partial<User>): Promise<void> => {
   const userDoc = doc(db, 'users', id);
-  const cleanUser = removeUndefined(user) as { [x: string]: any };
+  const cleanUser = removeUndefined(user) as Partial<User>;
   await updateDoc(userDoc, cleanUser);
 };
 
@@ -102,7 +102,7 @@ export const addCategory = async (category: Omit<Category, 'id'>): Promise<Categ
 
 export const updateCategory = async (id: string, category: Partial<Category>): Promise<void> => {
   const categoryDoc = doc(db, 'categories', id);
-  const cleanCategory = removeUndefined(category);
+  const cleanCategory = removeUndefined(category) as Partial<Category>;
   await updateDoc(categoryDoc, cleanCategory);
 };
 
@@ -140,7 +140,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise
 
 export const updateExpense = async (id: string, expense: Partial<Expense>): Promise<void> => {
   const expenseDoc = doc(db, 'expenses', id);
-  const cleanExpense = removeUndefined(expense);
+  const cleanExpense = removeUndefined(expense) as Partial<Expense>;
   await updateDoc(expenseDoc, cleanExpense);
 };
 

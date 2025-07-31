@@ -7,7 +7,7 @@ import * as React from 'react';
 
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
-import type { Announcement, Apartment, Category, Expense, User } from '@/lib/types';
+import type { Apartment, Category, Expense, User } from '@/lib/types';
 
 import { AdminView } from '@/components/admin/admin-view';
 import { AnalyticsView } from '@/components/analytics/analytics-view';
@@ -49,7 +49,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [apartments, setApartments] = React.useState<Apartment[]>([]);
-  const [announcements, setAnnouncements] = React.useState<Announcement[]>([]);
 
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
@@ -130,9 +129,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   }, [user, showApartmentDialog, toast]);
 
   const role = user?.role || 'user';
-
-  // Calculate total expenses for all time and per user share
-  const totalExpenses = expenses.reduce((acc, expense) => acc + (Number(expense.amount) || 0), 0);
 
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -292,9 +288,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   ) => {
     try {
       await firestore.updateAnnouncementStatus(announcementId, decision);
-      setAnnouncements(prev =>
-        prev.map(a => (a.id === announcementId ? { ...a, status: decision } : a))
-      );
       toast({
         title: 'Announcement Updated',
         description: `Announcement has been ${decision}.`,
@@ -404,23 +397,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     }
   }, [role, view]);
 
-  // Move ExpensesListComponent out of conditional and fix dependencies
-  const ExpensesListComponent = React.useCallback(
-    ({ expenses, limit }: { expenses: Expense[]; limit?: number }) => (
-      <ExpensesList
-        expenses={expenses}
-        limit={limit}
-        apartments={apartments}
-        users={users}
-        categories={categories}
-        currentUserApartment={currentUserApartment}
-        currentUserRole={role}
-        onExpenseUpdate={handleExpenseUpdate}
-        onExpenseDelete={role === 'admin' ? handleDeleteExpense : undefined}
-      />
-    ),
-    [] // Remove unnecessary dependencies
-  );
+  // Place this after all dependencies (apartments, categories, currentUserApartment, handleDeleteExpense, handleExpenseUpdate, role, users) are declared
+  const ExpensesListComponent: React.ComponentType<
+    import('./expenses/expenses-list').ExpensesListProps
+  > = React.useCallback(props => <ExpensesList {...props} />, []);
 
   const MainContent = () => {
     if (isLoadingData) {
@@ -470,10 +450,11 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
               apartments={apartments}
               users={users}
               categories={categories}
-              currentUserApartment={currentUserApartment}
+              currentUserApartment={user?.apartment}
               currentUserRole={role}
               apartmentBalances={apartmentBalances}
               onExpenseUpdate={handleExpenseUpdate}
+              onExpenseDelete={handleDeleteExpense}
               ExpensesList={ExpensesListComponent}
             />
           );
@@ -679,11 +660,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     return balances;
   }, [expenses, apartments, debugExpenseCalculations, currentUserApartment]);
 
-  // Get balances for the current user's apartment
-  const currentApartmentBalance = currentUserApartment
-    ? apartmentBalances[currentUserApartment]
-    : null;
-
   const handleDeleteExpense = async (expenseId: string) => {
     try {
       await firestore.deleteExpense(expenseId);
@@ -723,15 +699,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>Approval Pending</CardTitle>
-            <CardDescription>
-              Wait until you are approved by Admin
-            </CardDescription>
+            <CardDescription>Wait until you are approved by Admin</CardDescription>
           </CardHeader>
           <CardContent>
-            <button
-              className="mt-4 px-4 py-2 bg-primary text-white rounded"
-              onClick={logout}
-            >
+            <button className="mt-4 px-4 py-2 bg-primary text-white rounded" onClick={logout}>
               Logout
             </button>
           </CardContent>

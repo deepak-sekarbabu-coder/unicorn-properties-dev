@@ -11,7 +11,7 @@ import {
   markApartmentAsUnpaid,
 } from '@/lib/expense-utils';
 import { updateExpense } from '@/lib/firestore';
-import type { Apartment, Expense, User } from '@/lib/types';
+import type { Expense, User } from '@/lib/types';
 
 import { CategoryIcon } from '@/components/category-icon';
 import { Badge } from '@/components/ui/badge';
@@ -30,11 +30,9 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ExpenseItemProps {
   expense: Expense;
-  apartments: Apartment[];
   users: User[];
   categories?: { id: string; name: string; icon?: string }[];
   currentUserApartment?: string;
-  isOwner: boolean; // Whether current user's apartment is the one that paid
   onExpenseUpdate?: (updatedExpense: Expense) => void;
   currentUserRole?: string; // 'admin' or 'user'
   onExpenseDelete?: (expenseId: string) => void;
@@ -42,11 +40,9 @@ interface ExpenseItemProps {
 
 export function ExpenseItem({
   expense,
-  apartments,
   users,
   categories,
   currentUserApartment,
-  isOwner,
   onExpenseUpdate,
   currentUserRole,
   onExpenseDelete,
@@ -60,11 +56,6 @@ export function ExpenseItem({
   // Check if this is a cleaning expense
   const category = categories?.find(c => c.id === expense.categoryId);
   const isCleaningExpense = category?.name.toLowerCase() === 'cleaning';
-
-  // Helper function to get users for an apartment
-  const getUsersForApartment = (apartmentId: string) => {
-    return users.filter(user => user.apartment === apartmentId);
-  };
 
   // Helper function to format apartment display with owner(s)
   const formatApartmentWithUsers = (apartmentId: string, showYou: boolean = false) => {
@@ -101,7 +92,6 @@ export function ExpenseItem({
       await updateExpense(expense.id, { paidByApartments: updatedExpense.paidByApartments });
       onExpenseUpdate?.(updatedExpense);
 
-      const apartment = apartments.find(apt => apt.id === apartmentId);
       const isUserMarkingOwnPayment = isCurrentUserPayment && !isPayer;
 
       toast({
@@ -138,7 +128,6 @@ export function ExpenseItem({
       await updateExpense(expense.id, { paidByApartments: updatedExpense.paidByApartments });
       onExpenseUpdate?.(updatedExpense);
 
-      const apartment = apartments.find(apt => apt.id === apartmentId);
       const isUserMarkingOwnPayment = isCurrentUserPayment && !isPayer;
 
       toast({

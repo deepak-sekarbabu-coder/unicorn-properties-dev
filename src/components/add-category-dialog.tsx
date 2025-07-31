@@ -31,7 +31,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-provider';
 
 import { CategoryIcon } from './category-icon';
-import { IconName, Icons } from './icons';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),

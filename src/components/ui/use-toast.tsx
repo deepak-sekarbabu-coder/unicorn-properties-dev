@@ -1,6 +1,7 @@
 // ...existing imports...
+import { AlertCircle, Check, Info, X } from 'lucide-react';
+
 import * as React from 'react';
-import { Check, X, AlertCircle, Info } from 'lucide-react';
 
 type Toast = {
   id: string;
@@ -20,23 +21,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const toast = React.useCallback((props: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((currentToasts) => [...currentToasts, { id, ...props }]);
+    setToasts(currentToasts => [...currentToasts, { id, ...props }]);
 
     // Auto-dismiss after 5 seconds
     setTimeout(() => {
-      setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
+      setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
     }, 5000);
   }, []);
 
   const dismissToast = React.useCallback((id: string) => {
-    setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
+    setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
   }, []);
 
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
+        {toasts.map(toast => (
           <ToastComponent key={toast.id} onDismiss={() => dismissToast(toast.id)} {...toast} />
         ))}
       </div>

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, ReactNode } from 'react';
-import { Check, X, AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, Check, Info, X } from 'lucide-react';
+
+import * as React from 'react';
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -31,13 +32,13 @@ interface ToastContextType {
 const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = React.useState<Toast[]>([]);
 
-  const dismiss = useCallback((id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
+  const dismiss = React.useCallback((id: string) => {
+    setToasts(current => current.filter(toast => toast.id !== id));
   }, []);
 
-  const toast = useCallback((title: string, options: ToastOptions = {}) => {
+  const toast = React.useCallback((title: string, options: ToastOptions = {}) => {
     const id = Math.random().toString(36).substring(2, 9);
     const variant = options.variant || 'default';
     const description = options.description;
@@ -51,26 +52,38 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       duration,
     };
 
-    setToasts((current) => [...current, newToast]);
+    setToasts(current => [...current, newToast]);
 
     return id;
-  }, [dismiss]);
+  }, []);
 
-  const success = useCallback((title: string, options?: Omit<ToastOptions, 'variant'>) => {
-    return toast(title, { ...options, variant: 'success' });
-  }, [toast]);
+  const success = React.useCallback(
+    (title: string, options?: Omit<ToastOptions, 'variant'>) => {
+      return toast(title, { ...options, variant: 'success' });
+    },
+    [toast]
+  );
 
-  const error = useCallback((title: string, options?: Omit<ToastOptions, 'variant'>) => {
-    return toast(title, { ...options, variant: 'error' });
-  }, [toast]);
+  const error = React.useCallback(
+    (title: string, options?: Omit<ToastOptions, 'variant'>) => {
+      return toast(title, { ...options, variant: 'error' });
+    },
+    [toast]
+  );
 
-  const warning = useCallback((title: string, options?: Omit<ToastOptions, 'variant'>) => {
-    return toast(title, { ...options, variant: 'warning' });
-  }, [toast]);
+  const warning = React.useCallback(
+    (title: string, options?: Omit<ToastOptions, 'variant'>) => {
+      return toast(title, { ...options, variant: 'warning' });
+    },
+    [toast]
+  );
 
-  const info = useCallback((title: string, options?: Omit<ToastOptions, 'variant'>) => {
-    return toast(title, { ...options, variant: 'info' });
-  }, [toast]);
+  const info = React.useCallback(
+    (title: string, options?: Omit<ToastOptions, 'variant'>) => {
+      return toast(title, { ...options, variant: 'info' });
+    },
+    [toast]
+  );
 
   const value = {
     toasts,
@@ -83,10 +96,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ToastContext.Provider value= { value } >
-    { children }
-    < Toaster toasts = { toasts } onDismiss = { dismiss } />
-      </ToastContext.Provider>
+    <ToastContext.Provider value={value}>
+      {children}
+      <Toaster toasts={toasts} onDismiss={dismiss} />
+    </ToastContext.Provider>
   );
 }
 
@@ -100,27 +113,30 @@ export function useToast() {
 
 function Toaster({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
   if (toasts.length === 0) return null;
-
   return (
-    <div className= "fixed bottom-4 right-4 z-50 space-y-2" >
-    {
-      toasts.map((toast) => (
-        <Toast key= { toast.id } { ...toast } onDismiss = {() => onDismiss(toast.id)} />
-      ))
-}
-</div>
+    <div className="fixed bottom-4 right-4 z-50 space-y-2">
+      {toasts.map(toast => (
+        <Toast key={toast.id} {...toast} onDismiss={() => onDismiss(toast.id)} />
+      ))}
+    </div>
   );
 }
 
-function Toast({ id, title, description, variant = 'default', duration, onDismiss }: Toast & { onDismiss: () => void }): JSX.Element {
-  useEffect(() => {
+function Toast({
+  title,
+  description,
+  variant = 'default',
+  duration,
+  onDismiss,
+}: Toast & { onDismiss: () => void }): JSX.Element {
+  React.useEffect(() => {
     if (duration !== undefined && duration > 0) {
       const timer = setTimeout(onDismiss, duration);
       return () => clearTimeout(timer);
     }
   }, [duration, onDismiss]);
 
-  const variantStyles = {
+  const variantStyles: Record<string, string> = {
     default: 'bg-white border-gray-200',
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
@@ -128,7 +144,7 @@ function Toast({ id, title, description, variant = 'default', duration, onDismis
     info: 'bg-blue-50 border-blue-200',
   };
 
-  const iconMap = {
+  const iconMap: Record<string, React.ReactNode> = {
     default: null,
     success: <Check className="h-4 w-4 text-green-500" />,
     error: <X className="h-4 w-4 text-red-500" />,
@@ -140,26 +156,21 @@ function Toast({ id, title, description, variant = 'default', duration, onDismis
 
   return (
     <div
-      className= {`flex w-80 items-start gap-3 rounded-lg border p-4 shadow-lg ${variantStyles[variant]}`
-}
-role = "alert"
-  >
-  { icon && <div className="mt-0.5 flex-shrink-0" > { icon } </div>}
-<div className="flex-1" >
-  <h3 className="text-sm font-medium" > { title } </h3>
-{
-  description && (
-    <p className="mt-1 text-sm text-gray-600" > { description } </p>
-        )
-}
-</div>
-  < button
-onClick = { onDismiss }
-className = "text-gray-400 hover:text-gray-500"
-aria - label="Dismiss"
-  >
-  <X className="h-4 w-4" />
-    </button>
+      className={`flex w-80 items-start gap-3 rounded-lg border p-4 shadow-lg ${variantStyles[variant]}`}
+      role="alert"
+    >
+      {icon && <div className="mt-0.5 flex-shrink-0">{icon}</div>}
+      <div className="flex-1">
+        <h3 className="text-sm font-medium">{title}</h3>
+        {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+      </div>
+      <button
+        onClick={onDismiss}
+        className="text-gray-400 hover:text-gray-500"
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { AlertTriangle, Home, LineChart, Package2, PieChart, Settings, Wrench } 
 
 import * as React from 'react';
 
+import Image from 'next/image';
+
 import type { User } from '@/lib/types';
 
 import { Users } from '@/components/ui/lucide';
@@ -57,7 +59,13 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoNavigation}>
-          <Package2 className="h-6 w-6 text-primary" />
+          <Image
+            src="/unicorn-logo.png"
+            alt="Unicorn Properties Logo"
+            width={48}
+            height={48}
+            className="mb-2"
+          />
           <span className="text-lg font-semibold">Unicorn Properties</span>
         </div>
       </SidebarHeader>

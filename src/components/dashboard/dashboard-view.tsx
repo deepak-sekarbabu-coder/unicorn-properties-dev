@@ -7,11 +7,10 @@ import * as React from 'react';
 import type { Apartment, Expense, User } from '@/lib/types';
 import { Category } from '@/lib/types';
 
+import type { ExpensesListProps } from '@/components/expenses/expenses-list';
 import { OutstandingBalance } from '@/components/outstanding-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-
-import { useToast } from '@/hooks/use-toast';
 
 interface DashboardViewProps {
   user: User | null;
@@ -32,7 +31,7 @@ interface DashboardViewProps {
   >;
   onExpenseUpdate: (expense: Expense) => void;
   onExpenseDelete?: (expenseId: string) => void;
-  ExpensesList: React.ComponentType<any>;
+  ExpensesList: React.ComponentType<ExpensesListProps>;
 }
 
 export function DashboardView({
@@ -48,8 +47,6 @@ export function DashboardView({
   onExpenseDelete,
   ExpensesList,
 }: DashboardViewProps) {
-  const { toast } = useToast();
-
   const currentApartmentBalance = currentUserApartment
     ? apartmentBalances[currentUserApartment]
     : null;
