@@ -12,7 +12,9 @@ export default function LoginPage() {
             alt="Unicorn Properties Logo"
             width={48}
             height={48}
-            className="mb-2"
+            className="object-contain rounded bg-white mb-2"
+            priority
+            unoptimized
           />
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to Unicorn Properties</h1>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
