@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Home, LineChart, Package2, PieChart, Settings, Wrench } from 'lucide-react';
+import { AlertTriangle, Home, LineChart, PieChart, Settings, Wrench } from 'lucide-react';
 
 import * as React from 'react';
 
