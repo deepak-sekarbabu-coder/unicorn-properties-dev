@@ -83,14 +83,11 @@ export function PollVoteDialog({
           </RadioGroup>
           {error && <div className="text-destructive text-sm">{error}</div>}
         </div>
-        <DialogFooter>
-          <Button onClick={handleVote} disabled={!selected || hasVoted || submitting || disabled}>
-            Submit Vote
-          </Button>
+        <DialogFooter className="flex flex-col gap-y-2 mt-4">
           {user?.role === 'admin' && onDeletePoll && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="ml-2" disabled={submitting}>
+                <Button variant="destructive" className="w-full" disabled={submitting}>
                   Delete Poll
                 </Button>
               </AlertDialogTrigger>
@@ -118,6 +115,13 @@ export function PollVoteDialog({
               </AlertDialogContent>
             </AlertDialog>
           )}
+          <Button
+            onClick={handleVote}
+            disabled={!selected || hasVoted || submitting || disabled}
+            className="w-full"
+          >
+            Submit Vote
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

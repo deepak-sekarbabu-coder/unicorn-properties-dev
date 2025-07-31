@@ -65,14 +65,19 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 
 export const addUser = async (user: Omit<User, 'id'>): Promise<User> => {
   const usersCol = collection(db, 'users');
-  const cleanUser = removeUndefined(user);
+  const cleanUser = removeUndefined({ ...user, isApproved: false });
   const docRef = await addDoc(usersCol, cleanUser);
   return { id: docRef.id, ...cleanUser } as User;
 };
 
+export const approveUser = async (id: string): Promise<void> => {
+  const userDoc = doc(db, 'users', id);
+  await updateDoc(userDoc, { isApproved: true });
+};
+
 export const updateUser = async (id: string, user: Partial<User>): Promise<void> => {
   const userDoc = doc(db, 'users', id);
-  const cleanUser = removeUndefined(user);
+  const cleanUser = removeUndefined(user) as { [x: string]: any };
   await updateDoc(userDoc, cleanUser);
 };
 

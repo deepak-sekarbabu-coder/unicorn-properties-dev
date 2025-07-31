@@ -1,6 +1,7 @@
 import { CheckCircle, PlusCircle, Search, Trash2, XCircle } from 'lucide-react';
 
 import type { Category, PollOption, User } from '@/lib/types';
+import type { Announcement } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { AddUserDialog } from '@/components/add-user-dialog';
@@ -181,6 +182,7 @@ export function AdminView({
                   <TableHead>Apartment</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Roles</TableHead>
+                  <TableHead>Approval</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -212,6 +214,20 @@ export function AdminView({
                           </Badge>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {u.isApproved ? (
+                        <Badge variant="default">Approved</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => onUpdateUser({ ...u, isApproved: true })}
+                        >
+                          Approve
+                        </Button>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <EditUserDialog user={u} onUpdateUser={onUpdateUser}>

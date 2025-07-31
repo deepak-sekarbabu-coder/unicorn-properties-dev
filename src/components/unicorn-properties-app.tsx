@@ -466,7 +466,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
           return (
             <DashboardView
               user={user}
-              role={role}
               expenses={expenses}
               apartments={apartments}
               users={users}
@@ -495,7 +494,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
             getUserById={getUserById}
             onAnnouncementDecision={handleAnnouncementDecision}
             onAddPoll={async data => {
-              // Add poll to Firestore
               await firestore.addPoll({
                 question: data.question,
                 options: data.options,
@@ -504,6 +502,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
                 isActive: true,
               });
             }}
+            pendingAnnouncements={[]}
           />
         );
       case 'expenses':
@@ -551,7 +550,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         return (
           <DashboardView
             user={user}
-            role={role}
             expenses={expenses}
             apartments={apartments}
             users={users}
@@ -717,6 +715,30 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
     })
     .reduce((total, expense) => total + (Number(expense.amount) || 0), 0);
+
+  // Restrict access for unapproved users
+  if (user && user.isApproved === false) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Approval Pending</CardTitle>
+            <CardDescription>
+              Wait until you are approved by Admin
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <button
+              className="mt-4 px-4 py-2 bg-primary text-white rounded"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>

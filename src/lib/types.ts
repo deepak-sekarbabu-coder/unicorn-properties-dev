@@ -8,6 +8,7 @@ export type User = {
   propertyRole?: 'tenant' | 'owner'; // Property relationship role
   fcmToken?: string; // For push notifications
   apartment: string; // Apartment is now required
+  isApproved?: boolean; // User approval status (default: false)
 };
 
 export type Category = {
