@@ -62,9 +62,11 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
           <Image
             src="/unicorn-logo.png"
             alt="Unicorn Properties Logo"
-            width={48}
-            height={48}
-            className="mb-2"
+            width={40}
+            height={40}
+            className="object-contain rounded bg-white"
+            priority
+            unoptimized
           />
           <span className="text-lg font-semibold">Unicorn Properties</span>
         </div>
