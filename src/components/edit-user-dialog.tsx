@@ -208,14 +208,14 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>System Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select system role" />
@@ -236,7 +236,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Property Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select property role" />
@@ -257,7 +257,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Apartment</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select an apartment" />
@@ -276,16 +276,30 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                 )}
               />
             </div>
-            <DialogFooter className="sm:justify-between">
-              <Button type="button" variant="outline" onClick={handleResetPassword}>
+            <DialogFooter className="flex-col sm:flex-row gap-3 sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetPassword}
+                className="w-full sm:w-auto order-2 sm:order-1"
+              >
                 <KeyRound className="mr-2 h-4 w-4" />
                 Reset Password
               </Button>
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setOpen(false)}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSaving}>
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  className="w-full sm:w-auto"
+                >
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Changes
                 </Button>
