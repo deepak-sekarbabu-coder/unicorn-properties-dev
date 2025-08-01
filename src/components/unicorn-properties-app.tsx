@@ -496,6 +496,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
             currentUserApartment={currentUserApartment}
             currentUserRole={role}
             onExpenseUpdate={handleExpenseUpdate}
+            onExpenseDelete={handleDeleteExpense}
             expenseSearch={expenseSearch}
             setExpenseSearch={setExpenseSearch}
             filterCategory={filterCategory}
