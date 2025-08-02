@@ -20,6 +20,14 @@ import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast-provider';
+import PaymentButton from '@/components/PaymentButton';
+import Image from 'next/image';
+
+// Define a type for the error object
+interface PaymentError {
+  message?: string;
+  description?: string;
+}
 
 type PaymentDemoPageProps = object;
 
@@ -254,6 +262,52 @@ function DemoPaymentGateways({
                   </div>
                 )}
               </div>
+
+              {/* Razorpay payment option */}
+              <div
+                className={`border p-3 rounded-lg flex items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 ${
+                  selectedMethod === 'razorpay' ? 'border-primary bg-primary/5' : ''
+                }`}
+                onClick={() => setSelectedMethod('razorpay')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 relative">
+                    <Image src="https://razorpay.com/favicon.ico" alt="Razorpay" width={32} height={32} className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Razorpay (UPI/Card)</div>
+                    <div className="text-xs text-muted-foreground">
+                      Pay securely via UPI, card, or netbanking
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  {selectedMethod === 'razorpay' && (
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              </div>
+
+              {/* Razorpay PaymentButton integration */}
+              {selectedMethod === 'razorpay' && (
+                <div className="mt-4">
+                  <PaymentButton
+                    amount={paymentRequest.amount}
+                    productId={paymentRequest.id}
+                    onSuccess={(response) => {
+                      setIsPaymentSuccessful(true);
+                      setTransactionId(response.razorpay_payment_id);
+                      if (onPaymentComplete) {
+                        onPaymentComplete(response.razorpay_payment_id, 'razorpay');
+                      }
+                    }}
+                    onError={err => {
+                      const error = err as PaymentError;
+                      setError(error.message || error.description || 'Payment failed');
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

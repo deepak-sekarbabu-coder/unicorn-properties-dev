@@ -21,9 +21,11 @@ import {
 import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PaymentButton from '@/components/PaymentButton';
+import Image from "next/image";
 
 // Define payment method types
-export type PaymentMethod = 'googlepay' | 'phonepay' | 'upi' | 'card';
+export type PaymentMethod = 'googlepay' | 'phonepay' | 'upi' | 'card' | 'razorpay';
 
 // Payment request interface
 export interface PaymentRequest {
@@ -46,6 +48,12 @@ interface PaymentGatewayProps {
   paymentRequest: PaymentRequest;
   onPaymentComplete?: (transactionId: string, method: PaymentMethod) => void;
   onCancel?: () => void;
+}
+
+// Define a type for the error object
+interface PaymentError {
+  message?: string;
+  description?: string;
 }
 
 export function PaymentGateways({
@@ -341,27 +349,78 @@ export function PaymentGateways({
                   </div>
                 )}
               </div>
+
+              {/* Razorpay Option */}
+              <div
+                className={`border p-3 rounded-lg flex items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 ${
+                  selectedMethod === 'razorpay' ? 'border-primary bg-primary/5' : ''
+                }`}
+                onClick={() => setSelectedMethod('razorpay')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 relative">
+                    <Image
+                      src="/razorpay-logo.svg"
+                      alt="Razorpay"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">Razorpay (UPI/Card)</div>
+                    <div className="text-xs text-muted-foreground">
+                      Pay securely via UPI, card, or netbanking
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  {selectedMethod === 'razorpay' && (
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
 
           <CardFooter className="flex justify-between border-t pt-4">
-            <Button variant="outline" onClick={onCancel} disabled={isProcessing}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => processPayment(selectedMethod as PaymentMethod)}
-              disabled={!selectedMethod || (selectedMethod === 'upi' && !upiId) || isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> Processing
-                </>
-              ) : (
-                <>
-                  Pay ₹{paymentRequest.amount.toFixed(2)} <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+            {/* If Razorpay selected, show PaymentButton */}
+            {selectedMethod === 'razorpay' ? (
+              <div className="flex flex-row gap-2 mt-4">
+                <Button variant="outline" onClick={onCancel} disabled={isProcessing} className="flex-1">
+                  Cancel
+                </Button>
+                <PaymentButton
+                  amount={paymentRequest.amount}
+                  productId={paymentRequest.id}
+                  onSuccess={response => {
+                    setIsPaymentSuccessful(true);
+                    setTransactionId(response.razorpay_payment_id || response.razorpay_order_id);
+                    if (onPaymentComplete)
+                      onPaymentComplete(response.razorpay_payment_id || response.razorpay_order_id, 'razorpay');
+                  }}
+                  onError={err => {
+                    const error = err as PaymentError;
+                    setError(error.message || error.description || 'Payment failed');
+                  }}
+                />
+              </div>
+            ) : (
+              <Button
+                onClick={() => processPayment(selectedMethod as PaymentMethod)}
+                disabled={!selectedMethod || (selectedMethod === 'upi' && !upiId) || isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> Processing
+                  </>
+                ) : (
+                  <>
+                    Pay ₹{paymentRequest.amount.toFixed(2)} <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </>
       ) : (
