@@ -329,8 +329,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const filteredUsers = React.useMemo(() => {
     return users.filter(
       user =>
-        user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-        user.email?.toLowerCase().includes(userSearch.toLowerCase())
+        (user.name?.toLowerCase() ?? '').includes(userSearch.toLowerCase()) ||
+        (user.email?.toLowerCase() ?? '').includes(userSearch.toLowerCase())
     );
   }, [users, userSearch]);
 

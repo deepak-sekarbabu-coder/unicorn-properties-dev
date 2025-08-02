@@ -28,16 +28,28 @@ export async function POST(request: NextRequest) {
       paidAt: new Date(),
     });
     if (userId) {
-      await db
-        .collection('users')
-        .doc(userId)
-        .update({
+      const userRef = db.collection('users').doc(userId);
+      const userDoc = await userRef.get();
+      if (userDoc.exists) {
+        await userRef.update({
           lastPayment: {
             orderId: razorpay_order_id,
             paymentId: razorpay_payment_id,
             paidAt: new Date(),
           },
         });
+      } else {
+        await userRef.set(
+          {
+            lastPayment: {
+              orderId: razorpay_order_id,
+              paymentId: razorpay_payment_id,
+              paidAt: new Date(),
+            },
+          },
+          { merge: true }
+        );
+      }
     }
     return NextResponse.json({ success: true, message: 'Payment verified successfully' });
   } catch (error) {
