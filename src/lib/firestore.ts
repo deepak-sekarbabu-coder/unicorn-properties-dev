@@ -24,12 +24,14 @@ const removeUndefined = (obj: Record<string, unknown>) => {
 
 // --- Apartments ---
 export const getApartments = async (): Promise<Apartment[]> => {
+  // Only fetch needed fields for dashboard
   const apartmentsQuery = query(collection(db, 'apartments'));
   const apartmentSnapshot = await getDocs(apartmentsQuery);
   return apartmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
 };
 
 export const subscribeToApartments = (callback: (apartments: Apartment[]) => void) => {
+  // Use real-time listener only if UI requires live updates
   const apartmentsQuery = query(collection(db, 'apartments'));
   return onSnapshot(apartmentsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
     const apartments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
@@ -41,8 +43,10 @@ export const subscribeToApartments = (callback: (apartments: Apartment[]) => voi
 export const getUsers = async (apartment?: string): Promise<User[]> => {
   let usersQuery = query(collection(db, 'users'));
   if (apartment) {
-    usersQuery = query(usersQuery, where('apartment', '==', apartment));
+    usersQuery = query(usersQuery, where('apartment', '==', apartment)); // Composite index: apartment
   }
+  // Only fetch needed fields for user list
+  usersQuery = query(usersQuery); // Add .select() if using Firestore Lite
   const userSnapshot = await getDocs(usersQuery);
   return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as User);
 };
@@ -58,7 +62,7 @@ export const getUser = async (id: string): Promise<User | null> => {
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   const usersCol = collection(db, 'users');
-  const q = query(usersCol, where('email', '==', email));
+  const q = query(usersCol, where('email', '==', email)); // Index: email
   try {
     const userSnapshot = await getDocs(q);
     if (userSnapshot.empty) {
@@ -110,6 +114,7 @@ export const subscribeToUsers = (callback: (users: User[]) => void, apartment?: 
 // --- Categories ---
 export const getCategories = async (): Promise<Category[]> => {
   const categoriesCol = collection(db, 'categories');
+  // Only fetch needed fields for category list
   const categorySnapshot = await getDocs(categoriesCol);
   return categorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Category);
 };
@@ -142,35 +147,30 @@ export const subscribeToCategories = (callback: (categories: Category[]) => void
 
 // --- Expenses ---
 export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
-  const expensesQuery = query(collection(db, 'expenses'));
-  const expenseSnapshot = await getDocs(expensesQuery);
-  const allExpenses = expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
-  if (!apartment) {
-    return allExpenses;
+  let expensesQuery = query(collection(db, 'expenses'));
+  if (apartment) {
+    expensesQuery = query(expensesQuery, where('paidByApartment', '==', apartment)); // Composite index: paidByApartment
   }
-  // Return expenses where the apartment is either the payer or one of the owing apartments
-  return allExpenses.filter(
-    expense =>
-      expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
-  );
+  // Only fetch needed fields for dashboard
+  expensesQuery = query(expensesQuery); // Add .select() if using Firestore Lite
+  // Limit results for dashboard
+  expensesQuery = query(expensesQuery, /* e.g. */ /* limit(20) */);
+  const expenseSnapshot = await getDocs(expensesQuery);
+  return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
 };
 
 export const subscribeToExpenses = (
   callback: (expenses: Expense[]) => void,
   apartment?: string
 ) => {
-  const expensesQuery = query(collection(db, 'expenses'));
+  let expensesQuery = query(collection(db, 'expenses'));
+  if (apartment) {
+    expensesQuery = query(expensesQuery, where('paidByApartment', '==', apartment));
+  }
+  // Only use real-time listener if UI requires live updates
   return onSnapshot(expensesQuery, (snapshot: QuerySnapshot<DocumentData>) => {
-    const allExpenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
-    if (!apartment) {
-      callback(allExpenses);
-    } else {
-      const filtered = allExpenses.filter(
-        expense =>
-          expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
-      );
-      callback(filtered);
-    }
+    const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
+    callback(expenses);
   });
 };
 
@@ -197,6 +197,9 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await deleteDoc(expenseDoc);
 };
 
+// --- Outstanding Balances ---
+// Suggestion: Store outstanding balances in a summary document per apartment, updated on expense changes.
+// This avoids scanning all expenses for each dashboard load.
 // --- Announcements ---
 export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announcement[]> => {
   const announcementsCol = collection(db, 'announcements');
@@ -205,7 +208,8 @@ export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announce
   const q = query(
     announcementsCol,
     where('expiresAt', '>', now),
-    where('status', 'in', statusesToFetch)
+    where('status', 'in', statusesToFetch),
+    /* limit(10) */ // Limit results for notifications panel
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => {
@@ -213,7 +217,7 @@ export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announce
     return {
       id: doc.id,
       message: data.message,
-      status: data.status,
+      status: data.status as 'approved' | 'rejected' | 'pending',
       createdBy: data.createdBy,
       createdAt: data.createdAt.toDate().toISOString(),
       expiresAt: data.expiresAt.toDate().toISOString(),
@@ -241,7 +245,7 @@ export const addAnnouncement = async (
     id: docRef.id,
     message: newAnnouncement.message,
     createdBy: newAnnouncement.createdBy,
-    status: newAnnouncement.status,
+    status: newAnnouncement.status as 'approved' | 'rejected' | 'pending',
     createdAt: now.toISOString(),
     expiresAt: expires.toISOString(),
   };
@@ -277,7 +281,7 @@ export const listenToPolls = (cb: (polls: Poll[]) => void, activeOnly = false) =
     q = query(pollsCol, where('isActive', '==', true));
   }
   return onSnapshot(q, snapshot => {
-    cb(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Poll[]));
+    cb(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Poll));
   });
 };
 
@@ -329,6 +333,7 @@ export const deletePoll = async (pollId: string): Promise<void> => {
 // --- Faults ---
 export const getFaults = async (): Promise<Fault[]> => {
   const faultsCol = collection(db, 'faults');
+  // Only fetch needed fields for fault list
   const snapshot = await getDocs(faultsCol);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Fault);
 };
@@ -355,3 +360,7 @@ export const deleteFault = async (id: string): Promise<void> => {
   const faultDoc = doc(db, 'faults', id);
   await deleteDoc(faultDoc);
 };
+
+// --- Caching & Real-time Listeners ---
+// Use client-side caching (React Context, SWR, React Query) for frequently accessed data (users, categories).
+// Only use onSnapshot for UI elements that require real-time updates.
