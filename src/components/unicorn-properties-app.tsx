@@ -1,13 +1,16 @@
 'use client';
 
+import PaymentDemoPage from '@/app/payment-demo/page';
 import { useAuth } from '@/context/auth-context';
 import { format, subMonths } from 'date-fns';
 
 import * as React from 'react';
 
+import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Apartment, Category, Expense, User } from '@/lib/types';
+import type { View } from '@/lib/types';
 
 import { AdminView } from '@/components/admin/admin-view';
 import { AnalyticsView } from '@/components/analytics/analytics-view';
@@ -26,15 +29,6 @@ import { useToast } from '@/hooks/use-toast';
 
 import { CurrentFaultsList } from './current-faults-list';
 import { FaultReportingForm } from './fault-reporting-form';
-
-type View =
-  | 'dashboard'
-  | 'expenses'
-  | 'admin'
-  | 'analytics'
-  | 'community'
-  | 'fault-reporting'
-  | 'current-faults';
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];
@@ -441,7 +435,18 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
               apartmentBalances={apartmentBalances}
               onExpenseUpdate={handleExpenseUpdate}
               onExpenseDelete={handleDeleteExpense}
-              ExpensesList={ExpensesListComponent}
+              ExpensesList={props => (
+                <ExpensesList
+                  {...props}
+                  apartments={apartments}
+                  users={users}
+                  categories={categories}
+                  currentUserApartment={user?.apartment}
+                  currentUserRole={role}
+                  onExpenseUpdate={handleExpenseUpdate}
+                  onExpenseDelete={handleDeleteExpense}
+                />
+              )}
             />
           );
         }
@@ -514,6 +519,13 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         return <FaultReportingForm onReport={() => setView('current-faults')} />;
       case 'current-faults':
         return <CurrentFaultsList />;
+      case 'payment-demo':
+        if (!isPaymentDemoEnabled()) {
+          // Redirect to dashboard if payment demo is disabled
+          setView('dashboard');
+          return null;
+        }
+        return <PaymentDemoPage />;
       default:
         return (
           <DashboardView
@@ -708,7 +720,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     <>
       <SidebarProvider>
         <Sidebar>
-          <NavigationMenu user={user} view={view} setView={(v: View) => setView(v)} role={role} />
+          <NavigationMenu user={user} view={view} setView={setView} role={role} />
           <SidebarFooter>
             <Card className="m-2">
               <CardHeader className="p-3">

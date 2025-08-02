@@ -154,7 +154,7 @@ export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
   // Only fetch needed fields for dashboard
   expensesQuery = query(expensesQuery); // Add .select() if using Firestore Lite
   // Limit results for dashboard
-  expensesQuery = query(expensesQuery, /* e.g. */ /* limit(20) */);
+  expensesQuery = query(expensesQuery /* e.g. */ /* limit(20) */);
   const expenseSnapshot = await getDocs(expensesQuery);
   return expenseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
 };
@@ -208,7 +208,7 @@ export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announce
   const q = query(
     announcementsCol,
     where('expiresAt', '>', now),
-    where('status', 'in', statusesToFetch),
+    where('status', 'in', statusesToFetch)
     /* limit(10) */ // Limit results for notifications panel
   );
   const snapshot = await getDocs(q);

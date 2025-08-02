@@ -6,9 +6,10 @@ import * as React from 'react';
 
 import Image from 'next/image';
 
-import type { User } from '@/lib/types';
+import { isPaymentDemoEnabled } from '@/lib/feature-flags';
+import type { User, View } from '@/lib/types';
 
-import { Users } from '@/components/ui/lucide';
+import { CreditCard, Users } from '@/components/ui/lucide';
 import {
   SidebarContent,
   SidebarHeader,
@@ -17,15 +18,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-
-type View =
-  | 'dashboard'
-  | 'expenses'
-  | 'admin'
-  | 'analytics'
-  | 'community'
-  | 'fault-reporting'
-  | 'current-faults';
 
 interface NavigationMenuProps {
   user: User | null;
@@ -133,6 +125,18 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
               Current Faults
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {isPaymentDemoEnabled() && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => handleNavigation('payment-demo')}
+                isActive={view === 'payment-demo'}
+                tooltip="Payment Demo"
+              >
+                <CreditCard />
+                Payment Demo
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           {role === 'admin' && (
             <SidebarMenuItem>
               <SidebarMenuButton

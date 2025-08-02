@@ -388,7 +388,10 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
                     {distribution.otherApartments.length > 0 && (
                       <Button onClick={handleSendRequests} className="flex-1" disabled={isSending}>
                         {isSending ? (
-                          'Sending...'
+                          <>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            Sending...
+                          </>
                         ) : (
                           <>
                             <Send className="h-4 w-4 mr-2" />

@@ -4,7 +4,9 @@ import { LogOut, PlusCircle, Settings } from 'lucide-react';
 
 import * as React from 'react';
 
+import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import type { Category, Expense, User } from '@/lib/types';
+import type { View } from '@/lib/types';
 
 import { AddExpenseDialog } from '@/components/add-expense-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,17 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
-
-type View =
-  | 'dashboard'
-  | 'expenses'
-  | 'admin'
-  | 'analytics'
-  | 'community'
-  | 'announcement'
-  | 'fault-reporting'
-  | 'current-faults';
-export type { View };
 
 interface PageHeaderProps {
   view: View;
@@ -55,6 +46,7 @@ export function PageHeader({
   if (view === 'admin') title = 'Admin Panel';
   if (view === 'analytics') title = 'Analytics';
   if (view === 'community') title = 'Community Directory';
+  if (view === 'payment-demo' && isPaymentDemoEnabled()) title = 'Payment Integration Demo';
 
   return (
     <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">

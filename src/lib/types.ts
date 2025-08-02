@@ -45,7 +45,22 @@ export type Announcement = {
   expiresAt: string; // ISO date string
 };
 
-export type NotificationType = 'payment_request' | 'payment_received' | 'announcement' | 'reminder';
+export type NotificationType =
+  | 'payment_request'
+  | 'payment_received'
+  | 'payment_confirmed'
+  | 'announcement'
+  | 'reminder';
+
+export type PaymentMethodType =
+  | 'googlepay'
+  | 'phonepay'
+  | 'upi'
+  | 'card'
+  | 'cash'
+  | 'bank_transfer';
+
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled';
 
 export type Notification = {
   id: string;
@@ -58,8 +73,30 @@ export type Notification = {
   toApartmentId?: string;
   relatedExpenseId?: string;
   isRead: boolean;
+  isDismissed?: boolean;
   createdAt: string; // ISO date string
   dueDate?: string; // ISO date string
+  status?: PaymentStatus;
+  paymentMethod?: PaymentMethodType;
+  transactionId?: string;
+  category?: string;
+  requestedBy?: string; // User ID who requested the payment
+  paidAt?: string; // ISO date string when payment was completed
+};
+
+export type Payment = {
+  id: string;
+  amount: number;
+  currency: string;
+  description: string;
+  fromApartmentId: string;
+  toApartmentId: string;
+  status: PaymentStatus;
+  paymentMethod: PaymentMethodType;
+  transactionId: string;
+  createdAt: string;
+  completedAt?: string;
+  relatedNotificationId?: string;
 };
 
 // --- Polling Feature ---
@@ -89,3 +126,13 @@ export type Fault = {
   fixed: boolean;
   fixedAt?: string; // ISO date string
 };
+
+export type View =
+  | 'dashboard'
+  | 'expenses'
+  | 'admin'
+  | 'analytics'
+  | 'community'
+  | 'fault-reporting'
+  | 'current-faults'
+  | 'payment-demo';

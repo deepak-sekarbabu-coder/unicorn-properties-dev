@@ -62,7 +62,10 @@ export function distributePayment(
   };
 }
 
-export async function sendPaymentRequests(payment: PaymentDistribution): Promise<void> {
+export async function sendPaymentRequests(
+  payment: PaymentDistribution,
+  userId?: string
+): Promise<void> {
   const batch: Promise<unknown>[] = [];
   const now = new Date().toISOString();
   const dueDate =
@@ -83,6 +86,9 @@ export async function sendPaymentRequests(payment: PaymentDistribution): Promise
       isRead: false,
       createdAt: now,
       dueDate,
+      status: 'pending',
+      category: payment.category,
+      requestedBy: userId,
     };
 
     batch.push(addDoc(collection(db, 'notifications'), notification));
