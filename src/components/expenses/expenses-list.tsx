@@ -29,11 +29,14 @@ export function ExpensesList({
   onExpenseUpdate,
   onExpenseDelete,
 }: ExpensesListProps) {
+  // Remove duplicate expenses by id
+  const uniqueExpenses = Array.from(new Map(expenses.map(exp => [exp.id, exp])).values());
+
   const relevantExpenses = limit
-    ? expenses
+    ? uniqueExpenses
         .slice(0, limit)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    : expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    : uniqueExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (relevantExpenses.length === 0) {
     return <div className="text-center py-8 text-muted-foreground">No expenses found.</div>;

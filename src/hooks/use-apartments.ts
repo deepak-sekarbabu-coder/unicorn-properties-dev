@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
 
-import { getApartments } from '@/lib/firestore';
+import { subscribeToApartments } from '@/lib/firestore';
 import type { Apartment } from '@/lib/types';
 
 export function useApartments() {
   const [apartments, setApartments] = useState<Apartment[]>([]);
 
   useEffect(() => {
-    const fetchApartments = async () => {
-      const data = await getApartments();
-      setApartments(data);
-    };
-    fetchApartments();
+    const unsubscribe = subscribeToApartments(setApartments);
+    return () => unsubscribe();
   }, []);
 
   return { apartments };

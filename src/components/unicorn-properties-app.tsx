@@ -82,50 +82,33 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   }, [user]);
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      setIsLoadingData(true);
+    setIsLoadingData(true);
+    let unsubscribeExpenses: (() => void) | null = null;
+    let unsubscribeUsers: (() => void) | null = null;
+    let unsubscribeCategories: (() => void) | null = null;
 
-      try {
-        // Always fetch all apartments
-        const allApartments = await firestore.getApartments();
-        setApartments(allApartments);
-
-        // If user is an admin or has no apartment assigned, fetch all users and expenses
-        if (user?.role === 'admin' || !user?.apartment) {
-          const allUsers = await firestore.getUsers();
-          const allExpenses = await firestore.getExpenses();
-
-          setUsers(allUsers);
-          setExpenses(allExpenses);
-        } else {
-          // For regular users, fetch their apartment&apos;s users and all relevant expenses
-          const apartmentUsers = await firestore.getUsers(user.apartment);
-
-          // Get all expenses where the user's apartment is either the payer or owes a share
-          const allExpenses = await firestore.getExpenses();
-
-          const relevantExpenses = allExpenses.filter(
-            expense =>
-              expense.paidByApartment === user.apartment ||
-              expense.owedByApartments?.includes(user.apartment)
-          );
-
-          setUsers(apartmentUsers);
-          setExpenses(relevantExpenses);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch data',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoadingData(false);
-      }
+    const fetchApartments = async () => {
+      const allApartments = await firestore.getApartments();
+      setApartments(allApartments);
     };
+    fetchApartments();
 
-    fetchData();
+    unsubscribeCategories = firestore.subscribeToCategories(setCategories);
+
+    if (user?.role === 'admin' || !user?.apartment) {
+      unsubscribeUsers = firestore.subscribeToUsers(setUsers);
+      unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses);
+    } else {
+      unsubscribeUsers = firestore.subscribeToUsers(setUsers, user.apartment);
+      unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses, user.apartment);
+    }
+
+    setIsLoadingData(false);
+    return () => {
+      if (unsubscribeExpenses) unsubscribeExpenses();
+      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeCategories) unsubscribeCategories();
+    };
   }, [user, showApartmentDialog, toast]);
 
   const role = user?.role || 'user';
@@ -213,7 +196,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
 
     const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
     console.log('[handleAddExpense] newExpense from Firestore:', newExpense);
-    setExpenses(prev => [newExpense, ...prev]);
+    setExpenses(prev => {
+      const all = [newExpense, ...prev];
+      return Array.from(new Map(all.map(e => [e.id, e])).values());
+    });
 
     toast({
       title: 'Expense Added',
@@ -664,7 +650,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const handleDeleteExpense = async (expenseId: string) => {
     try {
       await firestore.deleteExpense(expenseId);
-      setExpenses(prev => prev.filter(e => e.id !== expenseId));
+      setExpenses(prev => {
+        const filtered = prev.filter(e => e.id !== expenseId);
+        return Array.from(new Map(filtered.map(e => [e.id, e])).values());
+      });
       toast({
         title: 'Expense Deleted',
         description: 'The expense has been successfully removed.',
@@ -679,7 +668,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   };
 
   const handleExpenseUpdate = (updatedExpense: Expense) => {
-    setExpenses(prev => prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp)));
+    setExpenses(prev => {
+      const updated = prev.map(exp => (exp.id === updatedExpense.id ? updatedExpense : exp));
+      return Array.from(new Map(updated.map(e => [e.id, e])).values());
+    });
   };
 
   // Calculate monthly expenses for the current month

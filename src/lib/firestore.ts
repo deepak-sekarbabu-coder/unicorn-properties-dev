@@ -1,4 +1,6 @@
 import {
+  DocumentData,
+  QuerySnapshot,
   Timestamp,
   addDoc,
   collection,
@@ -25,6 +27,14 @@ export const getApartments = async (): Promise<Apartment[]> => {
   const apartmentsQuery = query(collection(db, 'apartments'));
   const apartmentSnapshot = await getDocs(apartmentsQuery);
   return apartmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
+};
+
+export const subscribeToApartments = (callback: (apartments: Apartment[]) => void) => {
+  const apartmentsQuery = query(collection(db, 'apartments'));
+  return onSnapshot(apartmentsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const apartments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Apartment);
+    callback(apartments);
+  });
 };
 
 // --- Users ---
@@ -86,6 +96,17 @@ export const deleteUser = async (id: string): Promise<void> => {
   await deleteDoc(userDoc);
 };
 
+export const subscribeToUsers = (callback: (users: User[]) => void, apartment?: string) => {
+  let usersQuery = query(collection(db, 'users'));
+  if (apartment) {
+    usersQuery = query(usersQuery, where('apartment', '==', apartment));
+  }
+  return onSnapshot(usersQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as User);
+    callback(users);
+  });
+};
+
 // --- Categories ---
 export const getCategories = async (): Promise<Category[]> => {
   const categoriesCol = collection(db, 'categories');
@@ -111,6 +132,14 @@ export const deleteCategory = async (id: string): Promise<void> => {
   await deleteDoc(categoryDoc);
 };
 
+export const subscribeToCategories = (callback: (categories: Category[]) => void) => {
+  const categoriesQuery = query(collection(db, 'categories'));
+  return onSnapshot(categoriesQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Category);
+    callback(categories);
+  });
+};
+
 // --- Expenses ---
 export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
   const expensesQuery = query(collection(db, 'expenses'));
@@ -124,6 +153,25 @@ export const getExpenses = async (apartment?: string): Promise<Expense[]> => {
     expense =>
       expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
   );
+};
+
+export const subscribeToExpenses = (
+  callback: (expenses: Expense[]) => void,
+  apartment?: string
+) => {
+  const expensesQuery = query(collection(db, 'expenses'));
+  return onSnapshot(expensesQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const allExpenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
+    if (!apartment) {
+      callback(allExpenses);
+    } else {
+      const filtered = allExpenses.filter(
+        expense =>
+          expense.paidByApartment === apartment || expense.owedByApartments?.includes(apartment)
+      );
+      callback(filtered);
+    }
+  });
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id' | 'date'>): Promise<Expense> => {

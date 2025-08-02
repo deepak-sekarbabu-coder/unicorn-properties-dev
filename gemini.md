@@ -14,26 +14,26 @@ Unicorn Properties is a full-stack web application built to manage shared living
 The project leverages a modern, type-safe, and component-based architecture.
 
 - **Frontend**:
-    - **Framework**: Next.js 15 (with App Router & Turbopack)
-    - **Language**: TypeScript
-    - **UI Library**: React 18
-    - **Styling**: Tailwind CSS
-    - **Component Toolkit**: ShadCN UI
-    - **State Management**: React Context API for global state (e.g., authentication) and component-level state for local data.
+  - **Framework**: Next.js 15 (with App Router & Turbopack)
+  - **Language**: TypeScript
+  - **UI Library**: React 18
+  - **Styling**: Tailwind CSS
+  - **Component Toolkit**: ShadCN UI
+  - **State Management**: React Context API for global state (e.g., authentication) and component-level state for local data.
 - **Backend & Database**:
-    - **Platform**: Firebase
-    - **Database**: Firestore (NoSQL) for all application data.
-    - **Authentication**: Firebase Authentication for user login and session management.
-    - **Push Notifications**: Firebase Cloud Messaging (FCM).
+  - **Platform**: Firebase
+  - **Database**: Firestore (NoSQL) for all application data.
+  - **Authentication**: Firebase Authentication for user login and session management.
+  - **Push Notifications**: Firebase Cloud Messaging (FCM).
 - **AI Integration**:
-    - **Framework**: Google's Genkit for integrating AI-powered features.
+  - **Framework**: Google's Genkit for integrating AI-powered features.
 - **Deployment & CI/CD**:
-    - **Platform**: Netlify
-    - **Build Configuration**: `netlify.toml` and `next.config.ts`
+  - **Platform**: Netlify
+  - **Build Configuration**: `netlify.toml` and `next.config.ts`
 - **Development Tools**:
-    - **Linting**: ESLint
-    - **Formatting**: Prettier
-    - **Type Checking**: TypeScript
+  - **Linting**: ESLint
+  - **Formatting**: Prettier
+  - **Type Checking**: TypeScript
 
 ## 3. Getting Started & Local Development
 
@@ -82,32 +82,32 @@ The codebase is organized logically, separating concerns and promoting maintaina
 
 ## 5. Key Features & Logic
 
--   **Expense Management**:
-    -   Expenses are automatically divided among the 7 apartments.
-    -   The user who paid the expense is excluded from their share of the cost.
-    -   Payment status is tracked on a per-apartment basis for each expense.
-    -   Core logic is located in `src/lib/expense-utils.ts` and `src/lib/firestore.ts`.
--   **Authentication & Roles**:
-    -   Uses Firebase Auth for email/password login.
-    -   A new user undergoes an onboarding flow to select their apartment and `propertyRole` (Tenant/Owner).
-    -   The system uses a dual-role structure:
-        -   `role`: `user` or `admin` (application-level permissions).
-        -   `propertyRole`: `tenant` or `owner` (contextual role within the property).
-    -   The `AuthContext` (`src/context/auth-context.tsx`) provides the user's profile and auth status throughout the app.
--   **Admin Panel**: Admins have elevated privileges to manage users, expense categories, and announcements.
--   **Notifications**: Firebase Cloud Messaging (FCM) is used to send push notifications for important events. The service worker setup is in `public/firebase-messaging-sw.js`.
+- **Expense Management**:
+  - Expenses are automatically divided among the 7 apartments.
+  - The user who paid the expense is excluded from their share of the cost.
+  - Payment status is tracked on a per-apartment basis for each expense.
+  - Core logic is located in `src/lib/expense-utils.ts` and `src/lib/firestore.ts`.
+- **Authentication & Roles**:
+  - Uses Firebase Auth for email/password login.
+  - A new user undergoes an onboarding flow to select their apartment and `propertyRole` (Tenant/Owner).
+  - The system uses a dual-role structure:
+    - `role`: `user` or `admin` (application-level permissions).
+    - `propertyRole`: `tenant` or `owner` (contextual role within the property).
+  - The `AuthContext` (`src/context/auth-context.tsx`) provides the user's profile and auth status throughout the app.
+- **Admin Panel**: Admins have elevated privileges to manage users, expense categories, and announcements.
+- **Notifications**: Firebase Cloud Messaging (FCM) is used to send push notifications for important events. The service worker setup is in `public/firebase-messaging-sw.js`.
 
 ## 6. Available Commands
 
 The `package.json` file defines several scripts for common development tasks:
 
--   `npm run dev`: Starts the Next.js development server with Turbopack.
--   `npm run build`: Creates a production-ready build of the application.
--   `npm run lint`: Runs ESLint to check for code quality and style issues.
--   `npm run typecheck`: Verifies the project's TypeScript types.
--   `npm run format`: Formats all code using Prettier.
--   `npm run genkit:dev`: Starts the Genkit AI development server.
--   `npm run insert-apartments`: A custom script to seed the database with apartment data.
+- `npm run dev`: Starts the Next.js development server with Turbopack.
+- `npm run build`: Creates a production-ready build of the application.
+- `npm run lint`: Runs ESLint to check for code quality and style issues.
+- `npm run typecheck`: Verifies the project's TypeScript types.
+- `npm run format`: Formats all code using Prettier.
+- `npm run genkit:dev`: Starts the Genkit AI development server.
+- `npm run insert-apartments`: A custom script to seed the database with apartment data.
 
 ## 7. Deployment
 
