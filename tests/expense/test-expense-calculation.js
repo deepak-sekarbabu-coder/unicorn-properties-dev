@@ -2,7 +2,7 @@
 const {
   calculateExpenseAmounts,
   calculateTotalOutstanding,
-} = require('./src/lib/expense-utils.ts');
+} = require('../../src/lib/expense-utils.ts');
 
 // Mock data
 const apartments = [

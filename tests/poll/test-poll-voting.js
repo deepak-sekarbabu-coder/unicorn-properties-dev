@@ -1,4 +1,4 @@
-const { voteOnPoll } = require('./src/lib/firestore.js');
+const { voteOnPoll } = require('../../src/lib/firestore');
 
 // Mock poll data
 const poll = {

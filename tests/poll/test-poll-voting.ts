@@ -1,4 +1,4 @@
-const { voteOnPoll } = require('./src/lib/firestore');
+import { voteOnPoll } from '../../src/lib/firestore.ts';
 
 // Mock poll data
 const poll = {
@@ -23,7 +23,7 @@ async function testApartmentVotingConstraint() {
     console.log('First vote succeeded');
     await voteOnPoll(pollId, apartmentId, 'opt2');
     console.error('Second vote should have failed but succeeded');
-  } catch (e) {
+  } catch (e: any) {
     console.log('Second vote correctly failed:', e.message);
   }
 }
