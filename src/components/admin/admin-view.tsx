@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -108,8 +108,7 @@ export function AdminView({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={u.avatar} alt={u.name} />
-                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={u.avatar} alt={u.name || 'User avatar'} />                 
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{u.name}</p>
@@ -153,7 +152,7 @@ export function AdminView({
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete{' '}
-                            <strong>{u.name}</strong>&apos;s account.
+                            <strong>{u.name || 'this user'}</strong>&apos;s account.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -192,10 +191,9 @@ export function AdminView({
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={u.avatar} alt={u.name} />
-                          <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                          <AvatarImage src={u.avatar} alt={u.name || 'User avatar'} />
                         </Avatar>
-                        <span>{u.name}</span>
+                        <span>{u.name || 'Unnamed User'}</span>
                       </div>
                     </TableCell>
                     <TableCell>{u.apartment || 'N/A'}</TableCell>
@@ -250,7 +248,7 @@ export function AdminView({
                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                             <AlertDialogDescription>
                               This action cannot be undone. This will permanently delete{' '}
-                              <strong>{u.name}</strong>&apos;s account.
+                              <strong>{u.name || 'this user'}</strong>&apos;s account.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
