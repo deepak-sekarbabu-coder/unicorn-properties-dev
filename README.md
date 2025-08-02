@@ -45,8 +45,8 @@ Unicorn Properties is a modern web application for managing shared apartment exp
   - **Global**: Authentication state is managed via React Context (`AuthContext`).
   - **Local**: App data (users, expenses, categories) is managed in the main app component and passed down via props.
 - **Backend**: Firebase (Firestore for data, Auth for login, FCM for notifications). All database logic is centralized in `src/lib/firestore.ts`.
-- **Expense Division**: Every expense is auto-divided among 7 apartments. The payer is excluded from what they owe. Payment status is tracked per apartment. See [`docs/EXPENSE_DIVISION_FEATURE.md`](docs/EXPENSE_DIVISION_FEATURE.md).
-- **Roles**: Each user has two roles: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding is triggered if either is missing. See [`docs/ROLE_STRUCTURE.md`](docs/ROLE_STRUCTURE.md).
+- **Expense Division**: Every expense is auto-divided among 7 apartments. The payer is excluded from what they owe. Payment status is tracked per apartment. See [`docs/features/EXPENSE_DIVISION_FEATURE.md`](docs/features/EXPENSE_DIVISION_FEATURE.md).
+- **Roles**: Each user has two roles: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding is triggered if either is missing. See [`docs/roles/ROLE_STRUCTURE.md`](docs/roles/ROLE_STRUCTURE.md).
 - **Notifications**: Push notifications use Firebase Cloud Messaging (FCM), with setup in `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
 - **Admin Panel**: Admins can manage users, categories, expenses, and approve/reject announcements.
 - **AI Integration**: Genkit flows in `src/ai/` enable AI-powered features (see docs).
@@ -89,7 +89,7 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 **Troubleshooting:**
 
 - If you see errors about missing Firebase config, double-check your `.env.local` file.
-- For Netlify deployment, see [`docs/NETLIFY_DEPLOYMENT.md`](docs/NETLIFY_DEPLOYMENT.md) and [`docs/NETLIFY_TROUBLESHOOTING.md`](docs/NETLIFY_TROUBLESHOOTING.md).
+- For Netlify deployment, see [`docs/deployment/NETLIFY_DEPLOYMENT.md`](docs/deployment/NETLIFY_DEPLOYMENT.md) and [`docs/deployment/NETLIFY_TROUBLESHOOTING.md`](docs/deployment/NETLIFY_TROUBLESHOOTING.md).
 
 ---
 
@@ -138,18 +138,18 @@ We welcome contributions! To get started:
 
 ## Documentation & References
 
-- [Developer Documentation](docs/DEVELOPER_DOCUMENTATION.md): Technical overview, setup, and architecture
-- [User Guide](docs/DOCUMENTATION.md): Feature guide and practical usage
-- [Authentication Flow](docs/AUTHENTICATION_FLOW.md): Auth system, onboarding, and session management
-- [Role Structure](docs/ROLE_STRUCTURE.md): User roles, permissions, and onboarding logic
-- [Expense Division](docs/EXPENSE_DIVISION_FEATURE.md): Expense logic, payment tracking, and outstanding balances
-- [Netlify Deployment](docs/NETLIFY_DEPLOYMENT.md): Deployment and environment setup
-- [Blueprint](docs/blueprint.md): UI/UX guidelines and design patterns
+- [Developer Documentation](docs/guides/DEVELOPER_DOCUMENTATION.md): Technical overview, setup, and architecture
+- [User Guide](docs/architecture/DOCUMENTATION.md): Feature guide and practical usage
+- [Authentication Flow](docs/roles/AUTHENTICATION_FLOW.md): Auth system, onboarding, and session management
+- [Role Structure](docs/roles/ROLE_STRUCTURE.md): User roles, permissions, and onboarding logic
+- [Expense Division](docs/features/EXPENSE_DIVISION_FEATURE.md): Expense logic, payment tracking, and outstanding balances
+- [Netlify Deployment](docs/deployment/NETLIFY_DEPLOYMENT.md): Deployment and environment setup
+- [Blueprint](docs/architecture/blueprint.md): UI/UX guidelines and design patterns
 
 ---
 
 ## FAQ & Troubleshooting
 
-- For common issues, see [`docs/NETLIFY_TROUBLESHOOTING.md`](docs/NETLIFY_TROUBLESHOOTING.md) and in-app help dialogs.
+- For common issues, see [`docs/deployment/NETLIFY_TROUBLESHOOTING.md`](docs/deployment/NETLIFY_TROUBLESHOOTING.md) and in-app help dialogs.
 - If you encounter authentication or deployment issues, check the browser console and Netlify logs for details.
 - For more, see `.github/copilot-instructions.md` and `/docs` for AI and developer guidance.

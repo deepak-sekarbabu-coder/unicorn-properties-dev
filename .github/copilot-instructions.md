@@ -16,14 +16,14 @@ Unicorn Properties is a Next.js (App Router) web app for managing shared apartme
 
 - **Expense Division**: All expenses are auto-divided among 7 apartments. The payer is excluded from what they owe. Payment status is tracked per apartment. See `src/lib/expense-utils.ts` and `src/components/expense-item.tsx`.
 - **Outstanding Balances**: Displayed in red at the top of the dashboard (`src/components/outstanding-balance.tsx`).
-- **Roles**: Dual roles per user: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding triggers if missing. See `src/lib/types.ts` and `docs/ROLE_STRUCTURE.md`.
+- **Roles**: Dual roles per user: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding triggers if missing. See `src/lib/types.ts` and `docs/roles/ROLE_STRUCTURE.md`.
 - **Dialogs**: All add/edit flows use dialog components in `src/components/` (e.g., `add-expense-dialog.tsx`).
 - **UI**: Use ShadCN UI components from `src/components/ui/`. Styling via Tailwind. Use `utils.ts` for class merging.
 - **Notifications**: FCM setup in `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
 - **Testing**: Test scripts are in the project root (e.g., `test-expense-calculation.js`).
 - **Analytics**: Analytics components and logic are in `src/components/analytics/`.
 - **Admin Panel**: Admin features and user management are in `src/components/admin/`.
-- **Payment Integration**: Payment gateway logic is in `src/components/payment-gateways.tsx` and `docs/PAYMENT_INTEGRATION_GUIDE.md`.
+- **Payment Integration**: Payment gateway logic is in `src/components/payment-gateways.tsx` and `docs/payments/PAYMENT_INTEGRATION_GUIDE.md`.
 - **Fault Reporting**: Fault reporting flows are in `src/components/fault-reporting-form.tsx` and `src/app/fault-reporting/`.
 
 ## Developer Workflows
