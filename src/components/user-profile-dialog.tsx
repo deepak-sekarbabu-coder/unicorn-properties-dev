@@ -74,7 +74,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
       email: user.email,
       phone: user.phone || '',
       avatar: undefined,
-      apartment: user.apartment || '',
+      apartment: (['G1','F1','F2','S1','S2','T1','T2'].includes(user.apartment) ? user.apartment as 'G1' | 'F1' | 'F2' | 'S1' | 'S2' | 'T1' | 'T2' : undefined),
       propertyRole: user.propertyRole || 'tenant',
     },
   });
@@ -85,7 +85,7 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
         name: user.name,
         email: user.email,
         phone: user.phone || '',
-        apartment: user.apartment || '',
+        apartment: (['G1','F1','F2','S1','S2','T1','T2'].includes(user.apartment) ? user.apartment as 'G1' | 'F1' | 'F2' | 'S1' | 'S2' | 'T1' | 'T2' : undefined),
         propertyRole: user.propertyRole || 'tenant',
       });
     }

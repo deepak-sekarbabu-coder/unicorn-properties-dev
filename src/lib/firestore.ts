@@ -1,7 +1,6 @@
 import {
   DocumentData,
   QuerySnapshot,
-  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -15,7 +14,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Announcement, Apartment, Category, Expense, Fault, Poll, User } from './types';
+import type { Apartment, Category, Expense, Fault, Poll, User } from './types';
 
 const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
@@ -200,68 +199,6 @@ export const deleteExpense = async (id: string): Promise<void> => {
 // --- Outstanding Balances ---
 // Suggestion: Store outstanding balances in a summary document per apartment, updated on expense changes.
 // This avoids scanning all expenses for each dashboard load.
-// --- Announcements ---
-export const getAnnouncements = async (role: 'admin' | 'user'): Promise<Announcement[]> => {
-  const announcementsCol = collection(db, 'announcements');
-  const now = Timestamp.now();
-  const statusesToFetch = role === 'admin' ? ['approved', 'pending'] : ['approved'];
-  const q = query(
-    announcementsCol,
-    where('expiresAt', '>', now),
-    where('status', 'in', statusesToFetch)
-    /* limit(10) */ // Limit results for notifications panel
-  );
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      message: data.message,
-      status: data.status as 'approved' | 'rejected' | 'pending',
-      createdBy: data.createdBy,
-      createdAt: data.createdAt.toDate().toISOString(),
-      expiresAt: data.expiresAt.toDate().toISOString(),
-    };
-  });
-};
-
-export const addAnnouncement = async (
-  message: string,
-  userId: string,
-  userRole: 'admin' | 'user'
-): Promise<Announcement> => {
-  const now = new Date();
-  const expires = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
-  const newAnnouncement = {
-    message,
-    createdBy: userId,
-    status: userRole === 'admin' ? 'approved' : 'pending',
-    createdAt: Timestamp.fromDate(now),
-    expiresAt: Timestamp.fromDate(expires),
-  };
-  const announcementsCol = collection(db, 'announcements');
-  const docRef = await addDoc(announcementsCol, newAnnouncement);
-  return {
-    id: docRef.id,
-    message: newAnnouncement.message,
-    createdBy: newAnnouncement.createdBy,
-    status: newAnnouncement.status as 'approved' | 'rejected' | 'pending',
-    createdAt: now.toISOString(),
-    expiresAt: expires.toISOString(),
-  };
-};
-
-export const updateAnnouncementStatus = async (
-  id: string,
-  status: 'approved' | 'rejected'
-): Promise<void> => {
-  const announcementDoc = doc(db, 'announcements', id);
-  if (status === 'rejected') {
-    await deleteDoc(announcementDoc);
-  } else {
-    await updateDoc(announcementDoc, { status });
-  }
-};
 
 // --- Polling Feature ---
 export const getPolls = async (activeOnly = false): Promise<Poll[]> => {

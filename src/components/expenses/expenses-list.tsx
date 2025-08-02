@@ -2,14 +2,13 @@
 
 import * as React from 'react';
 
-import type { Apartment, Category, Expense, User } from '@/lib/types';
+import type { Category, Expense, User } from '@/lib/types';
 
 import { ExpenseItem } from '@/components/expense-item';
 
 export interface ExpensesListProps {
   expenses: Expense[];
   limit?: number;
-  apartments: Apartment[];
   users: User[];
   categories: Category[];
   currentUserApartment: string | undefined;
@@ -21,7 +20,6 @@ export interface ExpensesListProps {
 export function ExpensesList({
   expenses,
   limit,
-  apartments,
   users,
   categories,
   currentUserApartment,
@@ -48,11 +46,9 @@ export function ExpensesList({
         <ExpenseItem
           key={expense.id}
           expense={expense}
-          apartments={apartments}
           users={users}
           categories={categories}
           currentUserApartment={currentUserApartment}
-          isOwner={expense.paidByApartment === currentUserApartment}
           onExpenseUpdate={onExpenseUpdate}
           currentUserRole={currentUserRole}
           onExpenseDelete={currentUserRole === 'admin' ? onExpenseDelete : undefined}

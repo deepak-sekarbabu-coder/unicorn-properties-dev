@@ -6,10 +6,9 @@ import * as React from 'react';
 
 import Image from 'next/image';
 
-import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import type { User, View } from '@/lib/types';
 
-import { CreditCard, Users } from '@/components/ui/lucide';
+import { Users } from '@/components/ui/lucide';
 import {
   SidebarContent,
   SidebarHeader,
@@ -28,11 +27,16 @@ interface NavigationMenuProps {
 
 export function NavigationMenu({ user, view, setView, role }: NavigationMenuProps) {
   const { setOpenMobile, isMobile } = useSidebar();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleNavigation = (newView: View) => {
     setView(newView);
     // Close mobile sidebar when navigating
-    if (isMobile) {
+    if (isClient && isMobile) {
       setOpenMobile(false);
     }
   };
@@ -40,7 +44,7 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
   const handleLogoNavigation = () => {
     if (user) {
       setView('dashboard');
-      if (isMobile) {
+      if (isClient && isMobile) {
         setOpenMobile(false);
       }
     }
@@ -125,19 +129,7 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
               Current Faults
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {isPaymentDemoEnabled() && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigation('payment-demo')}
-                isActive={view === 'payment-demo'}
-                tooltip="Payment Demo"
-              >
-                <CreditCard />
-                Payment Demo
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          {role === 'admin' && (
+          {isClient && role === 'admin' && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => handleNavigation('admin')}

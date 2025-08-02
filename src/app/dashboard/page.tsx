@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
-import { getAnnouncements, getCategories, getUserByEmail } from '@/lib/firestore';
+import { getCategories, getUserByEmail } from '@/lib/firestore';
 
 import { UnicornPropertiesApp } from '@/components/unicorn-properties-app';
 
@@ -95,23 +95,22 @@ export default async function DashboardPage() {
     // Get basic data that doesn't require user context
     const initialCategories = await getCategories();
 
+    // Client-side fallback
     return (
       <ProtectedRoute>
-        <UnicornPropertiesApp initialCategories={initialCategories} initialAnnouncements={[]} />
+        <UnicornPropertiesApp initialCategories={initialCategories} />
       </ProtectedRoute>
     );
   }
 
   // Server-side auth successful - proceed normally
   const initialCategories = await getCategories();
-  const initialAnnouncements = await getAnnouncements(user.role === 'admin' ? 'admin' : 'user');
 
   // Data fetching will now be handled client-side based on user's apartment
   // We pass empty arrays to avoid prop-drilling large initial datasets
   return (
     <UnicornPropertiesApp
       initialCategories={initialCategories}
-      initialAnnouncements={initialAnnouncements}
     />
   );
 }

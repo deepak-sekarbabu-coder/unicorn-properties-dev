@@ -4,14 +4,6 @@
 
 export const FeatureFlags = {
   /**
-   * Check if payment demo feature is enabled
-   * @returns boolean indicating if payment demo should be shown
-   */
-  isPaymentDemoEnabled: (): boolean => {
-    return process.env.NEXT_PUBLIC_ENABLE_PAYMENT_DEMO === 'true';
-  },
-
-  /**
    * Generic feature flag checker
    * @param flagName - The environment variable name
    * @param defaultValue - Default value if env var is not set
@@ -23,6 +15,3 @@ export const FeatureFlags = {
     return envValue === 'true';
   },
 } as const;
-
-// Export individual feature flags for convenience
-export const isPaymentDemoEnabled = FeatureFlags.isPaymentDemoEnabled;

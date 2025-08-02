@@ -22,8 +22,7 @@ export function NotificationItem({ notification, onMarkAsRead, onPayNow }: Notif
         return <AlertCircle className="h-5 w-5 text-amber-500" />;
       case 'payment_received':
         return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case 'announcement':
-        return <Bell className="h-5 w-5 text-blue-500" />;
+
       case 'reminder':
         return <Clock className="h-5 w-5 text-purple-500" />;
       default:
@@ -37,8 +36,7 @@ export function NotificationItem({ notification, onMarkAsRead, onPayNow }: Notif
         return 'Payment Request';
       case 'payment_received':
         return 'Payment Received';
-      case 'announcement':
-        return 'Announcement';
+
       case 'reminder':
         return 'Reminder';
       default:
