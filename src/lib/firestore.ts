@@ -287,11 +287,11 @@ export const listenToPolls = (cb: (polls: Poll[]) => void, activeOnly = false) =
 
 export const addPoll = async (poll: Omit<Poll, 'id' | 'createdAt' | 'votes'>): Promise<Poll> => {
   const now = new Date().toISOString();
-  const newPoll = {
+  const newPoll = removeUndefined({
     ...poll,
     createdAt: now,
     votes: {},
-  };
+  });
   const pollsCol = collection(db, 'polls');
   const docRef = await addDoc(pollsCol, newPoll);
   return { id: docRef.id, ...newPoll } as Poll;
