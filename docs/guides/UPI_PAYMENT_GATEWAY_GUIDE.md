@@ -63,7 +63,7 @@ import admin from 'firebase-admin';
 
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_KEY);
-  
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -79,9 +79,11 @@ export const auth = admin.auth();
 Create `app/api/createOrder/route.ts`[^3]:
 
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
-import Razorpay from "razorpay";
-import { db } from "@/lib/firebase-admin";
+import Razorpay from 'razorpay';
+
+import { NextRequest, NextResponse } from 'next/server';
+
+import { db } from '@/lib/firebase-admin';
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID as string,
@@ -93,16 +95,13 @@ export async function POST(request: NextRequest) {
     const { amount, currency, userId, productId } = await request.json();
 
     if (!amount || !userId) {
-      return NextResponse.json(
-        { message: "Amount and userId are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Amount and userId are required' }, { status: 400 });
     }
 
     // Create Razorpay order
     const options = {
       amount: amount * 100, // Convert to paise
-      currency: currency || "INR",
+      currency: currency || 'INR',
       receipt: `receipt_${Date.now()}`,
       payment_capture: 1,
     };
@@ -114,14 +113,14 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       razorpayOrderId: order.id,
       amount: amount,
-      currency: currency || "INR",
+      currency: currency || 'INR',
       userId: userId,
       productId: productId || null,
-      status: "created",
+      status: 'created',
       createdAt: new Date(),
     };
 
-    await db.collection("orders").doc(order.id).set(orderData);
+    await db.collection('orders').doc(order.id).set(orderData);
 
     return NextResponse.json({
       orderId: order.id,
@@ -129,11 +128,8 @@ export async function POST(request: NextRequest) {
       currency: order.currency,
     });
   } catch (error) {
-    console.error("Error creating order:", error);
-    return NextResponse.json(
-      { message: "Failed to create order", error },
-      { status: 500 }
-    );
+    console.error('Error creating order:', error);
+    return NextResponse.json({ message: 'Failed to create order', error }, { status: 500 });
   }
 }
 ```
@@ -143,43 +139,35 @@ export async function POST(request: NextRequest) {
 Create `app/api/verifyPayment/route.ts`[^3]:
 
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { db } from "@/lib/firebase-admin";
+import crypto from 'crypto';
+
+import { NextRequest, NextResponse } from 'next/server';
+
+import { db } from '@/lib/firebase-admin';
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      userId,
-    } = await request.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId } =
+      await request.json();
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     // Verify signature
     const secret = process.env.RAZORPAY_KEY_SECRET as string;
-    const hmac = crypto.createHmac("sha256", secret);
+    const hmac = crypto.createHmac('sha256', secret);
     hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-    const generatedSignature = hmac.digest("hex");
+    const generatedSignature = hmac.digest('hex');
 
     if (generatedSignature !== razorpay_signature) {
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     // Update order status in Firestore
-    const orderRef = db.collection("orders").doc(razorpay_order_id);
+    const orderRef = db.collection('orders').doc(razorpay_order_id);
     await orderRef.update({
-      status: "paid",
+      status: 'paid',
       paymentId: razorpay_payment_id,
       signature: razorpay_signature,
       paidAt: new Date(),
@@ -187,26 +175,26 @@ export async function POST(request: NextRequest) {
 
     // Update user's payment status if needed
     if (userId) {
-      await db.collection("users").doc(userId).update({
-        lastPayment: {
-          orderId: razorpay_order_id,
-          paymentId: razorpay_payment_id,
-          amount: (await orderRef.get()).data()?.amount,
-          paidAt: new Date(),
-        },
-      });
+      await db
+        .collection('users')
+        .doc(userId)
+        .update({
+          lastPayment: {
+            orderId: razorpay_order_id,
+            paymentId: razorpay_payment_id,
+            amount: (await orderRef.get()).data()?.amount,
+            paidAt: new Date(),
+          },
+        });
     }
 
     return NextResponse.json({
       success: true,
-      message: "Payment verified successfully",
+      message: 'Payment verified successfully',
     });
   } catch (error) {
-    console.error("Error verifying payment:", error);
-    return NextResponse.json(
-      { error: "Payment verification failed" },
-      { status: 500 }
-    );
+    console.error('Error verifying payment:', error);
+    return NextResponse.json({ error: 'Payment verification failed' }, { status: 500 });
   }
 }
 ```
@@ -216,43 +204,39 @@ export async function POST(request: NextRequest) {
 Create `app/api/webhook/razorpay/route.ts` for handling Razorpay webhooks[^4]:
 
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { db } from "@/lib/firebase-admin";
+import crypto from 'crypto';
+
+import { NextRequest, NextResponse } from 'next/server';
+
+import { db } from '@/lib/firebase-admin';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = request.headers.get("x-razorpay-signature");
+    const signature = request.headers.get('x-razorpay-signature');
 
     if (!signature) {
-      return NextResponse.json(
-        { error: "Missing signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
     }
 
     // Verify webhook signature
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const hmac = crypto.createHmac("sha256", webhookSecret as string);
+    const hmac = crypto.createHmac('sha256', webhookSecret as string);
     hmac.update(body);
-    const generatedSignature = hmac.digest("hex");
+    const generatedSignature = hmac.digest('hex');
 
     if (generatedSignature !== signature) {
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     const event = JSON.parse(body);
 
     // Handle different webhook events
     switch (event.event) {
-      case "payment.captured":
+      case 'payment.captured':
         await handlePaymentCaptured(event.payload.payment.entity);
         break;
-      case "payment.failed":
+      case 'payment.failed':
         await handlePaymentFailed(event.payload.payment.entity);
         break;
       default:
@@ -261,26 +245,23 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Webhook error:", error);
-    return NextResponse.json(
-      { error: "Webhook processing failed" },
-      { status: 500 }
-    );
+    console.error('Webhook error:', error);
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
 async function handlePaymentCaptured(payment: any) {
-  const orderRef = db.collection("orders").doc(payment.order_id);
+  const orderRef = db.collection('orders').doc(payment.order_id);
   await orderRef.update({
-    status: "captured",
+    status: 'captured',
     webhookProcessedAt: new Date(),
   });
 }
 
 async function handlePaymentFailed(payment: any) {
-  const orderRef = db.collection("orders").doc(payment.order_id);
+  const orderRef = db.collection('orders').doc(payment.order_id);
   await orderRef.update({
-    status: "failed",
+    status: 'failed',
     webhookProcessedAt: new Date(),
   });
 }
@@ -443,7 +424,7 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
-    
+
     // Users collection - users can only access their own data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -497,7 +478,7 @@ export default function ProductPage() {
     <div className="p-6">
       <h1>Premium Plan</h1>
       <p>Get access to premium features</p>
-      
+
       <PaymentButton
         amount={999}
         productId="premium-plan"
@@ -566,66 +547,3 @@ This comprehensive integration provides a secure, scalable payment solution for 
 [^4]: <https://www.youtube.com/watch?v=oWK7kesoCQY>
 
 [^5]: <https://www.freecodecamp.org/news/serverless-online-payments/>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

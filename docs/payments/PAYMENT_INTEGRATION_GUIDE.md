@@ -236,6 +236,7 @@ interface PaymentRequest {
 ```typescript
 // pages/api/payments/process.ts
 import { NextApiRequest, NextApiResponse } from 'next';
+
 import { updatePaymentStatus } from '@/lib/firestore';
 import { verifyPayment } from '@/lib/payment-verification';
 

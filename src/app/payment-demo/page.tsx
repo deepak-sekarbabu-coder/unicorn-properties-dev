@@ -4,6 +4,9 @@ import { AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 import { useState } from 'react';
 
+import Image from 'next/image';
+
+import PaymentButton from '@/components/PaymentButton';
 import { PaymentRequest } from '@/components/payment-gateways';
 import { PaymentRequestCard } from '@/components/payment-request-card';
 import { Button } from '@/components/ui/button';
@@ -20,8 +23,6 @@ import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast-provider';
-import PaymentButton from '@/components/PaymentButton';
-import Image from 'next/image';
 
 // Define a type for the error object
 interface PaymentError {
@@ -272,7 +273,13 @@ function DemoPaymentGateways({
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 relative">
-                    <Image src="https://razorpay.com/favicon.ico" alt="Razorpay" width={32} height={32} className="w-8 h-8" />
+                    <Image
+                      src="https://razorpay.com/favicon.ico"
+                      alt="Razorpay"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8"
+                    />
                   </div>
                   <div>
                     <div className="font-medium">Razorpay (UPI/Card)</div>
@@ -294,7 +301,7 @@ function DemoPaymentGateways({
                   <PaymentButton
                     amount={paymentRequest.amount}
                     productId={paymentRequest.id}
-                    onSuccess={(response) => {
+                    onSuccess={response => {
                       setIsPaymentSuccessful(true);
                       setTransactionId(response.razorpay_payment_id);
                       if (onPaymentComplete) {

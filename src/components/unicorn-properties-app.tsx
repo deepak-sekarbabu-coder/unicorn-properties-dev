@@ -6,14 +6,14 @@ import { format, subMonths } from 'date-fns';
 
 import * as React from 'react';
 
+import dynamic from 'next/dynamic';
+
 import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Apartment, Category, Expense, User } from '@/lib/types';
 import type { View } from '@/lib/types';
 
-import { AdminView } from '@/components/admin/admin-view';
-import { AnalyticsView } from '@/components/analytics/analytics-view';
 import { CommunityView } from '@/components/community/community-view';
 import { DashboardView } from '@/components/dashboard/dashboard-view';
 import { ExpensesList } from '@/components/expenses/expenses-list';
@@ -29,6 +29,14 @@ import { useToast } from '@/hooks/use-toast';
 
 import { CurrentFaultsList } from './current-faults-list';
 import { FaultReportingForm } from './fault-reporting-form';
+
+const AdminView = dynamic(() => import('@/components/admin/admin-view').then(mod => mod.default), {
+  ssr: false,
+});
+const AnalyticsView = dynamic(
+  () => import('@/components/analytics/analytics-view').then(mod => mod.default),
+  { ssr: false }
+);
 
 interface UnicornPropertiesAppProps {
   initialCategories: Category[];
@@ -113,6 +121,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         .register('/firebase-messaging-sw.js')
         .then(registration => {
           console.log('Service Worker registration successful, scope is:', registration.scope);
+          // If the service worker is not controlling the page, reload so it takes control
+          if (!navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
         })
         .catch(err => {
           console.log('Service Worker registration failed, error:', err);

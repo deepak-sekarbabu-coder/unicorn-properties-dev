@@ -300,3 +300,5 @@ export function AnalyticsView({
     </div>
   );
 }
+
+export default AnalyticsView;

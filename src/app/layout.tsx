@@ -29,6 +29,18 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* Preconnect to required origins for performance */}
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+        <link rel="preconnect" href="https://www.gstatic.com" />
+        <link rel="preconnect" href="https://firebase.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.razorpay.com" />
+        <link rel="preconnect" href="https://checkout.razorpay.com" />
+        <link rel="preconnect" href="https://apartmentshare.firebaseapp.com" />
+        <link rel="dns-prefetch" href="https://apartmentshare.firebaseapp.com" />
+        <link rel="preconnect" href="https://apis.google.com" />
+        <link rel="dns-prefetch" href="https://apis.google.com" />
       </head>
       <body className="font-body antialiased">
         <AuthProvider>

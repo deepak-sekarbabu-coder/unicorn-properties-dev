@@ -5,10 +5,13 @@ import { AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 import { useState } from 'react';
 
+import Image from 'next/image';
+
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import type { Notification } from '@/lib/types';
 
+import PaymentButton from '@/components/PaymentButton';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,8 +24,6 @@ import {
 import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import PaymentButton from '@/components/PaymentButton';
-import Image from "next/image";
 
 // Define payment method types
 export type PaymentMethod = 'googlepay' | 'phonepay' | 'upi' | 'card' | 'razorpay';
@@ -387,7 +388,12 @@ export function PaymentGateways({
             {/* If Razorpay selected, show PaymentButton */}
             {selectedMethod === 'razorpay' ? (
               <div className="flex flex-row gap-2 mt-4">
-                <Button variant="outline" onClick={onCancel} disabled={isProcessing} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={isProcessing}
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
                 <PaymentButton
@@ -397,7 +403,10 @@ export function PaymentGateways({
                     setIsPaymentSuccessful(true);
                     setTransactionId(response.razorpay_payment_id || response.razorpay_order_id);
                     if (onPaymentComplete)
-                      onPaymentComplete(response.razorpay_payment_id || response.razorpay_order_id, 'razorpay');
+                      onPaymentComplete(
+                        response.razorpay_payment_id || response.razorpay_order_id,
+                        'razorpay'
+                      );
                   }}
                   onError={err => {
                     const error = err as PaymentError;

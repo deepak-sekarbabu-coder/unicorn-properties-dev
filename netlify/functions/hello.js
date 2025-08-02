@@ -1,5 +1,5 @@
 // Example Netlify function for testing
-exports.handler = async (event, context) => {
+/* exports.handler = async (event, context) => {
   return {
     statusCode: 200,
     headers: {
@@ -14,3 +14,4 @@ exports.handler = async (event, context) => {
     }),
   };
 };
+ */
