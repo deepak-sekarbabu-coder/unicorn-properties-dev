@@ -41,6 +41,36 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://apartmentshare.firebaseapp.com" />
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="dns-prefetch" href="https://apis.google.com" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                  console.log('SW registered: ', registration);
+
+                  // Update service worker when new version is available
+                  registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                      newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                          // New service worker is available, prompt user to refresh
+                          console.log('New service worker available');
+                        }
+                      });
+                    }
+                  });
+                })
+                .catch((registrationError) => {
+                  console.log('SW registration failed: ', registrationError);
+                });
+            });
+          }
+        `,
+          }}
+        />
       </head>
       <body className="font-body antialiased">
         <AuthProvider>

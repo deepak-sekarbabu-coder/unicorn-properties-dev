@@ -41,20 +41,20 @@ To set up and run the project locally, follow these steps:
 
 1. **Install Dependencies**:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 2. **Environment Configuration**:
-    - Copy the example environment file: `cp .env.example .env.local`
-    - Populate `.env.local` with your Firebase project configuration keys.
+   - Copy the example environment file: `cp .env.example .env.local`
+   - Populate `.env.local` with your Firebase project configuration keys.
 3. **Run the Development Server**:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-    The application will be available at `http://localhost:3000`.
+   The application will be available at `http://localhost:3000`.
 
 ## 4. Project Structure
 
