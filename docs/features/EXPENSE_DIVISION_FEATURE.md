@@ -47,7 +47,7 @@ This feature automatically divides expenses across seven apartments and tracks w
   perApartmentShare: number; // Amount each apartment owes (e.g., 100)
   categoryId: string;
   receipt?: string;
-  paidByApartments?: string[]; // NEW: Apartments that have paid back
+  paidByApartments?: string[]; // Apartments that have paid back
 }
 ```
 
