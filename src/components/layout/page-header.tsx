@@ -50,11 +50,7 @@ export function PageHeader({
       <h1 className="text-lg sm:text-xl font-semibold truncate flex-1">{title}</h1>
       <div className="flex items-center gap-2 sm:gap-4">
         {user && (
-          <AddExpenseDialog
-            categories={categories}
-            onAddExpense={onAddExpense}
-            currentUser={user}
-          >
+          <AddExpenseDialog categories={categories} onAddExpense={onAddExpense} currentUser={user}>
             <Button className="bg-accent hover:bg-accent/90">
               <PlusCircle className="mr-2 h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Add Expense</span>

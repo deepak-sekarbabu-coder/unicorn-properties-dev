@@ -108,9 +108,5 @@ export default async function DashboardPage() {
 
   // Data fetching will now be handled client-side based on user's apartment
   // We pass empty arrays to avoid prop-drilling large initial datasets
-  return (
-    <UnicornPropertiesApp
-      initialCategories={initialCategories}
-    />
-  );
+  return <UnicornPropertiesApp initialCategories={initialCategories} />;
 }

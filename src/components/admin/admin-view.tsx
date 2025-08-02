@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,16 +104,12 @@ export function AdminView({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 flex-shrink-0">
-<<<<<<< HEAD
-                      <AvatarImage src={u.avatar} alt={u.name || 'User avatar'} />                 
-=======
                       <AvatarImage src={u.avatar} alt={u.name} />
                       <AvatarFallback>
                         {u.name && typeof u.name === 'string' && u.name.length > 0
                           ? u.name.charAt(0)
                           : '?'}
                       </AvatarFallback>
->>>>>>> 21fa925a946b8d682ff7e2a2597865858d84513b
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{u.name}</p>
@@ -196,16 +192,12 @@ export function AdminView({
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-<<<<<<< HEAD
-                          <AvatarImage src={u.avatar} alt={u.name || 'User avatar'} />
-=======
                           <AvatarImage src={u.avatar} alt={u.name} />
                           <AvatarFallback>
                             {u.name && typeof u.name === 'string' && u.name.length > 0
                               ? u.name.charAt(0)
                               : '?'}
                           </AvatarFallback>
->>>>>>> 21fa925a946b8d682ff7e2a2597865858d84513b
                         </Avatar>
                         <span>{u.name || 'Unnamed User'}</span>
                       </div>

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import type { User, Apartment } from '@/lib/types';
+
+import type { Apartment, User } from '@/lib/types';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

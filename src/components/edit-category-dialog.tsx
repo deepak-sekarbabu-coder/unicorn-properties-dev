@@ -8,8 +8,8 @@ import * as z from 'zod';
 import * as React from 'react';
 
 import type { Category } from '@/lib/types';
-import { Icons } from '@/components/icons';
 
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
