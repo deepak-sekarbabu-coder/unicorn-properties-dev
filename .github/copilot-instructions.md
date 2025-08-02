@@ -21,6 +21,10 @@ Unicorn Properties is a Next.js (App Router) web app for managing shared apartme
 - **UI**: Use ShadCN UI components from `src/components/ui/`. Styling via Tailwind. Use `utils.ts` for class merging.
 - **Notifications**: FCM setup in `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
 - **Testing**: Test scripts are in the project root (e.g., `test-expense-calculation.js`).
+- **Analytics**: Analytics components and logic are in `src/components/analytics/`.
+- **Admin Panel**: Admin features and user management are in `src/components/admin/`.
+- **Payment Integration**: Payment gateway logic is in `src/components/payment-gateways.tsx` and `docs/PAYMENT_INTEGRATION_GUIDE.md`.
+- **Fault Reporting**: Fault reporting flows are in `src/components/fault-reporting-form.tsx` and `src/app/fault-reporting/`.
 
 ## Developer Workflows
 
@@ -30,24 +34,37 @@ Unicorn Properties is a Next.js (App Router) web app for managing shared apartme
 - **Lint/Format**: `npm run lint`, `npm run format`
 - **AI dev**: `npm run genkit:dev`
 - **Env setup**: Copy `.env.example` to `.env.local` and fill Firebase config.
+- **Testing**: Run test scripts in the project root for expense, poll voting, and server logic.
 
 ## Integration Points
 
 - **Firebase**: All backend logic (auth, DB, notifications) is via Firebase SDKs. See `src/lib/firebase.ts` (client), `firebase-admin.ts` (server).
 - **Netlify**: Deployment via Netlify; see `netlify/` and `netlify.toml`.
 - **CSV Export**: Expense data export logic is in the dashboard.
+- **Payment Gateways**: See `src/components/payment-gateways.tsx` and related docs.
 
 ## References
 
 - See `/docs` for detailed feature and architecture docs.
-- Key files: `src/lib/types.ts`, `src/lib/expense-utils.ts`, `src/components/outstanding-balance.tsx`, `src/context/auth-context.tsx`, `src/app/dashboard/page.tsx`.
+- Key files: `src/lib/types.ts`, `src/lib/expense-utils.ts`, `src/components/outstanding-balance.tsx`, `src/context/auth-context.tsx`, `src/app/dashboard/page.tsx`, `src/components/admin/`, `src/components/analytics/`, `src/components/payment-gateways.tsx`, `src/components/fault-reporting-form.tsx`.
 
 ---
 
-**For AI agents:**
+**Beast Chatmode Agent Instructions:**
 
-- Follow the dual-role model for user logic.
-- Use centralized Firestore logic for all DB ops.
-- Maintain onboarding and payment tracking flows as described.
-- Adhere to UI/UX patterns (dialogs, alerts, card layouts, color/typography from blueprint).
-- Reference this file and `/docs` for any non-obvious workflow or pattern.
+- Always act as an agent: keep going until the user’s query is fully resolved.
+- Break down each request into a markdown todo list and check off each step as you go.
+- Investigate the codebase for relevant files and flows before making changes.
+- Use centralized Firestore logic for all DB operations.
+- Follow dual-role logic for users and trigger onboarding if roles are missing.
+- Use ShadCN UI components and Tailwind for all dialogs, buttons, and alerts. Use `utils.ts` for class merging.
+- For expense logic, always use `src/lib/expense-utils.ts` and update payment status per apartment.
+- For notifications, update FCM logic in both service worker and `push-notifications.ts`.
+- For payment, use gateway logic and follow integration guide.
+- For fault reporting, use the dedicated components and flows.
+- Debug using `get_errors` and test scripts. Focus on root causes.
+- Test all relevant flows (UI, expense division, onboarding, notifications, payment, fault reporting).
+- Iterate until all todo items are checked off and the solution is robust.
+- Validate against original intent and project patterns. Add tests if needed.
+- Be concise, clear, and professional. Always explain your next step before making a tool call.
+- Never end your turn until the problem is fully solved and all todo items are checked off.
