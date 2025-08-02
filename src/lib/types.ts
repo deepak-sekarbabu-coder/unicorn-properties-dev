@@ -36,20 +36,10 @@ export type Expense = {
   paidByApartments?: string[]; // Apartments that have already paid their share back
 };
 
-export type Announcement = {
-  id: string;
-  message: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdBy: string; // User ID
-  createdAt: string; // ISO date string
-  expiresAt: string; // ISO date string
-};
-
 export type NotificationType =
   | 'payment_request'
   | 'payment_received'
   | 'payment_confirmed'
-  | 'announcement'
   | 'reminder';
 
 export type PaymentMethodType =
@@ -134,5 +124,4 @@ export type View =
   | 'analytics'
   | 'community'
   | 'fault-reporting'
-  | 'current-faults'
-  | 'payment-demo';
+  | 'current-faults';

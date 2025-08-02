@@ -1,6 +1,5 @@
 'use client';
 
-import PaymentDemoPage from '@/app/payment-demo/page';
 import { useAuth } from '@/context/auth-context';
 import { format, subMonths } from 'date-fns';
 
@@ -8,7 +7,6 @@ import * as React from 'react';
 
 import dynamic from 'next/dynamic';
 
-import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Apartment, Category, Expense, User } from '@/lib/types';
@@ -48,6 +46,35 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const [view, setView] = React.useState<View>('dashboard');
 
   const [users, setUsers] = React.useState<User[]>([]);
+
+  // Safe wrapper for setUsers to ensure data integrity
+  const setSafeUsers = React.useCallback((usersOrUpdater: User[] | ((prev: User[]) => User[])) => {
+    if (typeof usersOrUpdater === 'function') {
+      setUsers(prev => {
+        const newUsers = usersOrUpdater(prev);
+        return Array.isArray(newUsers)
+          ? newUsers.filter(
+              user =>
+                user &&
+                typeof user === 'object' &&
+                typeof user.id === 'string' &&
+                user.id.trim() !== ''
+            )
+          : [];
+      });
+    } else {
+      const validUsers = Array.isArray(usersOrUpdater)
+        ? usersOrUpdater.filter(
+            user =>
+              user &&
+              typeof user === 'object' &&
+              typeof user.id === 'string' &&
+              user.id.trim() !== ''
+          )
+        : [];
+      setUsers(validUsers);
+    }
+  }, []);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [apartments, setApartments] = React.useState<Apartment[]>([]);
@@ -98,10 +125,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     unsubscribeCategories = firestore.subscribeToCategories(setCategories);
 
     if (user?.role === 'admin' || !user?.apartment) {
-      unsubscribeUsers = firestore.subscribeToUsers(setUsers);
+      unsubscribeUsers = firestore.subscribeToUsers(setSafeUsers);
       unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses);
     } else {
-      unsubscribeUsers = firestore.subscribeToUsers(setUsers, user.apartment);
+      unsubscribeUsers = firestore.subscribeToUsers(setSafeUsers, user.apartment);
       unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses, user.apartment);
     }
 
@@ -111,7 +138,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       if (unsubscribeUsers) unsubscribeUsers();
       if (unsubscribeCategories) unsubscribeCategories();
     };
-  }, [user, showApartmentDialog, toast]);
+  }, [user, showApartmentDialog, toast, setSafeUsers]);
 
   const role = user?.role || 'user';
 
@@ -154,7 +181,10 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
 
     // Check if this is a cleaning expense - if so, don't split it
     const category = getCategoryById(newExpenseData.categoryId);
-    const isCleaningExpense = category?.name.toLowerCase() === 'cleaning';
+    const isCleaningExpense =
+      category?.name && typeof category.name === 'string' && category.name.trim()
+        ? category.name.toLowerCase() === 'cleaning'
+        : false;
 
     let expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'>;
     let successMessage: string;
@@ -219,7 +249,9 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     // If the user's apartment changed, we need to refetch data, which the useEffect will handle.
     // Otherwise, just update the state locally.
     if (updatedUser.apartment === user?.apartment) {
-      setUsers(currentUsers => currentUsers.map(u => (u.id === updatedUser.id ? updatedUser : u)));
+      setSafeUsers(currentUsers =>
+        currentUsers.map(u => (u.id === updatedUser.id ? updatedUser : u))
+      );
     }
   };
 
@@ -247,13 +279,15 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const handleAddUser = async (newUserData: Omit<User, 'id'>) => {
     const newUser = await firestore.addUser(newUserData);
     if (newUser.apartment === user?.apartment || role === 'admin') {
-      setUsers(prev => [...prev, newUser]);
+      setSafeUsers(prev => [...prev, newUser]);
     }
   };
 
   const handleUpdateUserFromAdmin = async (updatedUser: User) => {
     await firestore.updateUser(updatedUser.id, updatedUser);
-    setUsers(currentUsers => currentUsers.map(u => (u.id === updatedUser.id ? updatedUser : u)));
+    setSafeUsers(currentUsers =>
+      currentUsers.map(u => (u.id === updatedUser.id ? updatedUser : u))
+    );
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -266,31 +300,11 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       return;
     }
     await firestore.deleteUser(userId);
-    setUsers(prev => prev.filter(u => u.id !== userId));
+    setSafeUsers(prev => prev.filter(u => u.id !== userId));
     toast({
       title: 'User Deleted',
       description: 'The user has been successfully removed.',
     });
-  };
-
-  // Handler for announcement approval/rejection
-  const handleAnnouncementDecision = async (
-    announcementId: string,
-    decision: 'approved' | 'rejected'
-  ) => {
-    try {
-      await firestore.updateAnnouncementStatus(announcementId, decision);
-      toast({
-        title: 'Announcement Updated',
-        description: `Announcement has been ${decision}.`,
-      });
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to update announcement status.',
-        variant: 'destructive',
-      });
-    }
   };
 
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
@@ -299,16 +313,35 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const [filteredExpenses, setFilteredExpenses] = React.useState<Expense[]>([]);
 
   React.useEffect(() => {
-    const filtered = expenses
-      .filter(expense => expense.description.toLowerCase().includes(expenseSearch.toLowerCase()))
-      .filter(expense => filterCategory === 'all' || expense.categoryId === filterCategory)
-      .filter(expense => filterPaidBy === 'all' || expense.paidByApartment === filterPaidBy)
-      .filter(
-        expense =>
-          filterMonth === 'all' || format(new Date(expense.date), 'yyyy-MM') === filterMonth
-      );
+    try {
+      const searchTerm = (expenseSearch || '').toLowerCase();
+      const filtered = expenses
+        .filter(expense => {
+          if (!expense || typeof expense !== 'object') return false;
+          const description =
+            expense.description &&
+            typeof expense.description === 'string' &&
+            expense.description.trim()
+              ? expense.description.toLowerCase()
+              : '';
+          return description.includes(searchTerm);
+        })
+        .filter(expense => filterCategory === 'all' || expense.categoryId === filterCategory)
+        .filter(expense => filterPaidBy === 'all' || expense.paidByApartment === filterPaidBy)
+        .filter(expense => {
+          if (filterMonth === 'all') return true;
+          try {
+            return expense.date && format(new Date(expense.date), 'yyyy-MM') === filterMonth;
+          } catch {
+            return false;
+          }
+        });
 
-    setFilteredExpenses(filtered);
+      setFilteredExpenses(filtered);
+    } catch (error) {
+      console.error('Error filtering expenses:', error);
+      setFilteredExpenses([]);
+    }
   }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
 
   const expenseMonths = React.useMemo(() => {
@@ -327,11 +360,33 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   };
 
   const filteredUsers = React.useMemo(() => {
-    return users.filter(
-      user =>
-        (user.name?.toLowerCase() ?? '').includes(userSearch.toLowerCase()) ||
-        (user.email?.toLowerCase() ?? '').includes(userSearch.toLowerCase())
-    );
+    try {
+      if (!userSearch || typeof userSearch !== 'string') {
+        return Array.isArray(users) ? users : [];
+      }
+
+      const searchTerm = String(userSearch).toLowerCase();
+      const usersArray = Array.isArray(users) ? users : [];
+
+      return usersArray.filter(user => {
+        if (!user || typeof user !== 'object') return false;
+
+        // More robust null checks for user properties
+        const userName =
+          user.name && typeof user.name === 'string' && user.name.trim()
+            ? String(user.name).toLowerCase()
+            : '';
+        const userEmail =
+          user.email && typeof user.email === 'string' && user.email.trim()
+            ? String(user.email).toLowerCase()
+            : '';
+
+        return userName.includes(searchTerm) || userEmail.includes(searchTerm);
+      });
+    } catch (error) {
+      console.error('Error in filteredUsers:', error, { users, userSearch });
+      return [];
+    }
   }, [users, userSearch]);
 
   const analyticsData = React.useMemo(() => {
@@ -390,9 +445,21 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   }, [role, view]);
 
   // Place this after all dependencies (apartments, categories, currentUserApartment, handleDeleteExpense, handleExpenseUpdate, role, users) are declared
-  const ExpensesListComponent: React.ComponentType<
-    import('./expenses/expenses-list').ExpensesListProps
-  > = React.useCallback(props => <ExpensesList {...props} />, []);
+  const ExpensesListComponent = (
+    props: Partial<import('./expenses/expenses-list').ExpensesListProps>
+  ) => (
+    <ExpensesList
+      {...props}
+      expenses={props.expenses ?? []}
+      apartments={apartments}
+      users={users}
+      categories={categories}
+      currentUserApartment={user?.apartment}
+      currentUserRole={role}
+      onExpenseUpdate={handleExpenseUpdate}
+      onExpenseDelete={handleDeleteExpense}
+    />
+  );
 
   const MainContent = () => {
     if (isLoadingData) {
@@ -476,7 +543,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
             onUpdateCategory={handleUpdateCategory}
             onDeleteCategory={handleDeleteCategory}
             getUserById={getUserById}
-            onAnnouncementDecision={handleAnnouncementDecision}
             onAddPoll={async data => {
               await firestore.addPoll({
                 question: data.question,
@@ -486,7 +552,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
                 isActive: true,
               });
             }}
-            pendingAnnouncements={[]}
           />
         );
       case 'expenses':
@@ -531,13 +596,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         return <FaultReportingForm onReport={() => setView('current-faults')} />;
       case 'current-faults':
         return <CurrentFaultsList />;
-      case 'payment-demo':
-        if (!isPaymentDemoEnabled()) {
-          // Redirect to dashboard if payment demo is disabled
-          setView('dashboard');
-          return null;
-        }
-        return <PaymentDemoPage />;
+
       default:
         return (
           <DashboardView
@@ -751,7 +810,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
               view={view}
               user={user}
               categories={categories}
-              users={users}
               onAddExpense={handleAddExpense}
               onUpdateUser={handleUpdateUser}
               onLogout={logout}

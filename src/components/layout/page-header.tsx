@@ -4,7 +4,6 @@ import { LogOut, PlusCircle, Settings } from 'lucide-react';
 
 import * as React from 'react';
 
-import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 import type { Category, Expense, User } from '@/lib/types';
 import type { View } from '@/lib/types';
 
@@ -26,7 +25,6 @@ interface PageHeaderProps {
   view: View;
   user: User | null;
   categories: Category[];
-  users: User[];
   onAddExpense: (expenseData: Omit<Expense, 'id' | 'date'>) => void;
   onUpdateUser: (user: User) => void;
   onLogout: () => void;
@@ -36,7 +34,6 @@ export function PageHeader({
   view,
   user,
   categories,
-  users,
   onAddExpense,
   onUpdateUser,
   onLogout,
@@ -46,7 +43,6 @@ export function PageHeader({
   if (view === 'admin') title = 'Admin Panel';
   if (view === 'analytics') title = 'Analytics';
   if (view === 'community') title = 'Community Directory';
-  if (view === 'payment-demo' && isPaymentDemoEnabled()) title = 'Payment Integration Demo';
 
   return (
     <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">
@@ -56,7 +52,6 @@ export function PageHeader({
         {user && (
           <AddExpenseDialog
             categories={categories}
-            users={users}
             onAddExpense={onAddExpense}
             currentUser={user}
           >

@@ -19,7 +19,6 @@ Supported payment methods:
 - Demo payments do not have Firestore document IDs.
 - `DemoPaymentGateways` component simulates payment flow without database dependencies.
 - Proper error handling is included.
-- Demo page: `/payment-demo` allows users to create, view, and process test payment requests.
 
 ---
 

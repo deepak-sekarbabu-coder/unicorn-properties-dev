@@ -109,7 +109,7 @@ export function PaymentDistribution({ apartments, currentApartmentId }: PaymentD
     setError('');
 
     try {
-      await sendPaymentRequests(distribution, user.uid, currentApartmentId || '');
+      await sendPaymentRequests(distribution, user.uid);
 
       toast.success('Payment requests sent', {
         description: 'Payment requests have been sent to the selected apartments.',

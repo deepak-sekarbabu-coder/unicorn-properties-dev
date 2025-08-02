@@ -121,7 +121,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       phone: data.phone,
       role: data.role,
       propertyRole: data.propertyRole,
-      apartment: data.apartment,
+      apartment: data.apartment || '',
       avatar: avatarDataUrl,
     };
     onUpdateUser(updatedUser);
