@@ -25,7 +25,7 @@ export function distributePayment(
   dueDate?: Date
 ): PaymentDistribution {
   // Check if this is a cleaning expense - if so, don't split it
-  if (category.toLowerCase() === 'cleaning') {
+  if (typeof category === 'string' && category.toLowerCase() === 'cleaning') {
     return {
       totalAmount: 0, // No amount owed by other apartments
       payingApartment,

@@ -1,7 +1,6 @@
-import { CheckCircle, PlusCircle, Search, Trash2, XCircle } from 'lucide-react';
+import { PlusCircle, Search, Trash2 } from 'lucide-react';
 
 import type { Category, PollOption, User } from '@/lib/types';
-import type { Announcement } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/add-category-dialog';
 import { AddUserDialog } from '@/components/add-user-dialog';
@@ -42,16 +41,16 @@ interface AdminViewProps {
   userSearch: string;
   setUserSearch: (search: string) => void;
   filteredUsers: User[];
-  pendingAnnouncements: Announcement[];
+
   onAddUser: (userData: Omit<User, 'id'>) => void;
   onUpdateUser: (user: User) => void;
   onDeleteUser: (userId: string) => void;
   onAddCategory: (categoryData: Omit<Category, 'id'>) => void;
   onUpdateCategory: (category: Category) => void;
   onDeleteCategory: (categoryId: string) => void;
-  onAnnouncementDecision: (announcementId: string, decision: 'approved' | 'rejected') => void;
-  getUserById: (id: string) => User | undefined;
+
   onAddPoll: (data: { question: string; options: PollOption[]; expiresAt?: string }) => void;
+  getUserById: (id: string) => User | undefined;
 }
 
 export function AdminView({
@@ -59,19 +58,16 @@ export function AdminView({
   userSearch,
   setUserSearch,
   filteredUsers,
-  pendingAnnouncements,
+
   onAddUser,
   onUpdateUser,
   onDeleteUser,
   onAddCategory,
   onUpdateCategory,
   onDeleteCategory,
-  onAnnouncementDecision,
-  getUserById,
+
   onAddPoll,
 }: AdminViewProps) {
-  pendingAnnouncements = pendingAnnouncements || [];
-
   return (
     <div className="grid gap-6">
       <Card>
@@ -109,7 +105,11 @@ export function AdminView({
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 flex-shrink-0">
                       <AvatarImage src={u.avatar} alt={u.name} />
-                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>
+                        {u.name && typeof u.name === 'string' && u.name.length > 0
+                          ? u.name.charAt(0)
+                          : '?'}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{u.name}</p>
@@ -193,7 +193,11 @@ export function AdminView({
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={u.avatar} alt={u.name} />
-                          <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>
+                            {u.name && typeof u.name === 'string' && u.name.length > 0
+                              ? u.name.charAt(0)
+                              : '?'}
+                          </AvatarFallback>
                         </Avatar>
                         <span>{u.name}</span>
                       </div>
@@ -272,54 +276,6 @@ export function AdminView({
           </div>
         </CardContent>
       </Card>
-
-      {pendingAnnouncements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Announcements</CardTitle>
-            <CardDescription>
-              Review and approve or reject announcements submitted by users.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {pendingAnnouncements.map(ann => (
-                <li key={ann.id} className="rounded-lg border p-4">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <p className="text-sm text-muted-foreground">
-                        From:{' '}
-                        <span className="font-medium text-foreground">
-                          {getUserById(ann.createdBy)?.name || 'Unknown User'}
-                        </span>
-                      </p>
-                      <p className="text-sm break-words">{ann.message}</p>
-                    </div>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 sm:shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 w-full sm:w-auto"
-                        onClick={() => onAnnouncementDecision(ann.id, 'approved')}
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
-                        onClick={() => onAnnouncementDecision(ann.id, 'rejected')}
-                      >
-                        <XCircle className="mr-2 h-4 w-4" /> Reject
-                      </Button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>

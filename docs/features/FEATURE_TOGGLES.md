@@ -13,18 +13,7 @@ Feature toggles allow you to enable or disable features without deploying new co
 
 ## Available Feature Toggles
 
-### Payment Demo Feature
-
-**Environment Variable:** `NEXT_PUBLIC_ENABLE_PAYMENT_DEMO`
-
-**Description:** Controls whether the Payment Integration Demo page is visible in the navigation and accessible to users.
-
-**Values:**
-
-- `true` - Payment demo is visible and accessible
-- `false` - Payment demo is hidden from navigation and inaccessible
-
-**Default:** `true` (if not set, defaults to `false`)
+Currently, the application uses a generic feature flag system that can be extended for any new features.
 
 ## Configuration
 
@@ -34,16 +23,16 @@ Feature toggles allow you to enable or disable features without deploying new co
 
 ```bash
 # Feature Toggles
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
+NEXT_PUBLIC_ENABLE_MY_FEATURE=true
 ```
 
 #### `.env.example` (Template)
 
 ```bash
 # Feature Toggles
-# Enable/disable the payment demo feature
-# Set to 'true' to show payment demo in navigation, 'false' to hide it
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
+# Enable/disable specific features
+# Set to 'true' to enable feature, 'false' to disable it
+NEXT_PUBLIC_ENABLE_MY_FEATURE=false
 ```
 
 ### Production Deployment
@@ -53,7 +42,7 @@ For production deployments, set the environment variable in your hosting platfor
 #### Vercel
 
 ```bash
-vercel env add NEXT_PUBLIC_ENABLE_PAYMENT_DEMO
+vercel env add NEXT_PUBLIC_ENABLE_MY_FEATURE
 # Enter value: false (for production)
 ```
 
@@ -61,13 +50,13 @@ vercel env add NEXT_PUBLIC_ENABLE_PAYMENT_DEMO
 
 ```bash
 # In Netlify dashboard: Site settings > Environment variables
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=false
+NEXT_PUBLIC_ENABLE_MY_FEATURE=false
 ```
 
 #### Docker
 
 ```dockerfile
-ENV NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=false
+ENV NEXT_PUBLIC_ENABLE_MY_FEATURE=false
 ```
 
 ## Usage in Code
@@ -75,24 +64,21 @@ ENV NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=false
 ### Checking Feature Flags
 
 ```typescript
-import { isPaymentDemoEnabled } from '@/lib/feature-flags';
 // Generic feature flag check
 import { FeatureFlags } from '@/lib/feature-flags';
 
 // Simple check
-if (isPaymentDemoEnabled()) {
-  // Feature is enabled
-}
-
 const isEnabled = FeatureFlags.isFeatureEnabled('NEXT_PUBLIC_MY_FEATURE', false);
 ```
 
 ### Component Conditional Rendering
 
 ```typescript
-import { isPaymentDemoEnabled } from '@/lib/feature-flags';
+import { FeatureFlags } from '@/lib/feature-flags';
 
 export function NavigationMenu() {
+  const isMyFeatureEnabled = FeatureFlags.isFeatureEnabled('NEXT_PUBLIC_MY_FEATURE');
+
   return (
     <nav>
       {/* Always visible items */}
@@ -100,8 +86,8 @@ export function NavigationMenu() {
       <MenuItem>Expenses</MenuItem>
 
       {/* Conditionally visible items */}
-      {isPaymentDemoEnabled() && (
-        <MenuItem>Payment Demo</MenuItem>
+      {isMyFeatureEnabled && (
+        <MenuItem>My Feature</MenuItem>
       )}
     </nav>
   );
@@ -113,12 +99,12 @@ export function NavigationMenu() {
 ```typescript
 // In main app component
 switch (view) {
-  case 'payment-demo':
-    if (!isPaymentDemoEnabled()) {
+  case 'my-feature':
+    if (!FeatureFlags.isFeatureEnabled('NEXT_PUBLIC_MY_FEATURE')) {
       setView('dashboard');
       return null;
     }
-    return <PaymentDemoPage />;
+    return <MyFeaturePage />;
 }
 ```
 
@@ -128,10 +114,6 @@ switch (view) {
 
 ```typescript
 export const FeatureFlags = {
-  isPaymentDemoEnabled: (): boolean => {
-    return process.env.NEXT_PUBLIC_ENABLE_PAYMENT_DEMO === 'true';
-  },
-
   isFeatureEnabled: (flagName: string, defaultValue: boolean = false): boolean => {
     const envValue = process.env[flagName];
     if (envValue === undefined) return defaultValue;
@@ -140,18 +122,12 @@ export const FeatureFlags = {
 } as const;
 ```
 
-### Components Updated
-
-1. **NavigationMenu** - Conditionally shows payment demo link
-2. **UnicornPropertiesApp** - Protects payment demo route
-3. **PageHeader** - Conditionally shows payment demo title
-
 ## Environment-Specific Recommendations
 
 ### Development
 
 ```bash
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
+NEXT_PUBLIC_ENABLE_MY_FEATURE=true
 ```
 
 - Enable all features for testing
@@ -160,7 +136,7 @@ NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
 ### Staging
 
 ```bash
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
+NEXT_PUBLIC_ENABLE_MY_FEATURE=true
 ```
 
 - Test features before production
@@ -169,7 +145,7 @@ NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=true
 ### Production
 
 ```bash
-NEXT_PUBLIC_ENABLE_PAYMENT_DEMO=false
+NEXT_PUBLIC_ENABLE_MY_FEATURE=false
 ```
 
 - Disable demo/experimental features
@@ -222,7 +198,7 @@ export function MyComponent() {
 ### 1. Naming Convention
 
 - Use `NEXT_PUBLIC_ENABLE_` prefix for client-side flags
-- Use descriptive names: `NEXT_PUBLIC_ENABLE_PAYMENT_DEMO`
+- Use descriptive names: `NEXT_PUBLIC_ENABLE_MY_FEATURE`
 - Use boolean values: `true` or `false`
 
 ### 2. Default Values
@@ -286,9 +262,9 @@ Consider adding analytics to track feature usage:
 
 ```typescript
 // Track feature flag usage
-if (isPaymentDemoEnabled()) {
+if (FeatureFlags.isFeatureEnabled('NEXT_PUBLIC_MY_FEATURE')) {
   analytics.track('feature_flag_enabled', {
-    feature: 'payment_demo',
+    feature: 'my_feature',
     timestamp: new Date().toISOString(),
   });
 }

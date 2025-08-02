@@ -55,7 +55,8 @@ export function ExpenseItem({
 
   // Check if this is a cleaning expense
   const category = categories?.find(c => c.id === expense.categoryId);
-  const isCleaningExpense = category?.name.toLowerCase() === 'cleaning';
+  const isCleaningExpense =
+    (typeof category?.name === 'string' ? category.name.toLowerCase() : '') === 'cleaning';
 
   // Helper function to format apartment display with owner(s)
   const formatApartmentWithUsers = (apartmentId: string, showYou: boolean = false) => {
