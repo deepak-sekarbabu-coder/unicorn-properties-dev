@@ -60,6 +60,10 @@ export default function PaymentButton({ amount, productId, onSuccess, onError }:
     }
     setIsLoading(true);
     try {
+      // Fetch Razorpay key securely from backend
+      const keyRes = await fetch("/api/razorpay-key");
+      const keyData = await keyRes.json();
+      if (!keyRes.ok || !keyData.key) throw new Error("Unable to fetch Razorpay key");
       const orderResponse = await fetch("/api/createOrder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,7 +72,7 @@ export default function PaymentButton({ amount, productId, onSuccess, onError }:
       const orderData = await orderResponse.json();
       if (!orderResponse.ok) throw new Error(orderData.message);
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: keyData.key,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Unicorn Properties",
