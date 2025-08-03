@@ -118,7 +118,7 @@ export function AddExpenseDialog({
     onAddExpense(expenseData);
     toast({
       title: 'Expense Added!',
-      description: `"${data.description}" for ₹${data.amount} has been logged.`,
+      description: `"${data.description}" for 9${data.amount} has been logged.`,
     });
     setOpen(false);
     form.reset();

@@ -1,4 +1,4 @@
-import { FaultReportingForm } from '@/components/fault-reporting-form';
+import { FaultReportingForm } from '@/components/fault-reporting/fault-reporting-form';
 
 export default function FaultReportingPage() {
   return (

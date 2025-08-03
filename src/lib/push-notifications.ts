@@ -1,8 +1,21 @@
 import { getMessaging, getToken } from 'firebase/messaging';
 
 import { app } from './firebase-client';
-// Using a client-side initialized app
 import * as firestore from './firestore';
+
+export const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('Service Worker registration successful, scope is:', registration.scope);
+      return registration;
+    } catch (err) {
+      console.log('Service Worker registration failed, error:', err);
+      throw err;
+    }
+  }
+  return null;
+};
 
 export const requestNotificationPermission = async (userId: string) => {
   if (typeof window === 'undefined') return;
@@ -18,6 +31,11 @@ export const requestNotificationPermission = async (userId: string) => {
   }
 
   try {
+    const registration = await registerServiceWorker();
+    if (!registration) {
+      console.log('Service worker registration failed or not supported.');
+      return;
+    }
     const messaging = getMessaging(app);
     const permission = await Notification.requestPermission();
 
@@ -25,6 +43,7 @@ export const requestNotificationPermission = async (userId: string) => {
       console.log('Notification permission granted.');
       const currentToken = await getToken(messaging, {
         vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration,
       });
 
       if (currentToken) {
@@ -38,6 +57,6 @@ export const requestNotificationPermission = async (userId: string) => {
       console.log('Unable to get permission to notify.');
     }
   } catch (error) {
-    console.error('An error occurred while retrieving token. ', error);
+    console.error('Error requesting notification permission:', error);
   }
 };

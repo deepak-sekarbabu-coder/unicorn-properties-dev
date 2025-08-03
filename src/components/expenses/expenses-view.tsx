@@ -6,9 +6,8 @@ import { FileDown, Search } from 'lucide-react';
 import * as React from 'react';
 
 import type { Apartment, Category, Expense, User } from '@/lib/types';
-import type { ExpensesListProps } from './expenses-list';
 
-import { CategoryIcon } from '@/components/category-icon';
+import { CategoryIcon } from '@/components/icons/category-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +20,8 @@ import {
 } from '@/components/ui/select';
 
 import { useToast } from '@/hooks/use-toast';
+
+import type { ExpensesListProps } from './expenses-list';
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -206,7 +207,6 @@ export function ExpensesView({
       <CardContent className="p-4 sm:p-6 pt-0">
         <ExpensesList
           expenses={filteredExpenses}
-          apartments={apartments}
           users={users}
           categories={categories}
           currentUserApartment={currentUserApartment}

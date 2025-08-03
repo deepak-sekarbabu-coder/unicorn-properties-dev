@@ -7,7 +7,8 @@ import * as React from 'react';
 import type { Category, Expense, User } from '@/lib/types';
 import type { View } from '@/lib/types';
 
-import { AddExpenseDialog } from '@/components/add-expense-dialog';
+import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog';
+import { UserProfileDialog } from '@/components/dialogs/user-profile-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { UserProfileDialog } from '@/components/user-profile-dialog';
 
 interface PageHeaderProps {
   view: View;

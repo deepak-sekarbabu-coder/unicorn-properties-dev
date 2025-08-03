@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-import { IconName, Icons } from '@/components/icons';
+import { IconName, Icons } from '@/components/icons/icons';
 
 interface CategoryIconProps extends React.HTMLAttributes<HTMLDivElement> {
   name: IconName | string; // Allow both icon names and emoji strings

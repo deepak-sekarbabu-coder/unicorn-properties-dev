@@ -1,4 +1,4 @@
-import { CurrentFaultsList } from '@/components/current-faults-list';
+import { CurrentFaultsList } from '@/components/fault-reporting/current-faults-list';
 
 export default function CurrentFaultsPage() {
   return (

@@ -2,12 +2,12 @@ import { PlusCircle, Search, Trash2 } from 'lucide-react';
 
 import type { Category, PollOption, User } from '@/lib/types';
 
-import { AddCategoryDialog } from '@/components/add-category-dialog';
-import { AddUserDialog } from '@/components/add-user-dialog';
-import { CategoryIcon } from '@/components/category-icon';
-import { EditCategoryDialog } from '@/components/edit-category-dialog';
-import { EditUserDialog } from '@/components/edit-user-dialog';
-import { Icons } from '@/components/icons';
+import { AddCategoryDialog } from '@/components/dialogs/add-category-dialog';
+import { AddUserDialog } from '@/components/dialogs/add-user-dialog';
+import { EditCategoryDialog } from '@/components/dialogs/edit-category-dialog';
+import { EditUserDialog } from '@/components/dialogs/edit-user-dialog';
+import { CategoryIcon } from '@/components/icons/category-icon';
+import { Icons } from '@/components/icons/icons';
 import {
   AlertDialog,
   AlertDialogAction,

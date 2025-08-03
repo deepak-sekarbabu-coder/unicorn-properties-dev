@@ -6,6 +6,7 @@ import { format, subMonths } from 'date-fns';
 import * as React from 'react';
 
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 import * as firestore from '@/lib/firestore';
 import { requestNotificationPermission } from '@/lib/push-notifications';
@@ -14,19 +15,24 @@ import type { View } from '@/lib/types';
 
 import { CommunityView } from '@/components/community/community-view';
 import { DashboardView } from '@/components/dashboard/dashboard-view';
+import { SelectApartmentDialog } from '@/components/dialogs/select-apartment-dialog';
 import { ExpensesList } from '@/components/expenses/expenses-list';
 import { ExpensesView } from '@/components/expenses/expenses-view';
+import { CurrentFaultsList } from '@/components/fault-reporting/current-faults-list';
+import { FaultReportingForm } from '@/components/fault-reporting/fault-reporting-form';
 import { NavigationMenu } from '@/components/layout/navigation-menu';
 import { PageHeader } from '@/components/layout/page-header';
-import { SelectApartmentDialog } from '@/components/select-apartment-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sidebar, SidebarFooter, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import {
+  Sidebar,
+  SidebarFooter,
+  SidebarInset,
+  SidebarProvider,
+  useSidebar,
+} from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
-
-import { CurrentFaultsList } from './current-faults-list';
-import { FaultReportingForm } from './fault-reporting-form';
 
 const AdminView = dynamic(() => import('@/components/admin/admin-view').then(mod => mod.default), {
   ssr: false,
@@ -141,23 +147,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   }, [user, showApartmentDialog, toast, setSafeUsers]);
 
   const role = user?.role || 'user';
-
-  React.useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/firebase-messaging-sw.js')
-        .then(registration => {
-          console.log('Service Worker registration successful, scope is:', registration.scope);
-          // If the service worker is not controlling the page, reload so it takes control
-          if (!navigator.serviceWorker.controller) {
-            window.location.reload();
-          }
-        })
-        .catch(err => {
-          console.log('Service Worker registration failed, error:', err);
-        });
-    }
-  }, []);
 
   React.useEffect(() => {
     if (user && !user.fcmToken) {
@@ -451,7 +440,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     <ExpensesList
       {...props}
       expenses={props.expenses ?? []}
-      apartments={apartments}
       users={users}
       categories={categories}
       currentUserApartment={user?.apartment}
@@ -517,7 +505,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
               ExpensesList={props => (
                 <ExpensesList
                   {...props}
-                  apartments={apartments}
                   users={users}
                   categories={categories}
                   currentUserApartment={user?.apartment}
@@ -787,9 +774,34 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     );
   }
 
-  return (
-    <>
-      <SidebarProvider>
+  interface SidebarLayoutProps {
+    user: User | null;
+    view: View;
+    setView: React.Dispatch<React.SetStateAction<View>>;
+    role: string;
+    categories: Category[];
+    handleAddExpense: (newExpenseData: Omit<Expense, 'id' | 'date'>) => Promise<void>;
+    handleUpdateUser: (updatedUser: User) => Promise<void>;
+    logout: () => void;
+    monthlyExpenses: number;
+    MainContent: React.ComponentType;
+  }
+
+  function SidebarLayout({
+    user,
+    view,
+    setView,
+    role,
+    categories,
+    handleAddExpense,
+    handleUpdateUser,
+    logout,
+    monthlyExpenses,
+    MainContent,
+  }: SidebarLayoutProps) {
+    const { isMobile, openMobile } = useSidebar();
+    return (
+      <>
         <Sidebar>
           <NavigationMenu user={user} view={view} setView={setView} role={role} />
           <SidebarFooter>
@@ -806,6 +818,19 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         </Sidebar>
         <SidebarInset>
           <div className="flex flex-col min-h-screen">
+            {/* Mobile Header: Only show when mobile and sidebar/nav is closed */}
+            {isMobile && !openMobile && (
+              <header className="flex items-center h-14 px-4 border-b bg-card">
+                <Image
+                  src="/unicorn-logo.png"
+                  alt="Unicorn Properties"
+                  width={32}
+                  height={32}
+                  className="mr-2"
+                />
+                <span className="text-lg font-bold">Unicorn Properties</span>
+              </header>
+            )}
             <PageHeader
               view={view}
               user={user}
@@ -821,6 +846,25 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
             </main>
           </div>
         </SidebarInset>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <SidebarProvider>
+        <SidebarLayout
+          user={user}
+          view={view}
+          setView={setView}
+          role={role}
+          categories={categories}
+          handleAddExpense={handleAddExpense}
+          handleUpdateUser={handleUpdateUser}
+          logout={logout}
+          monthlyExpenses={monthlyExpenses}
+          MainContent={MainContent}
+        />
       </SidebarProvider>
       {user && (
         <SelectApartmentDialog

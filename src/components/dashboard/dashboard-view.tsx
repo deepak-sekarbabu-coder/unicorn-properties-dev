@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 interface DashboardViewProps {
   user: User | null;
   expenses: Expense[];
-  apartments: Apartment[];
+  apartments: Apartment[]; // <-- Added apartments prop
   users: User[];
   categories: Category[];
   currentUserApartment: string | undefined;
@@ -37,7 +37,7 @@ interface DashboardViewProps {
 export function DashboardView({
   user,
   expenses,
-  apartments,
+  apartments, // <-- Added apartments prop
   users,
   categories,
   currentUserApartment,
@@ -157,7 +157,6 @@ export function DashboardView({
             <ExpensesList
               expenses={expenses}
               limit={5}
-              apartments={apartments}
               users={users}
               categories={categories}
               currentUserApartment={currentUserApartment}

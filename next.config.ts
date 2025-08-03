@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
-      },      
+      },
     ],
   },
   // Remove standalone output for Netlify - let the plugin handle it

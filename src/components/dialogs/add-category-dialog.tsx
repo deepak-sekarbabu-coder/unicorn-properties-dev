@@ -9,7 +9,7 @@ import * as React from 'react';
 
 import type { Category } from '@/lib/types';
 
-import { Icons } from '@/components/icons';
+import { CategoryIcon } from '@/components/icons/category-icon';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,8 +31,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-provider';
 
-import { CategoryIcon } from './category-icon';
-
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
   icon: z.string().min(1, 'An icon is required'),
@@ -40,48 +38,36 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
-interface EditCategoryDialogProps {
+interface AddCategoryDialogProps {
   children: React.ReactNode;
-  category: Category;
-  onUpdateCategory: (category: Category) => void;
+  onAddCategory: (category: Omit<Category, 'id'>) => void;
 }
 
-export function EditCategoryDialog({
-  children,
-  category,
-  onUpdateCategory,
-}: EditCategoryDialogProps) {
+const commonEmojis = ['🏠', '🍕', '🛒', '⚡', '🚗', '🏥', '🎬', '📱', '💡', '🧹', '🔧', '🎉'];
+
+export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      name: category.name,
-      icon: category.icon,
+      name: '',
+      icon: '',
     },
   });
-
-  React.useEffect(() => {
-    if (category) {
-      form.reset({
-        name: category.name,
-        icon: category.icon,
-      });
-    }
-  }, [category, form]);
 
   const onSubmit = (data: CategoryFormValues) => {
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-      const updatedCategory = { ...category, name: data.name, icon: data.icon };
-      onUpdateCategory(updatedCategory);
-      toast('Category Updated', {
-        description: `The category has been updated.`,
+      onAddCategory(data);
+      toast('Category Added', {
+        description: `The "${data.name}" category has been created.`,
       });
       setIsSaving(false);
       setOpen(false);
+      form.reset();
     }, 1000);
   };
 
@@ -90,11 +76,8 @@ export function EditCategoryDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <CategoryIcon name={category.icon as keyof typeof Icons} className="h-10 w-10" />
-            <DialogTitle>Edit Category</DialogTitle>
-          </div>
-          <DialogDescription>Update the details for this category.</DialogDescription>
+          <DialogTitle>Add New Category</DialogTitle>
+          <DialogDescription>Create a new category for tracking expenses.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -114,12 +97,35 @@ export function EditCategoryDialog({
             <FormField
               control={form.control}
               name="icon"
-              render={() => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Icon</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Icon name" value={category.icon} disabled />
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Input placeholder="Enter emoji or icon name (e.g., 🏠 or Zap)" {...field} />
+                    </FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      <p className="text-sm text-muted-foreground w-full">Quick select:</p>
+                      {commonEmojis.map(emoji => (
+                        <Button
+                          key={emoji}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => field.onChange(emoji)}
+                        >
+                          {emoji}
+                        </Button>
+                      ))}
+                    </div>
+                    {field.value && (
+                      <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                        <CategoryIcon name={field.value} className="h-6 w-6" />
+                        <span className="text-sm">Preview</span>
+                      </div>
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -130,7 +136,7 @@ export function EditCategoryDialog({
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+                Add Category
               </Button>
             </DialogFooter>
           </form>

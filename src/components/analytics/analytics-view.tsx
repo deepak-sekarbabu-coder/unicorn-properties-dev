@@ -8,7 +8,7 @@ import * as React from 'react';
 
 import type { Category, Expense } from '@/lib/types';
 
-import { CategoryIcon } from '@/components/category-icon';
+import { CategoryIcon } from '@/components/icons/category-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';

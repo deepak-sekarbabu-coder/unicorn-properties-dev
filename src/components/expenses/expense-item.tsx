@@ -13,7 +13,7 @@ import {
 import { updateExpense } from '@/lib/firestore';
 import type { Expense, User } from '@/lib/types';
 
-import { CategoryIcon } from '@/components/category-icon';
+import { CategoryIcon } from '@/components/icons/category-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
