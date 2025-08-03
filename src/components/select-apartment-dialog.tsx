@@ -45,7 +45,7 @@ const onboardingSchema = z.object({
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
-const apartmentList = ['F1', 'F2', 'S1', 'S2', 'T1', 'T2', 'G1'];
+const apartmentList = ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'];
 
 interface SelectApartmentDialogProps {
   open: boolean;

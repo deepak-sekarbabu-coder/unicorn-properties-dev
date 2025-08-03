@@ -25,8 +25,6 @@ The project leverages a modern, type-safe, and component-based architecture.
   - **Database**: Firestore (NoSQL) for all application data.
   - **Authentication**: Firebase Authentication for user login and session management.
   - **Push Notifications**: Firebase Cloud Messaging (FCM).
-- **AI Integration**:
-  - **Framework**: Google's Genkit for integrating AI-powered features.
 - **Deployment & CI/CD**:
   - **Platform**: Netlify
   - **Build Configuration**: `netlify.toml` and `next.config.ts`
@@ -110,13 +108,8 @@ The `package.json` file defines several scripts for common development tasks:
 - `npm run lint`: Runs ESLint to check for code quality and style issues.
 - `npm run typecheck`: Verifies the project's TypeScript types.
 - `npm run format`: Formats all code using Prettier.
-- `npm run genkit:dev`: Starts the Genkit AI development server.
 - `npm run insert-apartments`: A custom script to seed the database with apartment data.
 
 ## 7. Deployment
 
 The application is configured for continuous deployment on **Netlify**. The `netlify.toml` file and the `@netlify/plugin-nextjs` package handle the build and deployment process. Pushing to the main branch will trigger a new deployment.
-
-## 8. AI Integration
-
-The project uses **Genkit** to incorporate AI features. The relevant code is located in the `src/ai/` directory. To run the AI flows locally, use the `npm run genkit:dev` command.

@@ -16,7 +16,6 @@ Unicorn Properties is a modern web application for managing shared apartment exp
 │   ├── context/       # React Contexts (e.g., AuthContext for global auth state)
 │   ├── hooks/         # Custom React hooks (e.g., use-toast, use-apartments)
 │   ├── lib/           # Firestore logic, type definitions, utilities, backend logic
-│   ├── ai/            # Genkit AI flows and configuration
 │
 ├── public/            # Static assets, favicon, service workers (FCM)
 ├── docs/              # User and developer documentation (see below)
@@ -49,7 +48,6 @@ Unicorn Properties is a modern web application for managing shared apartment exp
 - **Roles**: Each user has two roles: `role` (user/admin) and `propertyRole` (tenant/owner). Onboarding is triggered if either is missing. See [`docs/roles/ROLE_STRUCTURE.md`](docs/roles/ROLE_STRUCTURE.md).
 - **Notifications**: Push notifications use Firebase Cloud Messaging (FCM), with setup in `public/firebase-messaging-sw.js` and `src/lib/push-notifications.ts`.
 - **Admin Panel**: Admins can manage users, categories, expenses, and approve/reject announcements.
-- **AI Integration**: Genkit flows in `src/ai/` enable AI-powered features (see docs).
 
 **Data Flow Example:**
 

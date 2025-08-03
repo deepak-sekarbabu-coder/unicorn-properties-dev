@@ -40,7 +40,7 @@ import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const apartmentList = ['F1', 'F2', 'S1', 'S2', 'T1', 'T2', 'G1'];
+const apartmentList = ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'];
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),

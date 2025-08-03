@@ -16,7 +16,6 @@ This project is a modern web application built with the following technologies:
   - **Authentication**: Firebase Authentication
   - **Database**: Firestore
   - **Push Notifications**: Firebase Cloud Messaging (FCM)
-- **AI Integration**: [Genkit](https://firebase.google.com/docs/genkit)
 - **Deployment**: Configured for [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
 
 ## 2. Getting Started
@@ -49,7 +48,6 @@ The application will be available at `http://localhost:3000`.
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
-- `npm run genkit:dev` - Start Genkit development server
 
 ## 3. Project Structure
 
@@ -90,7 +88,6 @@ The codebase is organized into the following key directories:
   - `use-toast.ts`: Hook for displaying toast notifications.
   - `use-apartments.ts`: Hook for managing apartment data.
   - `use-mobile.tsx`: Hook for detecting mobile devices.
-- `src/ai/`: Contains Genkit flows and configuration for AI-powered features.
 - `public/`: Static assets, including the `firebase-messaging-sw.js` service worker for push notifications.
 
 ## 4. Key Concepts

@@ -9,7 +9,6 @@ Unicorn Properties is a Next.js (App Router) web app for managing shared apartme
 - **Frontend**: React 18, TypeScript, Tailwind CSS, ShadCN UI, Radix UI.
 - **State**: Auth is global (React Context in `src/context/auth-context.tsx`). App data (users, expenses, categories) is local to `UnicornPropertiesApp` and passed via props.
 - **Backend**: Firebase (Firestore for data, Auth for login, FCM for notifications). All DB logic is in `src/lib/firestore.ts`.
-- **AI**: Genkit flows in `src/ai/` for AI-powered features.
 - **API**: Next.js API routes in `src/app/api/` (auth/session, health, test).
 
 ## Key Patterns & Conventions
@@ -32,7 +31,6 @@ Unicorn Properties is a Next.js (App Router) web app for managing shared apartme
 - **Dev server**: `npm run dev` (Turbopack, http://localhost:3000)
 - **Build**: `npm run build`
 - **Lint/Format**: `npm run lint`, `npm run format`
-- **AI dev**: `npm run genkit:dev`
 - **Env setup**: Copy `.env.example` to `.env.local` and fill Firebase config.
 - **Testing**: Run test scripts in the project root for expense, poll voting, and server logic.
 

@@ -6,6 +6,7 @@ import { FileDown, Search } from 'lucide-react';
 import * as React from 'react';
 
 import type { Apartment, Category, Expense, User } from '@/lib/types';
+import type { ExpensesListProps } from './expenses-list';
 
 import { CategoryIcon } from '@/components/category-icon';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,7 @@ interface ExpensesViewProps {
   filteredExpenses: Expense[];
   expenseMonths: string[];
   onClearFilters: () => void;
-  ExpensesList: React.ComponentType<{ expenses: Expense[]; limit?: number }>;
+  ExpensesList: React.ComponentType<ExpensesListProps>;
   currentUserApartment: string | undefined;
   currentUserRole: string;
   onExpenseUpdate: (expense: Expense) => void;
