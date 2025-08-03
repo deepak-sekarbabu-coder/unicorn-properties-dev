@@ -138,6 +138,18 @@ export function AdminView({
                         Edit
                       </Button>
                     </EditUserDialog>
+                    {u.isApproved ? (
+                      <Badge variant="default">Approved</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => onUpdateUser({ ...u, isApproved: true })}
+                      >
+                        Approve
+                      </Button>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
