@@ -40,7 +40,8 @@ export type NotificationType =
   | 'payment_request'
   | 'payment_received'
   | 'payment_confirmed'
-  | 'reminder';
+  | 'reminder'
+  | 'announcement';
 
 export type PaymentMethodType =
   | 'googlepay'
@@ -60,9 +61,14 @@ export type Notification = {
   amount?: number;
   currency?: string;
   fromApartmentId?: string;
-  toApartmentId?: string;
+  toApartmentId?: string | string[]; // Can be single apartment or array for announcements
   relatedExpenseId?: string;
-  isRead: boolean;
+  // Announcement-specific fields (when type === 'announcement')
+  createdBy?: string; // Admin user ID who created the announcement
+  isActive?: boolean; // Whether the announcement is still active
+  priority?: 'low' | 'medium' | 'high';
+  expiresAt?: string; // ISO date string
+  isRead: boolean | { [apartmentId: string]: boolean }; // Can be boolean or object for announcements
   isDismissed?: boolean;
   createdAt: string; // ISO date string
   dueDate?: string; // ISO date string
@@ -72,21 +78,6 @@ export type Notification = {
   category?: string;
   requestedBy?: string; // User ID who requested the payment
   paidAt?: string; // ISO date string when payment was completed
-};
-
-export type Payment = {
-  id: string;
-  amount: number;
-  currency: string;
-  description: string;
-  fromApartmentId: string;
-  toApartmentId: string;
-  status: PaymentStatus;
-  paymentMethod: PaymentMethodType;
-  transactionId: string;
-  createdAt: string;
-  completedAt?: string;
-  relatedNotificationId?: string;
 };
 
 // --- Polling Feature ---
@@ -115,6 +106,17 @@ export type Fault = {
   reportedAt: string; // ISO date string
   fixed: boolean;
   fixedAt?: string; // ISO date string
+};
+
+export type Announcement = {
+  id: string;
+  title: string;
+  message: string;
+  createdBy: string; // Admin user ID
+  createdAt: string; // ISO date
+  expiresAt?: string; // Optional ISO date
+  isActive: boolean;
+  priority: 'low' | 'medium' | 'high';
 };
 
 export type View =

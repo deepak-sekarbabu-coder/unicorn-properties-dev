@@ -33,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { AddAnnouncementDialog } from './add-announcement-dialog';
 import { AddPollDialog } from './add-poll-dialog';
 
 interface AdminViewProps {
@@ -286,6 +287,28 @@ export function AdminView({
               </TableBody>
             </Table>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Announcement Management</CardTitle>
+              <CardDescription>Send announcements to all users instantly.</CardDescription>
+            </div>
+            <AddAnnouncementDialog>
+              <Button className="w-full sm:w-auto">
+                <PlusCircle className="mr-2 h-4 w-4" /> Create Announcement
+              </Button>
+            </AddAnnouncementDialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Announcements will appear as notifications to all users and can optionally expire
+            automatically.
+          </p>
         </CardContent>
       </Card>
 

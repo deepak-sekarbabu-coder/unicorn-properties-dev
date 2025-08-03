@@ -167,8 +167,8 @@ export function DashboardView({
 
         <Card>
           <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>Your personal reminders and balance status.</CardDescription>
+            <CardTitle>Account Summary</CardTitle>
+            <CardDescription>Your personal balance status and account overview.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="flex items-center gap-4">

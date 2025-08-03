@@ -9,6 +9,7 @@ import type { View } from '@/lib/types';
 
 import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog';
 import { UserProfileDialog } from '@/components/dialogs/user-profile-dialog';
+import { NotificationsPanel } from '@/components/notifications-panel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,6 +50,7 @@ export function PageHeader({
       <SidebarTrigger className="md:hidden" />
       <h1 className="text-lg sm:text-xl font-semibold truncate flex-1">{title}</h1>
       <div className="flex items-center gap-2 sm:gap-4">
+        {user && <NotificationsPanel />}
         {user && (
           <AddExpenseDialog categories={categories} onAddExpense={onAddExpense} currentUser={user}>
             <Button className="bg-accent hover:bg-accent/90">

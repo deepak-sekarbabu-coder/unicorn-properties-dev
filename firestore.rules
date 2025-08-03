@@ -13,9 +13,22 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    // Notifications collection - users can only access their own notifications
+
+    // Notifications collection - users can access their apartment's notifications
     match /notifications/{notificationId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.fromUserId;
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.fromUserId || 
+         resource.data.toApartmentId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.apartment ||
+         (resource.data.toApartmentId is list && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.apartment in resource.data.toApartmentId));
+      allow write: if request.auth != null && 
+        (request.auth.uid == resource.data.fromUserId || 
+         resource.data.toApartmentId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.apartment ||
+         (resource.data.toApartmentId is list && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.apartment in resource.data.toApartmentId));
+      allow create: if request.auth != null && 
+        (request.auth.uid == request.resource.data.fromUserId || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
   }
 }

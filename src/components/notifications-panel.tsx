@@ -25,35 +25,123 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
 
   // Fetch notifications for the current user
   useEffect(() => {
-    if (!user?.apartment) return;
+    if (!user?.apartment) {
+      console.log('No user apartment found:', user);
+      return;
+    }
 
-    const q = query(collection(db, 'notifications'), where('toApartmentId', '==', user.apartment));
+    console.log('Setting up notifications listener for apartment:', user.apartment);
 
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const notifs: Notification[] = [];
-      let unread = 0;
+    // Query for both old structure (toApartmentId as string) and new structure (toApartmentId as array)
+    const q1 = query(collection(db, 'notifications'), where('toApartmentId', '==', user.apartment));
+    const q2 = query(
+      collection(db, 'notifications'),
+      where('toApartmentId', 'array-contains', user.apartment)
+    );
 
-      snapshot.forEach(doc => {
-        const data = doc.data() as Omit<Notification, 'id'>;
-        notifs.push({ ...data, id: doc.id });
-        if (!data.isRead) unread++;
-      });
+    let unsubscribe2: (() => void) | null = null;
 
-      // Sort by created date (newest first)
-      notifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const unsubscribe1 = onSnapshot(
+      q1,
+      snapshot1 => {
+        unsubscribe2 = onSnapshot(
+          q2,
+          snapshot2 => {
+            console.log(
+              'Notifications snapshots received - q1:',
+              snapshot1.size,
+              'q2:',
+              snapshot2.size
+            );
 
-      setNotifications(notifs);
-      setUnreadCount(unread);
-    });
+            const notifs: Notification[] = [];
+            const seenIds = new Set<string>();
+            let unread = 0;
+            const now = new Date();
 
-    return () => unsubscribe();
-  }, [user?.apartment]);
+            // Process both snapshots
+            [snapshot1, snapshot2].forEach(snapshot => {
+              snapshot.forEach(doc => {
+                // Avoid duplicates
+                if (seenIds.has(doc.id)) return;
+                seenIds.add(doc.id);
+
+                const data = doc.data() as Omit<Notification, 'id'>;
+                console.log('Processing notification:', doc.id, data);
+
+                // Filter out expired announcements
+                if (data.type === 'announcement' && data.expiresAt) {
+                  const expiryDate = new Date(data.expiresAt);
+                  if (expiryDate < now) {
+                    console.log('Skipping expired announcement:', doc.id);
+                    return; // Skip expired announcements
+                  }
+                }
+
+                // Handle read status for announcements with object-based isRead
+                let isReadForUser = false;
+                if (
+                  data.type === 'announcement' &&
+                  typeof data.isRead === 'object' &&
+                  data.isRead !== null
+                ) {
+                  isReadForUser = data.isRead[user.apartment] || false;
+                } else {
+                  isReadForUser = Boolean(data.isRead);
+                }
+
+                notifs.push({ ...data, id: doc.id, isRead: isReadForUser });
+                if (!isReadForUser) unread++;
+              });
+            });
+
+            // Sort by created date (newest first)
+            notifs.sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            console.log('Final notifications:', notifs);
+            console.log('Unread count:', unread);
+
+            setNotifications(notifs);
+            setUnreadCount(unread);
+          },
+          error => {
+            console.error('Error in notifications listener 2:', error);
+          }
+        );
+      },
+      error => {
+        console.error('Error in notifications listener 1:', error);
+      }
+    );
+
+    return () => {
+      unsubscribe1();
+      if (unsubscribe2) {
+        unsubscribe2();
+      }
+    };
+  }, [user?.apartment, user]);
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await updateDoc(doc(db, 'notifications', notificationId), {
-        isRead: true,
-      });
+      const notification = notifications.find(n => n.id === notificationId);
+      if (!notification) return;
+
+      // Handle different isRead structures
+      if (notification.type === 'announcement' && typeof notification.isRead === 'object') {
+        // For announcements with object-based isRead, update the specific apartment
+        const updatedIsRead = { ...notification.isRead, [user.apartment]: true };
+        await updateDoc(doc(db, 'notifications', notificationId), {
+          isRead: updatedIsRead,
+        });
+      } else {
+        // For regular notifications with boolean isRead
+        await updateDoc(doc(db, 'notifications', notificationId), {
+          isRead: true,
+        });
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -62,7 +150,16 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
   const markAllAsRead = async () => {
     const batch = notifications
       .filter(n => !n.isRead)
-      .map(n => updateDoc(doc(db, 'notifications', n.id), { isRead: true }));
+      .map(async n => {
+        if (n.type === 'announcement' && typeof n.isRead === 'object') {
+          // For announcements with object-based isRead
+          const updatedIsRead = { ...n.isRead, [user.apartment]: true };
+          return updateDoc(doc(db, 'notifications', n.id), { isRead: updatedIsRead });
+        } else {
+          // For regular notifications
+          return updateDoc(doc(db, 'notifications', n.id), { isRead: true });
+        }
+      });
 
     try {
       await Promise.all(batch);
