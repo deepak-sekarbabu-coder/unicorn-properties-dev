@@ -15,13 +15,7 @@ const nextConfig: NextConfig = {
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'razorpay.com',
-        port: '',
-        pathname: '/**',
-      },
+      },      
     ],
   },
   // Remove standalone output for Netlify - let the plugin handle it
