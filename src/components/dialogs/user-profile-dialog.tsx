@@ -7,10 +7,12 @@ import * as z from 'zod';
 
 import * as React from 'react';
 
+import { getApartments } from '@/lib/firestore';
 import type { User } from '@/lib/types';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -29,33 +31,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
-const profileSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  avatar: z
-    .any()
-    .optional()
-    .refine(
-      files => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
-      `Max file size is 5MB.`
-    )
-    .refine(
-      files => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      'Only .jpg, .jpeg, .png and .webp formats are supported.'
-    ),
-  apartment: z.enum(['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'], {
-    required_error: 'Apartment is required',
-  }),
-  propertyRole: z.enum(['tenant', 'owner'], { required_error: 'Role is required' }),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface UserProfileDialogProps {
   children: React.ReactNode;
@@ -66,20 +52,52 @@ interface UserProfileDialogProps {
 export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [apartments, setApartments] = React.useState<string[]>([]);
   const { toast } = useToast();
-  const form = useForm<ProfileFormValues>({
+  const profileSchema = React.useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, 'Name is required'),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        avatar: z
+          .any()
+          .optional()
+          .refine(
+            files => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
+            `Max file size is 5MB.`
+          )
+          .refine(
+            files =>
+              !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+            'Only .jpg, .jpeg, .png and .webp formats are supported.'
+          ),
+        apartment: z.enum(
+          (apartments.length > 0 ? apartments : ['placeholder']) as [string, ...string[]],
+          {
+            required_error: 'Apartment is required',
+          }
+        ),
+        propertyRole: z.enum(['tenant', 'owner'], { required_error: 'Role is required' }),
+      }),
+    [apartments]
+  );
+
+  const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user.name,
       email: user.email,
       phone: user.phone || '',
       avatar: undefined,
-      apartment: ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'].includes(user.apartment)
-        ? (user.apartment as 'G1' | 'F1' | 'F2' | 'S1' | 'S2' | 'T1' | 'T2')
-        : undefined,
+      apartment: apartments.includes(user.apartment) ? user.apartment : '',
       propertyRole: user.propertyRole || 'tenant',
     },
   });
+
+  React.useEffect(() => {
+    getApartments().then(apts => setApartments(apts.map(a => a.id)));
+  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -87,17 +105,15 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
         name: user.name,
         email: user.email,
         phone: user.phone || '',
-        apartment: ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'].includes(user.apartment)
-          ? (user.apartment as 'G1' | 'F1' | 'F2' | 'S1' | 'S2' | 'T1' | 'T2')
-          : undefined,
+        apartment: apartments.includes(user.apartment) ? user.apartment : '',
         propertyRole: user.propertyRole || 'tenant',
       });
     }
-  }, [user, form]);
+  }, [user, form, apartments]);
 
   const fileRef = form.register('avatar');
 
-  const onSubmit = async (data: ProfileFormValues) => {
+  const onSubmit = async (data: z.infer<typeof profileSchema>) => {
     setIsSaving(true);
 
     let avatarDataUrl: string | undefined = user.avatar;
@@ -186,17 +202,18 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                   <FormItem>
                     <FormLabel>Apartment</FormLabel>
                     <FormControl>
-                      <select
-                        className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        {...field}
-                      >
-                        <option value="">Select Apartment</option>
-                        {['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'].map(code => (
-                          <option key={code} value={code}>
-                            {code}
-                          </option>
-                        ))}
-                      </select>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Apartment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {apartments.map(apt => (
+                            <SelectItem key={apt} value={apt}>
+                              {apt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -269,17 +286,15 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                 </Button>
                 <Button
                   type="button"
-                  variant="destructive"
-                  className="flex-1"
+                  className={buttonVariants({ variant: 'destructive' }) + ' flex-1'}
                   onClick={() => setOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  className={buttonVariants({ variant: 'outline' }) + ' flex-1'}
                   onClick={handleResetPassword}
-                  className="flex-1"
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
                   Reset Password

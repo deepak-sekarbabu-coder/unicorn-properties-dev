@@ -40,7 +40,6 @@ import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const apartmentList = ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'];
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),
@@ -73,6 +72,7 @@ interface EditUserDialogProps {
 export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [apartments, setApartments] = React.useState<string[]>([]);
   const { toast } = useToast();
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -99,6 +99,12 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
       });
     }
   }, [user, form]);
+
+  React.useEffect(() => {
+    import('@/lib/firestore').then(({ getApartments }) => {
+      getApartments().then(apts => setApartments(apts.map(a => a.id)));
+    });
+  }, []);
 
   const fileRef = form.register('avatar');
 
@@ -263,7 +269,7 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {apartmentList.map(apt => (
+                        {apartments.map(apt => (
                           <SelectItem key={apt} value={apt}>
                             {apt}
                           </SelectItem>

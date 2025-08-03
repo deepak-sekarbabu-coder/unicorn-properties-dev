@@ -45,8 +45,6 @@ const onboardingSchema = z.object({
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
-const apartmentList = ['G1', 'F1', 'F2', 'S1', 'S2', 'T1', 'T2'];
-
 interface SelectApartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -61,10 +59,17 @@ export function SelectApartmentDialog({
   onSave,
 }: SelectApartmentDialogProps) {
   const [isSaving, setIsSaving] = React.useState(false);
+  const [apartments, setApartments] = React.useState<string[]>([]);
   const { toast } = useToast();
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
   });
+
+  React.useEffect(() => {
+    import('@/lib/firestore').then(({ getApartments }) => {
+      getApartments().then(apts => setApartments(apts.map(a => a.id)));
+    });
+  }, []);
 
   const onSubmit = (data: OnboardingFormValues) => {
     setIsSaving(true);
@@ -99,7 +104,7 @@ export function SelectApartmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {apartmentList.map(apt => (
+                      {apartments.map(apt => (
                         <SelectItem key={apt} value={apt}>
                           {apt}
                         </SelectItem>

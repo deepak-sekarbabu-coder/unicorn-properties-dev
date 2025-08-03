@@ -37,7 +37,7 @@ interface DashboardViewProps {
 export function DashboardView({
   user,
   expenses,
-  apartments, // <-- Added apartments prop
+  apartments,
   users,
   categories,
   currentUserApartment,
