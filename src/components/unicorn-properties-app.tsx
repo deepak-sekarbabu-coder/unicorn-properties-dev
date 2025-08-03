@@ -128,7 +128,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses);
     } else {
       unsubscribeUsers = firestore.subscribeToUsers(setSafeUsers, user.apartment);
-      unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses, user.apartment);
+      unsubscribeExpenses = firestore.subscribeToRelevantExpenses(setExpenses, user.apartment);
     }
 
     setIsLoadingData(false);

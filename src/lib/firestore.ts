@@ -196,6 +196,23 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await deleteDoc(expenseDoc);
 };
 
+export const subscribeToRelevantExpenses = (
+  callback: (expenses: Expense[]) => void,
+  apartment: string
+) => {
+  // Listen to all expenses, then filter client-side for relevant ones
+  const expensesQuery = query(collection(db, 'expenses'));
+  return onSnapshot(expensesQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const allExpenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Expense);
+    const relevantExpenses = allExpenses.filter(
+      expense =>
+        expense.paidByApartment === apartment ||
+        (Array.isArray(expense.owedByApartments) && expense.owedByApartments.includes(apartment))
+    );
+    callback(relevantExpenses);
+  });
+};
+
 // --- Outstanding Balances ---
 // Suggestion: Store outstanding balances in a summary document per apartment, updated on expense changes.
 // This avoids scanning all expenses for each dashboard load.
