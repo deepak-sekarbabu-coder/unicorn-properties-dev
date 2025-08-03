@@ -83,17 +83,17 @@ This feature automatically divides expenses across seven apartments and tracks w
 
 ## Example Scenario
 
-1. **Initial State**: T2 pays $700 electricity bill
+1. Initial State: T2 pays $700 electricity bill
    - Original amount: $700
    - Outstanding: $600 (6 apartments × $100)
    - Display: -$600 in red
 
-2. **After T1 and T3 pay**:
+2. After T1 and T3 pay:
    - Original amount: $700
    - Outstanding: $400 (4 apartments × $100)
    - Display: -$400 in red
 
-3. **All apartments paid**:
+3. All apartments paid:
    - Original amount: $700
    - Outstanding: $0
    - Display: No red alert shown

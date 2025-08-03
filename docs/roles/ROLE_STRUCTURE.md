@@ -8,14 +8,14 @@ The application uses a dual-role system to separate authentication permissions f
 
 ### 1. Authentication Roles (`role` field)
 
-- **`user`** - Default role for regular users
-- **`admin`** - Administrative privileges (can manage all users, approve announcements, etc.)
+- `user`: Default role for regular users
+- `admin`: Administrative privileges (can manage all users, approve announcements, etc.)
 
 ### 2. Property Roles (`propertyRole` field)
 
-- **`tenant`** - Rents the apartment
-- **`owner`** - Owns the apartment
-- **`undefined`** - Not yet assigned (triggers onboarding flow)
+- `tenant`: Rents the apartment
+- `owner`: Owns the apartment
+- `undefined`: Not yet assigned (triggers onboarding flow)
 
 ## User Flow
 

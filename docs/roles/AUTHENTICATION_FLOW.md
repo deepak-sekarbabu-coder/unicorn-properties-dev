@@ -82,7 +82,7 @@ onAuthStateChanged(auth, async firebaseUser => {
 });
 ```
 
-### Onboarding Flow (`src/components/apartment-share-app.tsx`)
+### Onboarding Flow (`src/components/unicorn-properties-app.tsx`)
 
 The main app component handles onboarding:
 
