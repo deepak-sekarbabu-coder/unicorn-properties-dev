@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { ThemeSwitch } from '@/components/ui/theme-switch';
 
 interface NavigationMenuProps {
   user: User | null;
@@ -54,19 +55,28 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2 cursor-pointer" onClick={handleLogoNavigation}>
-          <Image
-            src="/unicorn-logo.png"
-            alt="Unicorn Properties Logo"
-            width={40}
-            height={40}
-            className="object-contain rounded bg-white"
-            priority
-            unoptimized
-          />
-          <span className="text-lg font-semibold">Unicorn Properties</span>
+        <div className="flex items-center justify-between gap-1 px-3 py-2 w-full border-b">
+          <div
+            className="flex items-center gap-1.5 min-w-0 cursor-pointer flex-1"
+            onClick={handleLogoNavigation}
+          >
+            <Image
+              src="/unicorn-logo.png"
+              alt="Unicorn Properties Logo"
+              width={24}
+              height={24}
+              className="object-contain rounded bg-white flex-shrink-0"
+              priority
+              unoptimized
+            />
+            <span className="text-sm font-semibold truncate">Unicorn Properties</span>
+          </div>
+          <div className="flex-shrink-0">
+            <ThemeSwitch />
+          </div>
         </div>
       </SidebarHeader>
+      {/* Navigation menu remains unchanged */}
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>

@@ -3,7 +3,6 @@ import { ThemeProvider } from '@/context/theme-context';
 
 import type { Metadata } from 'next';
 
-import { ThemeSwitch } from '@/components/ui/theme-switch';
 import { ToastProvider } from '@/components/ui/toast-provider';
 
 import './globals.css';
@@ -74,10 +73,6 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
-          <div className="flex items-center justify-between px-4 py-2 border-b bg-card">
-            <div>{/* Existing header content, e.g., logo, title */}</div>
-            <ThemeSwitch />
-          </div>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
           </AuthProvider>

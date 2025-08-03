@@ -4,7 +4,7 @@ import { Bell, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 
 import * as React from 'react';
 
-import type { Apartment, Expense, User } from '@/lib/types';
+import type { Expense, User } from '@/lib/types';
 import { Category } from '@/lib/types';
 
 import type { ExpensesListProps } from '@/components/expenses/expenses-list';
@@ -15,7 +15,6 @@ import { Separator } from '@/components/ui/separator';
 interface DashboardViewProps {
   user: User | null;
   expenses: Expense[];
-  apartments: Apartment[]; // <-- Added apartments prop
   users: User[];
   categories: Category[];
   currentUserApartment: string | undefined;
@@ -37,7 +36,6 @@ interface DashboardViewProps {
 export function DashboardView({
   user,
   expenses,
-  apartments,
   users,
   categories,
   currentUserApartment,
