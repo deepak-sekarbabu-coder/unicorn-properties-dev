@@ -284,9 +284,8 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
             <DialogFooter className="flex-col sm:flex-row gap-3 sm:justify-between">
               <Button
                 type="button"
-                variant="outline"
                 onClick={handleResetPassword}
-                className="w-full sm:w-auto order-2 sm:order-1"
+                className="w-full sm:w-auto order-2 sm:order-1 bg-blue-700 text-white hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 <KeyRound className="mr-2 h-4 w-4" />
                 Reset Password
@@ -294,9 +293,8 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
                 <Button
                   type="button"
-                  variant="ghost"
                   onClick={() => setOpen(false)}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-2 focus-visible:ring-gray-400"
                 >
                   Cancel
                 </Button>

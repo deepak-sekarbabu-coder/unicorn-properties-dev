@@ -280,20 +280,24 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
             />
             <DialogFooter className="flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Button type="submit" disabled={isSaving} className="flex-1">
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex-1 bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Changes
                 </Button>
                 <Button
                   type="button"
-                  className={buttonVariants({ variant: 'destructive' }) + ' flex-1'}
+                  className="flex-1 bg-white text-gray-900 border border-gray-300 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-gray-400"
                   onClick={() => setOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
-                  className={buttonVariants({ variant: 'outline' }) + ' flex-1'}
+                  className="flex-1 bg-gray-900 text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-gray-900"
                   onClick={handleResetPassword}
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
