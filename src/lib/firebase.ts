@@ -6,14 +6,13 @@ import { getMessaging } from 'firebase/messaging';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  projectId: 'apartmentshare',
-  appId: '1:338329622668:web:37d896dbd78089bd2c03a9',
-  storageBucket: 'apartmentshare.appspot.com',
-  apiKey: 'AIzaSyCWYkxlDLpUny-WVpOsd6EcfQ3sU67A2Wc',
-  authDomain: 'apartmentshare.firebaseapp.com',
-  messagingSenderId: '338329622668',
+  apiKey: 'AIzaSyA7g7daznFO-dDWYv8-jT08DDZlJSFT1lE',
+  authDomain: 'unicorndev-b532a.firebaseapp.com',
+  projectId: 'unicorndev-b532a',
+  storageBucket: 'unicorndev-b532a.firebasestorage.app',
+  messagingSenderId: '1047490636656',
+  appId: '1:1047490636656:web:851d9f253f1c7da6057db5',
 };
-
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);

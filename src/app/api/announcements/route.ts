@@ -74,7 +74,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a single announcement notification with all apartments in toApartmentId array
-    const notificationData = {
+    const notificationData: {
+      type: string;
+      title: string;
+      message: string;
+      toApartmentId: string[];
+      createdBy: string;
+      priority: string;
+      isRead: { [key: string]: boolean };
+      createdAt: string;
+      expiresAt: string | null;
+      isActive: boolean;
+    } = {
       type: 'announcement',
       title,
       message,

@@ -1,6 +1,15 @@
 'use client';
 
-import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import {
+  DocumentData,
+  QuerySnapshot,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { Bell, BellOff, X } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
@@ -10,7 +19,7 @@ import { db } from '@/lib/firebase';
 import type { Notification } from '@/lib/types';
 
 import { NotificationItem } from '@/components/notification-item';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NotificationsPanelProps {
@@ -43,10 +52,10 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
 
     const unsubscribe1 = onSnapshot(
       q1,
-      snapshot1 => {
+      (snapshot1: QuerySnapshot<DocumentData>) => {
         unsubscribe2 = onSnapshot(
           q2,
-          snapshot2 => {
+          (snapshot2: QuerySnapshot<DocumentData>) => {
             console.log(
               'Notifications snapshots received - q1:',
               snapshot1.size,
@@ -60,8 +69,8 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
             const now = new Date();
 
             // Process both snapshots
-            [snapshot1, snapshot2].forEach(snapshot => {
-              snapshot.forEach(doc => {
+            [snapshot1, snapshot2].forEach((snapshot: QuerySnapshot<DocumentData>) => {
+              snapshot.forEach((doc: DocumentData) => {
                 // Avoid duplicates
                 if (seenIds.has(doc.id)) return;
                 seenIds.add(doc.id);
@@ -106,12 +115,12 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
             setNotifications(notifs);
             setUnreadCount(unread);
           },
-          error => {
+          (error: unknown) => {
             console.error('Error in notifications listener 2:', error);
           }
         );
       },
-      error => {
+      (error: unknown) => {
         console.error('Error in notifications listener 1:', error);
       }
     );
@@ -125,6 +134,7 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
   }, [user?.apartment, user]);
 
   const markAsRead = async (notificationId: string) => {
+    if (!user || !user.apartment) return;
     try {
       const notification = notifications.find(n => n.id === notificationId);
       if (!notification) return;
@@ -148,6 +158,7 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
   };
 
   const markAllAsRead = async () => {
+    if (!user || !user.apartment) return;
     const batch = notifications
       .filter(n => !n.isRead)
       .map(async n => {
@@ -168,15 +179,16 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
     }
   };
 
-  const handlePayNow = (notification: Notification) => {
-    // Handle payment logic here
-    console.log('Initiating payment for notification:', notification);
-    // This would typically open a payment modal or redirect to a payment page
-  };
-
   return (
     <div className={`relative ${className}`}>
-      <Button variant="ghost" size="icon" className="relative" onClick={() => setIsOpen(!isOpen)}>
+      <Button
+        {...({
+          variant: 'ghost',
+          size: 'icon',
+          className: 'relative',
+          onClick: () => setIsOpen(!isOpen),
+        } as ButtonProps)}
+      >
         {unreadCount > 0 ? (
           <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
             <span className="text-xs font-medium text-white">
@@ -193,15 +205,24 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
             <h3 className="font-medium">Notifications</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
-                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={markAllAsRead}>
+                <Button
+                  {...({
+                    variant: 'ghost',
+                    size: 'sm',
+                    className: 'h-8 text-xs',
+                    onClick: markAllAsRead,
+                  } as ButtonProps)}
+                >
                   Mark all as read
                 </Button>
               )}
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setIsOpen(false)}
+                {...({
+                  variant: 'ghost',
+                  size: 'icon',
+                  className: 'h-8 w-8',
+                  onClick: () => setIsOpen(false),
+                } as ButtonProps)}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -216,7 +237,6 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
                     key={notification.id}
                     notification={notification}
                     onMarkAsRead={markAsRead}
-                    onPayNow={handlePayNow}
                   />
                 ))}
               </div>

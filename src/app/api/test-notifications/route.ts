@@ -74,7 +74,17 @@ export async function POST() {
     const apartmentsList = Array.from(apartments);
 
     // Create a single test announcement notification with all apartments
-    const notificationData = {
+    const notificationData: {
+      type: string;
+      title: string;
+      message: string;
+      toApartmentId: string[];
+      createdBy: string;
+      priority: string;
+      isRead: { [key: string]: boolean };
+      createdAt: string;
+      isActive: boolean;
+    } = {
       type: 'announcement',
       title: 'Test Announcement (Array Structure)',
       message: 'This is a test announcement using the new array structure for toApartmentId.',
