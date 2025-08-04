@@ -2,7 +2,7 @@
 
 Welcome back to the Unicorn Properties development guide! In our [previous chapter](03_notifications_system_.md), we learned how the Notifications System keeps everyone informed with real-time updates and announcements. Before that, we explored User Authentication & Roles in [Chapter 2](02_user_authentication___roles_.md) and the core Expense Management & Logic in [Chapter 1](01_expense_management___logic_.md).
 
-Now, let's switch gears and think about how the Unicorn Properties app *looks* and *feels*. Have you noticed how all the buttons, forms, and dialog boxes have a similar, clean style? How does the app achieve this consistent, polished appearance without developers having to design every single piece from scratch?
+Now, let's switch gears and think about how the Unicorn Properties app _looks_ and _feels_. Have you noticed how all the buttons, forms, and dialog boxes have a similar, clean style? How does the app achieve this consistent, polished appearance without developers having to design every single piece from scratch?
 
 That's where the **UI Component System** comes in!
 
@@ -28,19 +28,19 @@ This ensures the app:
 Our UI Component System is built on a few core ideas:
 
 1. **What are UI Components?**
-    * They are like self-contained, reusable building blocks for your app's visual interface.
-    * Each component is responsible for a small, distinct part of the UI, like a `Button`, an `Input` field, or an entire `Dialog` box.
-    * They encapsulate both how they look (their styling) and how they behave (their interactivity).
+   - They are like self-contained, reusable building blocks for your app's visual interface.
+   - Each component is responsible for a small, distinct part of the UI, like a `Button`, an `Input` field, or an entire `Dialog` box.
+   - They encapsulate both how they look (their styling) and how they behave (their interactivity).
 
 2. **ShadCN UI: Our Pre-built LEGO Bricks**
-    * Unicorn Properties uses a set of pre-built components known as **ShadCN UI**.
-    * Think of ShadCN UI as a high-quality collection of standard LEGO pieces: buttons, forms, dropdowns, dialogs, and more.
-    * These components are built on top of **Radix UI**, which provides the *functionality* (like making sure a dropdown opens correctly) without any *styling*. This gives us a lot of flexibility!
+   - Unicorn Properties uses a set of pre-built components known as **ShadCN UI**.
+   - Think of ShadCN UI as a high-quality collection of standard LEGO pieces: buttons, forms, dropdowns, dialogs, and more.
+   - These components are built on top of **Radix UI**, which provides the _functionality_ (like making sure a dropdown opens correctly) without any _styling_. This gives us a lot of flexibility!
 
 3. **Tailwind CSS: Painting the LEGO Bricks**
-    * **Tailwind CSS** is our styling tool. Instead of writing custom CSS rules, Tailwind provides a huge library of pre-defined "utility classes" that you apply directly to your HTML elements (or components).
-    * For example, instead of `background-color: blue; padding: 10px; border-radius: 5px;`, you might write `<button class="bg-blue-500 p-2 rounded-md">`.
-    * This is how we "paint" our ShadCN UI components and make them match Unicorn Properties' specific look and feel.
+   - **Tailwind CSS** is our styling tool. Instead of writing custom CSS rules, Tailwind provides a huge library of pre-defined "utility classes" that you apply directly to your HTML elements (or components).
+   - For example, instead of `background-color: blue; padding: 10px; border-radius: 5px;`, you might write `<button class="bg-blue-500 p-2 rounded-md">`.
+   - This is how we "paint" our ShadCN UI components and make them match Unicorn Properties' specific look and feel.
 
 ---
 
@@ -92,11 +92,12 @@ export function AddExpenseDialog({ children, categories, onAddExpense, currentUs
 }
 ```
 
-In this simplified code, notice how the `AddExpenseDialog` is *composed* of many smaller UI components.
-* `Dialog` is the main popup container.
-* `DialogTrigger` is the button that *opens* the dialog.
-* Inside `DialogContent`, we have a `Form` (which itself uses `FormField`, `FormLabel`, `Input`, `Select`, etc.).
-* `Button` components are used for "Add Expense" and "Cancel."
+In this simplified code, notice how the `AddExpenseDialog` is _composed_ of many smaller UI components.
+
+- `Dialog` is the main popup container.
+- `DialogTrigger` is the button that _opens_ the dialog.
+- Inside `DialogContent`, we have a `Form` (which itself uses `FormField`, `FormLabel`, `Input`, `Select`, etc.).
+- `Button` components are used for "Add Expense" and "Cancel."
 
 By combining these pre-made components, the developer can build a complex UI like the "Add Expense" dialog very quickly, knowing that each piece already looks and functions correctly according to the app's design guidelines.
 
@@ -293,7 +294,8 @@ This `tailwind.config.ts` file maps simple names like `primary` and `destructive
 @tailwind utilities;
 
 @layer base {
-  :root { /* These are CSS variables for light mode */
+  :root {
+    /* These are CSS variables for light mode */
     --background: 0 0% 96%;
     --foreground: 222.2 84% 4.9%;
     --primary: 202 70% 40%; /* Unicorn Properties Blue! */
@@ -305,7 +307,8 @@ This `tailwind.config.ts` file maps simple names like `primary` and `destructive
     --border: 214.3 31.8% 91.4%;
     --radius: 0.5rem; /* The default rounded corner size */
   }
-  .dark { /* These are CSS variables for dark mode */
+  .dark {
+    /* These are CSS variables for dark mode */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --primary: 202 70% 60%;
@@ -346,9 +349,9 @@ This `cn` function is a handy tool. It takes multiple class names (like `"bg-blu
 
 Beyond the basic UI components, the system also allows us to build more specialized components, like:
 
-* `src/components/icons/category-icon.tsx`: A component that can display either a predefined icon (like a lightning bolt for electricity) or even an emoji, always with a consistent circular background.
-* `src/components/ui/accordion.tsx`: A component that allows you to show and hide content sections, perfect for organizing information, ensuring the animation and behavior are smooth and consistent every time.
-* `src/components/ui/visually-hidden.tsx`: An important component for accessibility. It makes content visible to screen readers (for users with visual impairments) but keeps it hidden from visual users, ensuring the app is usable by everyone.
+- `src/components/icons/category-icon.tsx`: A component that can display either a predefined icon (like a lightning bolt for electricity) or even an emoji, always with a consistent circular background.
+- `src/components/ui/accordion.tsx`: A component that allows you to show and hide content sections, perfect for organizing information, ensuring the animation and behavior are smooth and consistent every time.
+- `src/components/ui/visually-hidden.tsx`: An important component for accessibility. It makes content visible to screen readers (for users with visual impairments) but keeps it hidden from visual users, ensuring the app is usable by everyone.
 
 These components demonstrate how the system can be extended and customized while still leveraging the underlying ShadCN UI and Tailwind CSS framework for consistency.
 
@@ -358,11 +361,11 @@ These components demonstrate how the system can be extended and customized while
 
 In this chapter, you've learned about the "UI Component System," which acts as the LEGO set for building the Unicorn Properties application's interface. We covered:
 
-* The problem it solves: ensuring a consistent, fast, and easy-to-build/maintain user interface.
-* The role of **UI Components** as reusable building blocks.
-* How **ShadCN UI** provides pre-built, functional components (built on **Radix UI**).
-* How **Tailwind CSS** is used to style these components, defining the app's visual identity.
-* How components like `Button`, `Input`, and `Dialog` are internally structured using utility classes and CSS variables.
+- The problem it solves: ensuring a consistent, fast, and easy-to-build/maintain user interface.
+- The role of **UI Components** as reusable building blocks.
+- How **ShadCN UI** provides pre-built, functional components (built on **Radix UI**).
+- How **Tailwind CSS** is used to style these components, defining the app's visual identity.
+- How components like `Button`, `Input`, and `Dialog` are internally structured using utility classes and CSS variables.
 
 This system is essential for delivering a polished, user-friendly experience, making sure that everything from adding an expense (from [Chapter 1](01_expense_management___logic_.md)) to logging in (from [Chapter 2](02_user_authentication___roles_.md)) looks and feels cohesive.
 

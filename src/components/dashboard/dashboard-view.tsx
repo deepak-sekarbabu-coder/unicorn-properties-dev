@@ -70,20 +70,22 @@ export function DashboardView({
                 amount > 0 && (
                   <div
                     key={`owed-${apartmentId}`}
-                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-green-100">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
+                      <div className="p-2 rounded-full bg-green-100 dark:bg-green-800/30">
+                        <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
                       <div>
                         <p className="font-medium">
                           {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
                         </p>
-                        <p className="text-sm text-muted-foreground">owes your apartment</p>
+                        <p className="text-sm text-muted-foreground dark:text-green-200">
+                          owes your apartment
+                        </p>
                       </div>
                     </div>
-                    <span className="text-lg font-semibold text-green-700">
+                    <span className="text-lg font-semibold text-green-700 dark:text-green-400">
                       ₹{amount.toFixed(2)}
                     </span>
                   </div>
@@ -96,20 +98,24 @@ export function DashboardView({
                 amount > 0 && (
                   <div
                     key={`owes-${apartmentId}`}
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-red-100">
-                        <TrendingDown className="h-5 w-5 text-red-600" />
+                      <div className="p-2 rounded-full bg-red-100 dark:bg-red-800/30">
+                        <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
                       </div>
                       <div>
                         <p className="font-medium">
                           You owe {apartmentBalances[apartmentId]?.name || 'Unknown Apartment'}
                         </p>
-                        <p className="text-sm text-muted-foreground">for shared expenses</p>
+                        <p className="text-sm text-muted-foreground dark:text-red-200">
+                          for shared expenses
+                        </p>
                       </div>
                     </div>
-                    <span className="text-lg font-semibold text-red-700">₹{amount.toFixed(2)}</span>
+                    <span className="text-lg font-semibold text-red-700 dark:text-red-400">
+                      ₹{amount.toFixed(2)}
+                    </span>
                   </div>
                 )
             )}
@@ -117,7 +123,7 @@ export function DashboardView({
             {/* Net balance */}
             {currentApartmentBalance.balance !== 0 && (
               <div
-                className={`mt-4 p-4 rounded-lg ${currentApartmentBalance.balance > 0 ? 'bg-green-50' : 'bg-red-50'}`}
+                className={`mt-4 p-4 rounded-lg ${currentApartmentBalance.balance > 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -126,14 +132,16 @@ export function DashboardView({
                         ? 'Your apartment is owed'
                         : 'Your apartment owes'}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p
+                      className={`text-sm ${currentApartmentBalance.balance > 0 ? 'text-muted-foreground dark:text-green-200' : 'text-muted-foreground dark:text-red-200'}`}
+                    >
                       {currentApartmentBalance.balance > 0
                         ? 'in total across all apartments'
                         : 'in total to other apartments'}
                     </p>
                   </div>
                   <span
-                    className={`text-xl font-bold ${currentApartmentBalance.balance > 0 ? 'text-green-700' : 'text-red-700'}`}
+                    className={`text-xl font-bold ${currentApartmentBalance.balance > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
                   >
                     {currentApartmentBalance.balance > 0 ? '+' : ''}₹
                     {Math.abs(currentApartmentBalance.balance).toFixed(2)}

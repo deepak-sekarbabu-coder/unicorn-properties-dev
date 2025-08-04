@@ -20,23 +20,25 @@ export function OutstandingBalance({ expenses, currentUserApartment }: Outstandi
   if (totalOutstanding <= 0) return null;
 
   return (
-    <Card className="border-red-200 bg-red-50">
+    <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-red-100">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="p-2 rounded-full bg-red-100 dark:bg-red-800/30">
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="font-medium text-red-800">Total Outstanding Amount</p>
-              <p className="text-sm text-red-600">
+              <p className="font-medium text-red-800 dark:text-red-200">Total Outstanding Amount</p>
+              <p className="text-sm text-red-600 dark:text-red-300">
                 Amount still owed to your apartment from shared expenses
               </p>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-red-700">-₹{totalOutstanding.toFixed(2)}</div>
-            <p className="text-sm text-red-600">Still owed</p>
+            <div className="text-2xl font-bold text-red-700 dark:text-red-400">
+              -₹{totalOutstanding.toFixed(2)}
+            </div>
+            <p className="text-sm text-red-600 dark:text-red-300">Still owed</p>
           </div>
         </div>
       </CardContent>

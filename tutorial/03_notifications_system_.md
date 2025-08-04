@@ -1,8 +1,8 @@
 # Chapter 3: Notifications System
 
-Welcome back to the Unicorn Properties development guide! In our [previous chapter](02_user_authentication___roles_.md), we explored how the system knows *who you are* and *what you're allowed to do* through User Authentication & Roles. And before that, in [Chapter 1: Expense Management & Logic](01_expense_management___logic_.md), we learned how the app manages all the shared bills.
+Welcome back to the Unicorn Properties development guide! In our [previous chapter](02_user_authentication___roles_.md), we explored how the system knows _who you are_ and _what you're allowed to do_ through User Authentication & Roles. And before that, in [Chapter 1: Expense Management & Logic](01_expense_management___logic_.md), we learned how the app manages all the shared bills.
 
-But now, imagine this: Apartment T2 just paid a big electricity bill, or maybe an admin has an important update about a building-wide maintenance. How does the app tell *everyone* about these crucial events? How do you get a heads-up even if you're not actively looking at the app?
+But now, imagine this: Apartment T2 just paid a big electricity bill, or maybe an admin has an important update about a building-wide maintenance. How does the app tell _everyone_ about these crucial events? How do you get a heads-up even if you're not actively looking at the app?
 
 That's where the **Notifications System** comes in!
 
@@ -26,10 +26,10 @@ Our Notifications System is built on a few core ideas:
 
 3. **Two Types of Notifications:** Our system sends out different kinds of alerts:
 
-    | Notification Type | What it's for                                        | Example                                     | Who sends it?                                 |
-    | :---------------- | :--------------------------------------------------- | :------------------------------------------ | :-------------------------------------------- |
-    | **Action-Based**  | Alerts for specific events related to your activity. | "T1 paid their ₹100 for Electricity Bill!"  | The system, based on user actions (`Expense Management` logic) |
-    | **Announcements** | General messages or important news from management.  | "Water Shut-off Tuesday: 9 AM - 1 PM"       | Admin users only                              |
+   | Notification Type | What it's for                                        | Example                                    | Who sends it?                                                  |
+   | :---------------- | :--------------------------------------------------- | :----------------------------------------- | :------------------------------------------------------------- |
+   | **Action-Based**  | Alerts for specific events related to your activity. | "T1 paid their ₹100 for Electricity Bill!" | The system, based on user actions (`Expense Management` logic) |
+   | **Announcements** | General messages or important news from management.  | "Water Shut-off Tuesday: 9 AM - 1 PM"      | Admin users only                                               |
 
 4. **Read Status:** The system keeps track of which notifications you've seen and read. This helps you quickly spot new messages.
 
@@ -46,7 +46,10 @@ Before our "digital postman" (FCM) can deliver messages to your browser or devic
 ```typescript
 // From src/lib/push-notifications.ts (simplified)
 import { getMessaging, getToken } from 'firebase/messaging';
-import * as firestore from './firestore'; // Our database helper
+
+import * as firestore from './firestore';
+
+// Our database helper
 
 export const requestNotificationPermission = async (userId: string) => {
   // ... (Checks if in browser, checks for VAPID key) ...
@@ -90,8 +93,11 @@ Once you're logged in, all your notifications appear in a special panel, usually
 ```typescript
 // From src/components/notifications-panel.tsx (simplified)
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 import { useAuth } from '@/lib/auth';
-import { db } from '@/lib/firebase'; // Our database connection
+import { db } from '@/lib/firebase';
+
+// Our database connection
 
 export function NotificationsPanel() {
   const { user } = useAuth(); // Get current user's apartment
@@ -101,13 +107,16 @@ export function NotificationsPanel() {
 
     // Listen for notifications specifically for this apartment
     const unsubscribe = onSnapshot(
-      query(collection(db, 'notifications'), where('toApartmentId', 'array-contains', user.apartment)),
-      (snapshot) => {
+      query(
+        collection(db, 'notifications'),
+        where('toApartmentId', 'array-contains', user.apartment)
+      ),
+      snapshot => {
         const notifs = [];
         let unread = 0;
         const now = new Date();
 
-        snapshot.forEach((docData) => {
+        snapshot.forEach(docData => {
           const data = docData.data();
 
           // Filter out expired announcements
@@ -147,9 +156,13 @@ Only `admin` users (as learned in [Chapter 2: User Authentication & Roles](02_us
 ```typescript
 // From src/app/api/announcements/route.ts (simplified)
 import { getFirestore } from 'firebase-admin/firestore';
+
 import { NextResponse } from 'next/server';
+
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
-import { getUserByEmail } from '@/lib/firestore'; // Our database helper
+import { getUserByEmail } from '@/lib/firestore';
+
+// Our database helper
 
 export async function POST(request) {
   // ... (Verify admin user is logged in) ...
@@ -190,7 +203,7 @@ export async function POST(request) {
 }
 ```
 
-This backend code is accessed when an admin creates an announcement. It first makes sure the user is actually an `admin`. Then, it gathers a list of *all* apartments and creates a *single* `announcement` record in our database. This record has a special `toApartmentId` field that is an *array* of all apartment IDs, and an `isRead` field that is an *object* to track who has read it individually.
+This backend code is accessed when an admin creates an announcement. It first makes sure the user is actually an `admin`. Then, it gathers a list of _all_ apartments and creates a _single_ `announcement` record in our database. This record has a special `toApartmentId` field that is an _array_ of all apartment IDs, and an `isRead` field that is an _object_ to track who has read it individually.
 
 #### 4. Marking Notifications as Read (`src/components/notification-item.tsx`)
 
@@ -239,7 +252,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 }
 ```
 
-This code snippet shows how a notification is marked as read. If it's a regular notification (meant for one person), its `isRead` status is simply set to `true`. If it's an `announcement` (meant for many), a specific entry for *your* apartment is updated in the `isRead` object, ensuring only *your* read status is changed without affecting others.
+This code snippet shows how a notification is marked as read. If it's a regular notification (meant for one person), its `isRead` status is simply set to `true`. If it's an `announcement` (meant for many), a specific entry for _your_ apartment is updated in the `isRead` object, ensuring only _your_ read status is changed without affecting others.
 
 ---
 
@@ -355,13 +368,13 @@ This is the heart of push notifications. This `serviceWorker.js` file, which is 
 
 In this chapter, you've learned about the "Notifications System," which acts as the vital communication hub for Unicorn Properties. We covered:
 
-* The problem it solves: keeping everyone informed with real-time updates.
-* The role of **Firebase Cloud Messaging (FCM)** as our "digital postman."
-* The difference between **Action-Based Notifications** and **Announcements**.
-* How the system tracks **Read Status** for notifications.
-* The process of granting notification permission and saving your `fcmToken`.
-* How users receive notifications in-app via real-time listeners and as pop-up "push" notifications via a `Service Worker`.
-* How admins create announcements that reach all apartments through a single database entry.
+- The problem it solves: keeping everyone informed with real-time updates.
+- The role of **Firebase Cloud Messaging (FCM)** as our "digital postman."
+- The difference between **Action-Based Notifications** and **Announcements**.
+- How the system tracks **Read Status** for notifications.
+- The process of granting notification permission and saving your `fcmToken`.
+- How users receive notifications in-app via real-time listeners and as pop-up "push" notifications via a `Service Worker`.
+- How admins create announcements that reach all apartments through a single database entry.
 
 This system ensures that critical information, whether it's about shared expenses (from [Chapter 1](01_expense_management___logic_.md)) or general announcements, reaches everyone effectively.
 

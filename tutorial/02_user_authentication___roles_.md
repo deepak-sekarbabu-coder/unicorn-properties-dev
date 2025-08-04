@@ -2,7 +2,7 @@
 
 Welcome back to the Unicorn Properties development guide! In our [previous chapter](01_expense_management___logic_.md), we learned how the system acts like a super-smart accountant, helping us track and split shared expenses among apartments.
 
-But as you might have wondered, "How does the system know *who* is Apartment T2 or T1? And who is even *allowed* to mark a payment as 'paid'?" That's where **User Authentication & Roles** comes in!
+But as you might have wondered, "How does the system know _who_ is Apartment T2 or T1? And who is even _allowed_ to mark a payment as 'paid'?" That's where **User Authentication & Roles** comes in!
 
 ## What Problem Does This Solve?
 
@@ -25,25 +25,24 @@ By the end of this chapter, you'll understand how our system handles this, ensur
 Our Authentication & Roles system is built on a few core ideas:
 
 1. **Authentication (The ID Check):**
-    * This is the process of verifying who you say you are.
-    * When you enter your email and password, or use Google to sign in, the system checks your credentials. If they match, you're "authenticated."
-    * **Analogy:** Showing your ID to the bouncer.
+   - This is the process of verifying who you say you are.
+   - When you enter your email and password, or use Google to sign in, the system checks your credentials. If they match, you're "authenticated."
+   - **Analogy:** Showing your ID to the bouncer.
 
 2. **Roles (Your Access Pass):**
-    * Once you're authenticated, the system knows your "role," which dictates what you can see and do within the application.
-    * Unicorn Properties uses **two types of roles** to give us flexibility:
+   - Once you're authenticated, the system knows your "role," which dictates what you can see and do within the application.
+   - Unicorn Properties uses **two types of roles** to give us flexibility:
 
-    | Role Type          | What it Defines                                         | Examples                    | Who manages it?      |
-    | :----------------- | :------------------------------------------------------ | :-------------------------- | :------------------- |
-    | **System Role**    | Your overall access level within the application.       | `user` (default), `admin`   | Usually, `admin` users |
-    | **Property Role**  | Your relationship to an apartment in the property.      | `tenant` (renter), `owner`  | User during onboarding, or `admin` users |
-
-    * **Analogy:** A "regular guest" (`user`, `tenant`) might only see their own apartment's expenses. A "club manager" (`admin`, `owner`) could see and modify *all* expenses for all apartments.
+   | Role Type         | What it Defines                                    | Examples                   | Who manages it?                          |
+   | :---------------- | :------------------------------------------------- | :------------------------- | :--------------------------------------- |
+   | **System Role**   | Your overall access level within the application.  | `user` (default), `admin`  | Usually, `admin` users                   |
+   | **Property Role** | Your relationship to an apartment in the property. | `tenant` (renter), `owner` | User during onboarding, or `admin` users |
+   - **Analogy:** A "regular guest" (`user`, `tenant`) might only see their own apartment's expenses. A "club manager" (`admin`, `owner`) could see and modify _all_ expenses for all apartments.
 
 3. **Onboarding (The Membership Form):**
-    * When you sign up for the very first time, the system needs a bit more information, like which apartment you belong to and whether you're an owner or a tenant.
-    * This is a one-time setup process to complete your profile.
-    * **Analogy:** Filling out a quick membership form when you join a new club.
+   - When you sign up for the very first time, the system needs a bit more information, like which apartment you belong to and whether you're an owner or a tenant.
+   - This is a one-time setup process to complete your profile.
+   - **Analogy:** Filling out a quick membership form when you join a new club.
 
 ---
 
@@ -83,9 +82,14 @@ When you click "Sign In," the real magic happens in a central place called `Auth
 ```typescript
 // From src/context/auth-context.tsx (simplified)
 import { onAuthStateChanged } from 'firebase/auth';
-import { addUser, getUserByEmail } from '@/lib/firestore'; // Our database helper
-import { auth } from '@/lib/firebase'; // Our authentication service
-import { User } from '@/lib/types'; // The structure of our user data
+
+// Our database helper
+import { auth } from '@/lib/firebase';
+import { addUser, getUserByEmail } from '@/lib/firestore';
+// Our authentication service
+import { User } from '@/lib/types';
+
+// The structure of our user data
 
 export const AuthProvider = ({ children }) => {
   // ... (setup for user state and loading) ...
@@ -95,7 +99,8 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser && firebaseUser.email) {
         let appUser = await getUserByEmail(firebaseUser.email); // 🔍 Look up user in our database
 
-        if (!appUser) { // If user doesn't exist (first-time login)
+        if (!appUser) {
+          // If user doesn't exist (first-time login)
           const newUser: Omit<User, 'id'> = {
             name: firebaseUser.displayName || 'New User',
             email: firebaseUser.email,
@@ -259,11 +264,11 @@ This diagram illustrates the journey from a new user trying to log in, through g
 
 In this chapter, you've learned about the "User Authentication & Roles" system, which acts as the bouncer and ID checker for Unicorn Properties. We covered:
 
-* The crucial problem it solves: identifying users and controlling their access.
-* The difference between **Authentication** (who you are) and **Roles** (what you can do).
-* The two types of roles: **System Role** (`user`, `admin`) and **Property Role** (`tenant`, `owner`).
-* The **onboarding process** for new users to set up their apartment and property role.
-* How core parts of the application like `AuthContext` and `ProtectedRoute` work behind the scenes to manage your identity and access.
+- The crucial problem it solves: identifying users and controlling their access.
+- The difference between **Authentication** (who you are) and **Roles** (what you can do).
+- The two types of roles: **System Role** (`user`, `admin`) and **Property Role** (`tenant`, `owner`).
+- The **onboarding process** for new users to set up their apartment and property role.
+- How core parts of the application like `AuthContext` and `ProtectedRoute` work behind the scenes to manage your identity and access.
 
 This system is fundamental to ensuring the security and proper functioning of the Unicorn Properties application, making sure only authorized users can perform actions like adding expenses or marking payments, as discussed in [Chapter 1: Expense Management & Logic](01_expense_management___logic_.md).
 

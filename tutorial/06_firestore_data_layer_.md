@@ -12,7 +12,7 @@ Imagine our Unicorn Properties application is a busy office, and all the importa
 
 This "librarian" is our **Firestore Data Layer**. It solves the problem of:
 
-1. **Centralized Storage:** It's the single, reliable place where *all* the application's information is kept.
+1. **Centralized Storage:** It's the single, reliable place where _all_ the application's information is kept.
 2. **Organized Access:** Instead of talking directly to the raw database, all requests to save, retrieve, update, or delete data go through this specific layer. It acts as a gatekeeper, ensuring data is handled correctly and consistently.
 3. **Real-time Updates:** It's like a magical filing cabinet that instantly notifies everyone in the office if a document changes or a new one is added, so everyone always has the most up-to-date information.
 4. **Data Consistency:** By having one "librarian" managing all data interactions, we ensure that information is always stored and retrieved in the same way, preventing mistakes.
@@ -26,33 +26,33 @@ This "librarian" is our **Firestore Data Layer**. It solves the problem of:
 Our Firestore Data Layer system is built on a few core ideas:
 
 1. **What is a Data Layer?**
-    * It's a part of our application's code that specifically handles *all* interactions with the database.
-    * Think of it as a dedicated "translator" between your app's logic (like `addExpense` or `markApartmentAsPaid`) and the database. Your app tells the Data Layer what it wants to do, and the Data Layer figures out how to talk to the database.
+   - It's a part of our application's code that specifically handles _all_ interactions with the database.
+   - Think of it as a dedicated "translator" between your app's logic (like `addExpense` or `markApartmentAsPaid`) and the database. Your app tells the Data Layer what it wants to do, and the Data Layer figures out how to talk to the database.
 
 2. **Firestore: The Database Behind the Scenes**
-    * Unicorn Properties uses **Google Cloud Firestore**. It's a "NoSQL" database provided by Google.
-    * **NoSQL** means it's not like traditional spreadsheets with rows and columns. Instead, it stores data as flexible "documents" within "collections."
-    * **Cloud Database** means it lives online, not on your computer. This makes it easy for many users to access the same data from anywhere in the world.
+   - Unicorn Properties uses **Google Cloud Firestore**. It's a "NoSQL" database provided by Google.
+   - **NoSQL** means it's not like traditional spreadsheets with rows and columns. Instead, it stores data as flexible "documents" within "collections."
+   - **Cloud Database** means it lives online, not on your computer. This makes it easy for many users to access the same data from anywhere in the world.
 
 3. **Collections and Documents: Folders and Files**
-    * In Firestore, data is organized into **Collections** and **Documents**.
-    * **Collections:** Imagine these as main folders in your filing cabinet, like `expenses`, `users`, `categories`, `apartments`, `notifications`, `polls`, or `faults`.
-    * **Documents:** Each document is like an individual file inside a folder. For example, within the `expenses` collection, each shared bill (like the ₹700 electricity bill) would be its own document. Each document contains the actual data (like `amount`, `description`, `paidByApartment`).
+   - In Firestore, data is organized into **Collections** and **Documents**.
+   - **Collections:** Imagine these as main folders in your filing cabinet, like `expenses`, `users`, `categories`, `apartments`, `notifications`, `polls`, or `faults`.
+   - **Documents:** Each document is like an individual file inside a folder. For example, within the `expenses` collection, each shared bill (like the ₹700 electricity bill) would be its own document. Each document contains the actual data (like `amount`, `description`, `paidByApartment`).
 
-    | Analogy          | Firestore Term   | Example                           |
-    | :--------------- | :--------------- | :-------------------------------- |
-    | Filing Cabinet   | **Firestore DB** | All Unicorn Properties data       |
-    | Main Folder      | **Collection**   | `expenses`, `users`, `categories` |
-    | Individual File  | **Document**     | One specific expense, one user's profile |
-    | Information in File | **Fields**      | `amount`, `description`, `email`, `role` |
+   | Analogy             | Firestore Term   | Example                                  |
+   | :------------------ | :--------------- | :--------------------------------------- |
+   | Filing Cabinet      | **Firestore DB** | All Unicorn Properties data              |
+   | Main Folder         | **Collection**   | `expenses`, `users`, `categories`        |
+   | Individual File     | **Document**     | One specific expense, one user's profile |
+   | Information in File | **Fields**       | `amount`, `description`, `email`, `role` |
 
 4. **Real-time Listeners (The Instant Update):**
-    * This is one of Firestore's most powerful features. Instead of constantly asking the database "Is there new data?", you can tell Firestore to "listen" for changes.
-    * If any data in a collection changes (e.g., a new expense is added, or an expense is marked as paid), Firestore instantly sends that update to any app that's listening. This is how your dashboard updates immediately without refreshing!
+   - This is one of Firestore's most powerful features. Instead of constantly asking the database "Is there new data?", you can tell Firestore to "listen" for changes.
+   - If any data in a collection changes (e.g., a new expense is added, or an expense is marked as paid), Firestore instantly sends that update to any app that's listening. This is how your dashboard updates immediately without refreshing!
 
 5. **Our Firestore Helper Functions (`src/lib/firestore.ts`):**
-    * To make it easy for our application's "conductor" ([Chapter 5](05_central_application_orchestration_.md)) to talk to Firestore, we've created a set of helpful functions in `src/lib/firestore.ts`.
-    * These functions are like the specific instructions you'd give to the "librarian" (e.g., "Please add this new expense," "Get me all notifications for T2," "Update T1's payment status").
+   - To make it easy for our application's "conductor" ([Chapter 5](05_central_application_orchestration_.md)) to talk to Firestore, we've created a set of helpful functions in `src/lib/firestore.ts`.
+   - These functions are like the specific instructions you'd give to the "librarian" (e.g., "Please add this new expense," "Get me all notifications for T2," "Update T1's payment status").
 
 ---
 
@@ -66,9 +66,11 @@ When the `UnicornPropertiesApp` wants to save a new expense (after the user fill
 
 ```typescript
 // From src/components/unicorn-properties-app.tsx (simplified)
-import * as firestore from '@/lib/firestore'; // Our data layer helper functions
+import * as firestore from '@/lib/firestore';
 
-const handleAddExpense = async (newExpenseData) => {
+// Our data layer helper functions
+
+const handleAddExpense = async newExpenseData => {
   // ... (calculations for owedByApartments, perApartmentShare, etc. from Chapter 1) ...
 
   const expenseToSave = {
@@ -112,17 +114,21 @@ When Apartment T1 pays its share for an expense, the `UnicornPropertiesApp` agai
 
 ```typescript
 // From src/components/expenses/expense-item.tsx (simplified)
-import * as firestore from '@/lib/firestore'; // Our data layer helper functions
+import * as firestore from '@/lib/firestore';
+
+// Our data layer helper functions
 
 export function ExpenseItem({ expense, onExpenseUpdate }) {
   // ... (other parts) ...
 
-  const handleMarkPaid = async (apartmentId) => {
+  const handleMarkPaid = async apartmentId => {
     // Logic to update the expense data in memory
     const updatedExpense = markApartmentAsPaid(expense, apartmentId);
 
     // This line saves the updated expense status to our Firestore Data Layer.
-    await firestore.updateExpense(expense.id, { paidByApartments: updatedExpense.paidByApartments });
+    await firestore.updateExpense(expense.id, {
+      paidByApartments: updatedExpense.paidByApartments,
+    });
 
     // ... (Tell the app to refresh with new data) ...
   };
@@ -155,7 +161,7 @@ sequenceDiagram
     UA->>U: 6. Updates UI (shows new state)
 ```
 
-This diagram illustrates the full cycle: A user action triggers the `Unicorn App` to call a function in the `Firestore Data Layer`. This layer then sends the request to the `Firestore Database`. Once the database confirms the action, it *also* sends a real-time update back to any part of the `Unicorn App` that's "listening," which then instantly updates the user interface.
+This diagram illustrates the full cycle: A user action triggers the `Unicorn App` to call a function in the `Firestore Data Layer`. This layer then sends the request to the `Firestore Database`. Once the database confirms the action, it _also_ sends a real-time update back to any part of the `Unicorn App` that's "listening," which then instantly updates the user interface.
 
 #### The Core Connection: `src/lib/firebase.ts`
 
@@ -164,7 +170,9 @@ First, our app needs to connect to Firebase, which includes Firestore. This happ
 ```typescript
 // From src/lib/firebase.ts (simplified)
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore'; // Import Firestore functions
+import { getFirestore } from 'firebase/firestore';
+
+// Import Firestore functions
 
 // Your web app's Firebase configuration (these are public, safe to share)
 const firebaseConfig = {
@@ -189,81 +197,90 @@ This code initializes our connection to Firebase and specifically grabs the `db`
 This file contains all the functions our app uses to talk to Firestore.
 
 1. **Adding a Document (`addDoc`):**
-    When you add a new expense, `addDoc` is used.
+   When you add a new expense, `addDoc` is used.
 
-    ```typescript
-    // From src/lib/firestore.ts (simplified for addExpense)
-    import { addDoc, collection } from 'firebase/firestore';
-    import { db } from './firebase'; // Our database connection
+   ```typescript
+   // From src/lib/firestore.ts (simplified for addExpense)
+   import { addDoc, collection } from 'firebase/firestore';
 
-    // Helper to remove 'undefined' values before saving
-    const removeUndefined = (obj) => {
-      Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
-      return obj;
-    };
+   import { db } from './firebase';
 
-    export const addExpense = async (expenseData) => {
-      // Get a reference to the 'expenses' collection (our folder)
-      const expensesCol = collection(db, 'expenses');
-      // Prepare the data, ensuring no undefined values
-      const cleanExpense = removeUndefined({ ...expenseData, date: new Date().toISOString() });
+   // Our database connection
 
-      // Add a new document to the 'expenses' collection
-      const docRef = await addDoc(expensesCol, cleanExpense);
+   // Helper to remove 'undefined' values before saving
+   const removeUndefined = obj => {
+     Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
+     return obj;
+   };
 
-      // Return the new expense with its unique ID
-      return { id: docRef.id, ...cleanExpense };
-    };
-    ```
+   export const addExpense = async expenseData => {
+     // Get a reference to the 'expenses' collection (our folder)
+     const expensesCol = collection(db, 'expenses');
+     // Prepare the data, ensuring no undefined values
+     const cleanExpense = removeUndefined({ ...expenseData, date: new Date().toISOString() });
 
-    This `addExpense` function takes your expense data, cleans it up, and then uses `addDoc` to create a new document in the `expenses` collection. `addDoc` automatically generates a unique `id` for the new document.
+     // Add a new document to the 'expenses' collection
+     const docRef = await addDoc(expensesCol, cleanExpense);
+
+     // Return the new expense with its unique ID
+     return { id: docRef.id, ...cleanExpense };
+   };
+   ```
+
+   This `addExpense` function takes your expense data, cleans it up, and then uses `addDoc` to create a new document in the `expenses` collection. `addDoc` automatically generates a unique `id` for the new document.
 
 2. **Updating a Document (`updateDoc`):**
-    When you mark an expense payment, `updateDoc` is used.
+   When you mark an expense payment, `updateDoc` is used.
 
-    ```typescript
-    // From src/lib/firestore.ts (simplified for updateExpense)
-    import { doc, updateDoc } from 'firebase/firestore';
-    import { db } from './firebase'; // Our database connection
+   ```typescript
+   // From src/lib/firestore.ts (simplified for updateExpense)
+   import { doc, updateDoc } from 'firebase/firestore';
 
-    export const updateExpense = async (id, expenseUpdates) => {
-      // Get a reference to the specific expense document (our file)
-      const expenseDoc = doc(db, 'expenses', id);
-      // Clean the updates to remove undefined values
-      const cleanUpdates = removeUndefined(expenseUpdates);
+   import { db } from './firebase';
 
-      // Update the document with the new data
-      await updateDoc(expenseDoc, cleanUpdates);
-    };
-    ```
+   // Our database connection
 
-    This `updateExpense` function targets a specific document by its `id` and applies only the changes you provide. For example, if you send `{ paidByApartments: ["T1"] }`, only that field is updated, leaving other fields like `amount` or `description` untouched.
+   export const updateExpense = async (id, expenseUpdates) => {
+     // Get a reference to the specific expense document (our file)
+     const expenseDoc = doc(db, 'expenses', id);
+     // Clean the updates to remove undefined values
+     const cleanUpdates = removeUndefined(expenseUpdates);
+
+     // Update the document with the new data
+     await updateDoc(expenseDoc, cleanUpdates);
+   };
+   ```
+
+   This `updateExpense` function targets a specific document by its `id` and applies only the changes you provide. For example, if you send `{ paidByApartments: ["T1"] }`, only that field is updated, leaving other fields like `amount` or `description` untouched.
 
 3. **Listening for Real-time Updates (`onSnapshot`):**
-    This is how our app stays updated instantly.
+   This is how our app stays updated instantly.
 
-    ```typescript
-    // From src/lib/firestore.ts (simplified for subscribeToExpenses)
-    import { collection, onSnapshot, query, where } from 'firebase/firestore';
-    import { db } from './firebase'; // Our database connection
+   ```typescript
+   // From src/lib/firestore.ts (simplified for subscribeToExpenses)
+   import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-    export const subscribeToExpenses = (callback, apartmentId) => {
-      let expensesQuery = query(collection(db, 'expenses'));
-      // Optional: filter expenses if only showing for a specific apartment
-      if (apartmentId) {
-        expensesQuery = query(expensesQuery, where('paidByApartment', '==', apartmentId));
-      }
+   import { db } from './firebase';
 
-      // Set up the real-time listener!
-      // 'onSnapshot' continuously monitors the query result
-      return onSnapshot(expensesQuery, (snapshot) => {
-        const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        callback(expenses); // Call the provided function with the latest data
-      });
-    };
-    ```
+   // Our database connection
 
-    The `subscribeToExpenses` function uses `onSnapshot`. This function keeps an open connection to Firestore. Every time the documents matching `expensesQuery` change (a new one is added, an existing one is modified, or one is deleted), the `snapshot` is updated, and the `callback` function (`setExpenses` in `UnicornPropertiesApp`) is called with the freshest data. This powers the real-time updates you see in the app!
+   export const subscribeToExpenses = (callback, apartmentId) => {
+     let expensesQuery = query(collection(db, 'expenses'));
+     // Optional: filter expenses if only showing for a specific apartment
+     if (apartmentId) {
+       expensesQuery = query(expensesQuery, where('paidByApartment', '==', apartmentId));
+     }
+
+     // Set up the real-time listener!
+     // 'onSnapshot' continuously monitors the query result
+     return onSnapshot(expensesQuery, snapshot => {
+       const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+       callback(expenses); // Call the provided function with the latest data
+     });
+   };
+   ```
+
+   The `subscribeToExpenses` function uses `onSnapshot`. This function keeps an open connection to Firestore. Every time the documents matching `expensesQuery` change (a new one is added, an existing one is modified, or one is deleted), the `snapshot` is updated, and the `callback` function (`setExpenses` in `UnicornPropertiesApp`) is called with the freshest data. This powers the real-time updates you see in the app!
 
 #### Backend Interactions (Admin-specific): `src/lib/firebase-admin.ts`
 
@@ -272,7 +289,10 @@ For sensitive operations, like an admin creating an announcement, we use a separ
 ```typescript
 // From src/app/api/announcements/route.ts (simplified)
 import { getFirestore } from 'firebase-admin/firestore';
-import { getFirebaseAdminApp } from '@/lib/firebase-admin'; // Our admin Firebase helper
+
+import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+
+// Our admin Firebase helper
 
 export async function POST(request) {
   // ... (Authentication and authorization checks for admin user) ...
@@ -295,16 +315,16 @@ When an admin creates an announcement, this backend route uses `getFirestore(adm
 
 In this chapter, you've learned about the **Firestore Data Layer**, which acts as the central filing cabinet and smart librarian for all the Unicorn Properties application's information. We covered:
 
-* The problem it solves: providing a consistent, real-time, and organized way to manage all app data.
-* The role of **Google Cloud Firestore** as our cloud database.
-* How data is organized into **Collections** (like folders) and **Documents** (like files).
-* The magic of **Real-time Listeners** that keep your app instantly updated.
-* How our helper functions in `src/lib/firestore.ts` (like `addExpense`, `updateExpense`, `subscribeToExpenses`) make it easy for our application to interact with Firestore.
-* The importance of secure backend interactions for admin tasks.
+- The problem it solves: providing a consistent, real-time, and organized way to manage all app data.
+- The role of **Google Cloud Firestore** as our cloud database.
+- How data is organized into **Collections** (like folders) and **Documents** (like files).
+- The magic of **Real-time Listeners** that keep your app instantly updated.
+- How our helper functions in `src/lib/firestore.ts` (like `addExpense`, `updateExpense`, `subscribeToExpenses`) make it easy for our application to interact with Firestore.
+- The importance of secure backend interactions for admin tasks.
 
 This data layer is the backbone of our application, ensuring that all information, whether it's related to expenses ([Chapter 1](01_expense_management___logic_.md)), user profiles ([Chapter 2](02_user_authentication___roles_.md)), notifications ([Chapter 3](03_notifications_system_.md)), or the overall app orchestration ([Chapter 5](05_central_application_orchestration_.md)), is reliably stored and available in real-time.
 
-Now that you understand where and how our data is stored, you might be wondering, "What exactly *is* an 'Expense' or a 'User' in terms of its structure? What fields does it have, and what kind of information goes into those fields?" That brings us to our final chapter: [Data Models & Types](07_data_models___types_.md), where we'll explore the blueprints for all the information in our app!
+Now that you understand where and how our data is stored, you might be wondering, "What exactly _is_ an 'Expense' or a 'User' in terms of its structure? What fields does it have, and what kind of information goes into those fields?" That brings us to our final chapter: [Data Models & Types](07_data_models___types_.md), where we'll explore the blueprints for all the information in our app!
 
 ---
 

@@ -243,7 +243,7 @@ export function ExpenseItem({
       <CardContent className="space-y-4">
         {/* Payment Status Overview - Hidden for cleaning expenses */}
         {!isCleaningExpense && (
-          <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm font-medium">
@@ -286,13 +286,15 @@ export function ExpenseItem({
                   <div
                     key={apartmentId}
                     className={`flex flex-col gap-2 p-3 rounded-lg border ${
-                      isPaid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                      isPaid
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                     }`}
                   >
                     {/* Apartment info row */}
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className={`h-2 w-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500' : 'bg-red-500'}`}
+                        className={`h-2 w-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500 dark:bg-red-400'}`}
                       />
                       <span className="text-sm font-medium break-words flex-1">
                         {formatApartmentWithUsers(apartmentId, isCurrentUser)}

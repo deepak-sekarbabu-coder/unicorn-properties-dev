@@ -162,11 +162,13 @@ function Toast({
       {icon && <div className="mt-0.5 flex-shrink-0">{icon}</div>}
       <div className="flex-1">
         <h3 className="text-sm font-medium">{title}</h3>
-        {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+        {description && (
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{description}</p>
+        )}
       </div>
       <button
         onClick={onDismiss}
-        className="text-gray-400 hover:text-gray-500"
+        className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />

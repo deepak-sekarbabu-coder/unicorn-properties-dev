@@ -19,11 +19,11 @@ Central Application Orchestration is like the **conductor** of our application. 
 
 **Central Use Case:** Let's say a user from Apartment T2 opens the Unicorn Properties app. The system needs to:
 
-* First, confirm it's really them (using [User Authentication & Roles](02_user_authentication___roles_.md)).
-* If it's their very first time, prompt them to complete their profile (another part of [User Authentication & Roles](02_user_authentication___roles_.md)).
-* Once logged in, it needs to show them their personal **Dashboard**.
-* The Dashboard then needs to display *their* specific outstanding expenses, as well as a list of *all* users and *all* expense categories.
-* The app must also be ready for them to click "Add Expense" (triggering logic from [Expense Management & Logic](01_expense_management___logic_.md)) or change to a different view like "All Expenses".
+- First, confirm it's really them (using [User Authentication & Roles](02_user_authentication___roles_.md)).
+- If it's their very first time, prompt them to complete their profile (another part of [User Authentication & Roles](02_user_authentication___roles_.md)).
+- Once logged in, it needs to show them their personal **Dashboard**.
+- The Dashboard then needs to display _their_ specific outstanding expenses, as well as a list of _all_ users and _all_ expense categories.
+- The app must also be ready for them to click "Add Expense" (triggering logic from [Expense Management & Logic](01_expense_management___logic_.md)) or change to a different view like "All Expenses".
 
 By the end of this chapter, you'll understand how our system orchestrates all these pieces to provide a seamless user experience!
 
@@ -34,22 +34,22 @@ By the end of this chapter, you'll understand how our system orchestrates all th
 Our Central Application Orchestration system is built on a few core ideas, mostly centered around a single, powerful component:
 
 1. **The Main Brain (`UnicornPropertiesApp`):**
-    * This is the primary component that acts as the "conductor" for almost the entire application's user interface.
-    * It lives high up in the component tree, so it can see and control most other parts of the app.
+   - This is the primary component that acts as the "conductor" for almost the entire application's user interface.
+   - It lives high up in the component tree, so it can see and control most other parts of the app.
 
 2. **Global State Management:**
-    * The "conductor" needs to keep track of the current situation. In our app, this means knowing which "view" (e.g., Dashboard, Expenses) is currently active, and having the most up-to-date lists of `users`, `expenses`, `categories`, and `apartments`.
-    * It uses special React features (like `useState` and `useEffect`) to hold and update this information.
+   - The "conductor" needs to keep track of the current situation. In our app, this means knowing which "view" (e.g., Dashboard, Expenses) is currently active, and having the most up-to-date lists of `users`, `expenses`, `categories`, and `apartments`.
+   - It uses special React features (like `useState` and `useEffect`) to hold and update this information.
 
 3. **Data Flow and Real-time Updates:**
-    * The conductor doesn't just *hold* data; it *gets* data from our database (which is handled by the [Firestore Data Layer](06_firestore_data_layer_.md)) and then *sends* that data down to the specific UI components that need to display it.
-    * Crucially, it "listens" for real-time changes in the database, so your app updates instantly without you having to refresh the page!
+   - The conductor doesn't just _hold_ data; it _gets_ data from our database (which is handled by the [Firestore Data Layer](06_firestore_data_layer_.md)) and then _sends_ that data down to the specific UI components that need to display it.
+   - Crucially, it "listens" for real-time changes in the database, so your app updates instantly without you having to refresh the page!
 
 4. **Conditional Rendering (The Scene Director):**
-    * Based on user actions or roles, the "conductor" decides which main "scene" or "panel" of the app to show. If you click "Expenses," it shows the expenses list; if you're an admin, it might show the admin panel.
+   - Based on user actions or roles, the "conductor" decides which main "scene" or "panel" of the app to show. If you click "Expenses," it shows the expenses list; if you're an admin, it might show the admin panel.
 
 5. **Global Action Handlers (The Master Controls):**
-    * When you perform a big action (like adding an expense or updating your profile), the "conductor" has special functions that manage these actions. These functions often combine logic from different parts of the app (like calculating expense splits) and then update the global data, making sure everyone sees the change.
+   - When you perform a big action (like adding an expense or updating your profile), the "conductor" has special functions that manage these actions. These functions often combine logic from different parts of the app (like calculating expense splits) and then update the global data, making sure everyone sees the change.
 
 ---
 
@@ -64,16 +64,25 @@ When you first open the app, it usually starts at the very root (`/`). This page
 ```typescript
 // From src/app/page.tsx (simplified)
 'use client';
-import { useAuth } from '@/context/auth-context'; // Checks login status
-import { useRouter } from 'next/navigation';
+
+import { useAuth } from '@/context/auth-context';
+
 import { useEffect } from 'react';
+
+// Checks login status
+import { useRouter } from 'next/navigation';
+
+// From src/app/page.tsx (simplified)
+
+// From src/app/page.tsx (simplified)
 
 export default function Home() {
   const { user, loading } = useAuth(); // Get user and loading status
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) { // Once authentication status is known
+    if (!loading) {
+      // Once authentication status is known
       if (user) {
         router.replace('/dashboard'); // Go to dashboard if logged in
       } else {
@@ -125,10 +134,19 @@ This is the heart of the orchestration! The `UnicornPropertiesApp` component man
 ```typescript
 // From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 'use client';
-import { useAuth } from '@/context/auth-context'; // Get current user
-import * as firestore from '@/lib/firestore'; // Talk to our database
+
+import { useAuth } from '@/context/auth-context';
+
+// Talk to our database
 import * as React from 'react';
-import type { View, User, Expense, Category, Apartment } from '@/lib/types';
+
+// Get current user
+import * as firestore from '@/lib/firestore';
+import type { Apartment, Category, Expense, User, View } from '@/lib/types';
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 
 export function UnicornPropertiesApp({ initialCategories }) {
   const { user, logout, updateUser: updateAuthUser } = useAuth(); // User info and auth actions
@@ -148,7 +166,8 @@ export function UnicornPropertiesApp({ initialCategories }) {
     const unsubscribeCategories = firestore.subscribeToCategories(setCategories);
     firestore.getApartments().then(setApartments); // Fetch all apartment details
 
-    return () => { // Clean up listeners when the app component is removed
+    return () => {
+      // Clean up listeners when the app component is removed
       unsubscribeExpenses();
       unsubscribeUsers();
       unsubscribeCategories();
@@ -159,7 +178,7 @@ export function UnicornPropertiesApp({ initialCategories }) {
 }
 ```
 
-**Explanation:** This component holds the "master score" for the entire application. It uses `React.useState` to store the current application `view` (e.g., 'dashboard', 'expenses'), and lists of `expenses`, `users`, `categories`, and `apartments`. The `React.useEffect` hook is vital: it establishes real-time connections to our database (the [Firestore Data Layer](06_firestore_data_layer_.md)). This means any change to an expense, a user, or a category in the database is *instantly* reflected in the app, keeping all the data fresh and accurate!
+**Explanation:** This component holds the "master score" for the entire application. It uses `React.useState` to store the current application `view` (e.g., 'dashboard', 'expenses'), and lists of `expenses`, `users`, `categories`, and `apartments`. The `React.useEffect` hook is vital: it establishes real-time connections to our database (the [Firestore Data Layer](06_firestore_data_layer_.md)). This means any change to an expense, a user, or a category in the database is _instantly_ reflected in the app, keeping all the data fresh and accurate!
 
 #### 4. Directing the Scene (Conditional Rendering)
 
@@ -237,7 +256,7 @@ When a user performs an action that impacts multiple parts of the app, the "cond
 
 ```typescript
 // From src/components/unicorn-properties-app.tsx (simplified - inside UnicornPropertiesApp)
-const handleAddExpense = async (newExpenseData) => {
+const handleAddExpense = async newExpenseData => {
   if (!user?.apartment) return; // Must have an apartment
 
   const payingApartmentId = user.apartment;
@@ -299,57 +318,58 @@ sequenceDiagram
 #### The Core Orchestrator: `src/components/unicorn-properties-app.tsx`
 
 As seen in the snippets above, the `UnicornPropertiesApp.tsx` file is the central nervous system.
-* It uses React Hooks (`useState`, `useEffect`) to manage all the important data and trigger updates.
-* It passes data down to its child components (like `PageHeader`, `NavigationMenu`, and the various `Views`) using "props." This is how the shared data (`user`, `expenses`, `categories`) reaches all the parts of the UI that need to display it.
-* It defines and implements the core logic for global actions (like `handleAddExpense`, `handleUpdateUser`, `handleDeleteExpense`), ensuring that these actions are processed centrally and update the application's state consistently.
+
+- It uses React Hooks (`useState`, `useEffect`) to manage all the important data and trigger updates.
+- It passes data down to its child components (like `PageHeader`, `NavigationMenu`, and the various `Views`) using "props." This is how the shared data (`user`, `expenses`, `categories`) reaches all the parts of the UI that need to display it.
+- It defines and implements the core logic for global actions (like `handleAddExpense`, `handleUpdateUser`, `handleDeleteExpense`), ensuring that these actions are processed centrally and update the application's state consistently.
 
 #### Connecting the Parts: `PageHeader` and `NavigationMenu`
 
 Components like `src/components/layout/page-header.tsx` and `src/components/layout/navigation-menu.tsx` play a crucial role in enabling interaction with the central orchestrator:
 
-* **`NavigationMenu`** (the sidebar):
+- **`NavigationMenu`** (the sidebar):
 
-    ```typescript
-    // From src/components/layout/navigation-menu.tsx (simplified)
-    export function NavigationMenu({ user, view, setView, role }) {
-      const handleNavigation = (newView) => {
-        setView(newView); // This updates the 'view' state in UnicornPropertiesApp
-        // ... (close mobile sidebar) ...
-      };
-      return (
-        // ... (UI for buttons) ...
-        <SidebarMenuButton onClick={() => handleNavigation('dashboard')} isActive={view === 'dashboard'}>
-          Dashboard
-        </SidebarMenuButton>
-        // ... (other menu buttons calling handleNavigation) ...
-      );
-    }
-    ```
+  ```typescript
+  // From src/components/layout/navigation-menu.tsx (simplified)
+  export function NavigationMenu({ user, view, setView, role }) {
+    const handleNavigation = (newView) => {
+      setView(newView); // This updates the 'view' state in UnicornPropertiesApp
+      // ... (close mobile sidebar) ...
+    };
+    return (
+      // ... (UI for buttons) ...
+      <SidebarMenuButton onClick={() => handleNavigation('dashboard')} isActive={view === 'dashboard'}>
+        Dashboard
+      </SidebarMenuButton>
+      // ... (other menu buttons calling handleNavigation) ...
+    );
+  }
+  ```
 
-    **Explanation:** This component receives the `setView` function as a prop from `UnicornPropertiesApp`. When a user clicks a navigation button, it simply calls `setView` with the desired `newView` ('dashboard', 'expenses', etc.). This single function call tells the central orchestrator to change what's being displayed.
+  **Explanation:** This component receives the `setView` function as a prop from `UnicornPropertiesApp`. When a user clicks a navigation button, it simply calls `setView` with the desired `newView` ('dashboard', 'expenses', etc.). This single function call tells the central orchestrator to change what's being displayed.
 
-* **`PageHeader`** (the top bar):
+- **`PageHeader`** (the top bar):
 
-    ```typescript
-    // From src/components/layout/page-header.tsx (simplified)
-    import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog';
+  ```typescript
+  // From src/components/layout/page-header.tsx (simplified)
+  import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog';
 
-    export function PageHeader({ view, user, categories, onAddExpense, onUpdateUser, onLogout }) {
-      return (
-        <header>
-          {/* ... (title display) ... */}
-          {user && (
-            <AddExpenseDialog categories={categories} onAddExpense={onAddExpense} currentUser={user}>
-              <Button>Add Expense</Button>
-            </AddExpenseDialog>
-          )}
-          {/* ... (user profile dropdown, logout) ... */}
-        </header>
-      );
-    }
-    ```
+  export function PageHeader({ view, user, categories, onAddExpense, onUpdateUser, onLogout }) {
+    return (
+      <header>
+        {/* ... (title display) ... */}
+        {user && (
+          <AddExpenseDialog categories={categories} onAddExpense={onAddExpense} currentUser={user}>
+            <Button>Add Expense</Button>
+          </AddExpenseDialog>
+        )}
+        {/* ... (user profile dropdown, logout) ... */}
+      </header>
+    );
+  }
+  ```
 
-    **Explanation:** This component uses the `AddExpenseDialog` (an example of a [UI component](04_ui_component_system_.md)). When the dialog's form is submitted, it calls the `onAddExpense` function, which was passed down from `UnicornPropertiesApp`. This is how actions initiated in smaller UI parts trigger the central orchestration logic.
+  **Explanation:** This component uses the `AddExpenseDialog` (an example of a [UI component](04_ui_component_system_.md)). When the dialog's form is submitted, it calls the `onAddExpense` function, which was passed down from `UnicornPropertiesApp`. This is how actions initiated in smaller UI parts trigger the central orchestration logic.
 
 ---
 
@@ -357,11 +377,11 @@ Components like `src/components/layout/page-header.tsx` and `src/components/layo
 
 In this chapter, you've learned about **Central Application Orchestration**, the crucial "conductor" that brings all parts of the Unicorn Properties application together. We covered:
 
-* The core problem it solves: coordinating data, views, and actions across the entire application.
-* The role of the `UnicornPropertiesApp` component as the central brain managing global state and actions.
-* How data flows into the orchestrator from the database (via real-time listeners) and is then passed down to specific UI components.
-* How the orchestrator uses "conditional rendering" to display the correct parts of the application (Dashboard, Expenses, Admin, etc.).
-* How global action handlers (like `handleAddExpense`) coordinate complex logic and update the entire application's state.
+- The core problem it solves: coordinating data, views, and actions across the entire application.
+- The role of the `UnicornPropertiesApp` component as the central brain managing global state and actions.
+- How data flows into the orchestrator from the database (via real-time listeners) and is then passed down to specific UI components.
+- How the orchestrator uses "conditional rendering" to display the correct parts of the application (Dashboard, Expenses, Admin, etc.).
+- How global action handlers (like `handleAddExpense`) coordinate complex logic and update the entire application's state.
 
 This system ensures that everything from managing shared expenses ([Chapter 1](01_expense_management___logic_.md)) to user authentication ([Chapter 2](02_user_authentication___roles_.md)) and displaying beautiful UI elements ([Chapter 4](04_ui_component_system_.md)) works together seamlessly as a single, unified experience.
 

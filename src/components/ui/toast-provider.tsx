@@ -112,11 +112,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toastItem.id}
             className={`flex w-80 items-start gap-3 rounded-lg border p-4 shadow-lg ${
               {
-                default: 'bg-white border-gray-200',
-                success: 'bg-green-50 border-green-200',
-                error: 'bg-red-50 border-red-200',
-                warning: 'bg-yellow-50 border-yellow-200',
-                info: 'bg-blue-50 border-blue-200',
+                default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
+                error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
+                warning:
+                  'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
+                info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
               }[toastItem.variant]
             }`}
             role="alert"
@@ -137,13 +138,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div className="flex-1">
               <h3 className="text-sm font-medium">{toastItem.title}</h3>
               {toastItem.description && (
-                <p className="mt-1 text-sm text-gray-600">{toastItem.description}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  {toastItem.description}
+                </p>
               )}
             </div>
 
             <button
               onClick={() => dismiss(toastItem.id)}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
               aria-label="Dismiss"
             >
               <X className="h-4 w-4" />

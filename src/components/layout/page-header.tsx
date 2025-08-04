@@ -46,23 +46,25 @@ export function PageHeader({
   if (view === 'community') title = 'Community Directory';
 
   return (
-    <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-4 sm:px-6">
+    <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-6">
       <SidebarTrigger className="md:hidden" />
-      <h1 className="text-lg sm:text-xl font-semibold truncate flex-1">{title}</h1>
-      <div className="flex items-center gap-2 sm:gap-4">
+      <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate flex-1 min-w-0">
+        {title}
+      </h1>
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
         {user && <NotificationsPanel />}
         {user && (
           <AddExpenseDialog categories={categories} onAddExpense={onAddExpense} currentUser={user}>
-            <Button className="bg-accent hover:bg-accent/90">
-              <PlusCircle className="mr-2 h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Add Expense</span>
+            <Button className="bg-accent hover:bg-accent/90 h-8 sm:h-9 px-2 sm:px-3">
+              <PlusCircle className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline ml-1">Add Expense</span>
             </Button>
           </AddExpenseDialog>
         )}
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full flex-shrink-0">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>

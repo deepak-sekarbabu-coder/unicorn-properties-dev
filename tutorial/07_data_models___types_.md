@@ -2,7 +2,7 @@
 
 Welcome back to the Unicorn Properties development guide! In our [previous chapter](06_firestore_data_layer_.md), we went deep into the **Firestore Data Layer**, discovering where all our application's information (like expenses, users, and notifications) is securely stored and how it updates in real-time. We saw the "filing cabinet" and the "librarian" that manages all the data.
 
-But now, a crucial question remains: How does our application know the exact *shape* of the files inside that filing cabinet? How does it make sure that an "Expense" always has an `amount` and a `description`, and that a "User" always has an `email` and an `apartment`? What if someone accidentally tries to save a "User" without an `email`? How do we prevent these kinds of errors?
+But now, a crucial question remains: How does our application know the exact _shape_ of the files inside that filing cabinet? How does it make sure that an "Expense" always has an `amount` and a `description`, and that a "User" always has an `email` and an `apartment`? What if someone accidentally tries to save a "User" without an `email`? How do we prevent these kinds of errors?
 
 That's where **Data Models & Types** come in!
 
@@ -14,8 +14,8 @@ In a TypeScript project like Unicorn Properties, **Data Models** are like these 
 
 This system solves the problem of:
 
-1. **Predictability:** It ensures data is *always* structured exactly as expected. If an "Expense" is supposed to have a `date`, it *must* have one.
-2. **Error Prevention:** By defining these rules upfront, TypeScript (our programming language) can catch many common mistakes *before* you even run the app. It's like having a super-smart assistant review your blueprint and say, "Hold on, you forgot the foundation here!"
+1. **Predictability:** It ensures data is _always_ structured exactly as expected. If an "Expense" is supposed to have a `date`, it _must_ have one.
+2. **Error Prevention:** By defining these rules upfront, TypeScript (our programming language) can catch many common mistakes _before_ you even run the app. It's like having a super-smart assistant review your blueprint and say, "Hold on, you forgot the foundation here!"
 3. **Code Clarity:** When new developers look at the code, they immediately understand what information a "User" or an "Expense" object must contain, making the code much easier to understand and work with.
 4. **Easier Collaboration:** Everyone on the team uses the same blueprints, so there's no confusion about how data should look.
 
@@ -30,18 +30,18 @@ By the end of this chapter, you'll understand how our system uses **TypeScript**
 Our Data Models & Types system revolves around the concept of defining the structure of data in our TypeScript code.
 
 1. **Data Models (The Blueprint Idea):**
-    * This is the abstract idea of defining what a piece of data should look like. For example, a "User Model" dictates that a user *must* have an `id`, `name`, `email`, and an `apartment`.
-    * It's a logical definition of the data's structure.
+   - This is the abstract idea of defining what a piece of data should look like. For example, a "User Model" dictates that a user _must_ have an `id`, `name`, `email`, and an `apartment`.
+   - It's a logical definition of the data's structure.
 
 2. **Types (The TypeScript Implementation):**
-    * In TypeScript, we use keywords like `type` or `interface` to turn our "data model ideas" into actual code definitions.
-    * These `types` tell TypeScript the expected properties (fields) of an object and what kind of values (like `string`, `number`, `boolean`) those properties should hold.
-    * **Analogy:** If "Data Model" is the idea of a car's blueprint, "Type" is the specific drawing using symbols and labels that a manufacturer understands.
+   - In TypeScript, we use keywords like `type` or `interface` to turn our "data model ideas" into actual code definitions.
+   - These `types` tell TypeScript the expected properties (fields) of an object and what kind of values (like `string`, `number`, `boolean`) those properties should hold.
+   - **Analogy:** If "Data Model" is the idea of a car's blueprint, "Type" is the specific drawing using symbols and labels that a manufacturer understands.
 
 3. **Benefits in Action:**
-    * **Autocompletion:** When you're writing code, your development tool (like VS Code) will suggest field names based on your types, saving you typing and preventing typos.
-    * **Type Checking:** If you try to assign a number to a field that expects text, TypeScript will immediately show an error, stopping you before you even try to run your app.
-    * **Readability:** Anyone reading your code can instantly see the expected structure of data without guessing.
+   - **Autocompletion:** When you're writing code, your development tool (like VS Code) will suggest field names based on your types, saving you typing and preventing typos.
+   - **Type Checking:** If you try to assign a number to a field that expects text, TypeScript will immediately show an error, stopping you before you even try to run your app.
+   - **Readability:** Anyone reading your code can instantly see the expected structure of data without guessing.
 
 ---
 
@@ -71,12 +71,12 @@ export type Expense = {
 
 **Explanation:** This `Expense` type is our blueprint. It says:
 
-* `id` must be a `string`.
-* `amount` must be a `number`.
-* `receipt` is `string` but is `optional` (that's what the `?` means).
-* `owedByApartments` must be an `array` of `strings`.
+- `id` must be a `string`.
+- `amount` must be a `number`.
+- `receipt` is `string` but is `optional` (that's what the `?` means).
+- `owedByApartments` must be an `array` of `strings`.
 
-If you try to create an `Expense` object in your code that doesn't follow these rules, TypeScript will immediately flag an error, guiding you to fix it *before* it becomes a problem in the running app!
+If you try to create an `Expense` object in your code that doesn't follow these rules, TypeScript will immediately flag an error, guiding you to fix it _before_ it becomes a problem in the running app!
 
 #### 2. Using the Expense Blueprint in Code
 
@@ -84,15 +84,18 @@ When our `UnicornPropertiesApp` (from [Chapter 5](05_central_application_orchest
 
 ```typescript
 // From src/components/unicorn-properties-app.tsx (simplified)
-import type { Expense } from '@/lib/types'; // Import our blueprint!
-import * as firestore from '@/lib/firestore'; // For saving data
+// Import our blueprint!
+import * as firestore from '@/lib/firestore';
+import type { Expense } from '@/lib/types';
+
+// For saving data
 
 const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
   // TypeScript helps here! newExpenseData is checked against the Expense type.
   // We omit 'id' and 'date' because they are generated automatically.
 
-  const payingApartmentId = "T2"; // Example: current user is T2
-  const allApartmentIds = ["T1", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const payingApartmentId = 'T2'; // Example: current user is T2
+  const allApartmentIds = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
   const expenseToSave: Omit<Expense, 'id'> = {
     ...newExpenseData,
@@ -111,7 +114,7 @@ const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) =>
 };
 ```
 
-**Explanation:** Notice `newExpenseData: Omit<Expense, 'id' | 'date'>`. This is a powerful TypeScript feature! It says "this `newExpenseData` should look *almost exactly* like an `Expense`, but it won't have the `id` or `date` fields yet (because they are added later in the function)." This ensures we always pass the correct shape of data.
+**Explanation:** Notice `newExpenseData: Omit<Expense, 'id' | 'date'>`. This is a powerful TypeScript feature! It says "this `newExpenseData` should look _almost exactly_ like an `Expense`, but it won't have the `id` or `date` fields yet (because they are added later in the function)." This ensures we always pass the correct shape of data.
 
 #### 3. Defining a User Blueprint (`src/lib/types.ts`)
 
@@ -133,9 +136,9 @@ export type User = {
 
 **Explanation:** This `User` type tells us:
 
-* `id`, `name`, and `apartment` are required `strings`.
-* `email` is an optional `string`.
-* `role` can *only* be `'user'` or `'admin'`. If you try to assign `'guest'` to `role`, TypeScript will complain! This prevents typos and ensures valid data.
+- `id`, `name`, and `apartment` are required `strings`.
+- `email` is an optional `string`.
+- `role` can _only_ be `'user'` or `'admin'`. If you try to assign `'guest'` to `role`, TypeScript will complain! This prevents typos and ensures valid data.
 
 This strict definition means that whenever we access a `user` object in our code, we can be confident that it will have an `id`, `name`, and `apartment`, and that its `role` will be one of the defined values.
 
@@ -172,7 +175,7 @@ sequenceDiagram
 
 #### The Blueprint Hub: `src/lib/types.ts`
 
-This single file, `src/lib/types.ts`, serves as the central repository for *all* the data models in our Unicorn Properties application. It contains the `export type` definitions for every major piece of information the app handles.
+This single file, `src/lib/types.ts`, serves as the central repository for _all_ the data models in our Unicorn Properties application. It contains the `export type` definitions for every major piece of information the app handles.
 
 **Example `Notification` Type:**
 
@@ -192,15 +195,15 @@ export type Notification = {
 
 **Explanation:** This `Notification` type is a bit more complex.
 
-* `type` is restricted to only `'reminder'` or `'announcement'`. This is a **union type** and ensures we don't accidentally create notifications of an unknown type.
-* `toApartmentId` can be either a single `string` or an `array` of `strings`. This flexibility is allowed by the type definition.
-* `isRead` can be a simple `boolean` (for personal notifications) or an `object` that maps apartment IDs to boolean read statuses (for announcements). This is another example of a **union type** allowing for different valid structures depending on the notification `type`.
+- `type` is restricted to only `'reminder'` or `'announcement'`. This is a **union type** and ensures we don't accidentally create notifications of an unknown type.
+- `toApartmentId` can be either a single `string` or an `array` of `strings`. This flexibility is allowed by the type definition.
+- `isRead` can be a simple `boolean` (for personal notifications) or an `object` that maps apartment IDs to boolean read statuses (for announcements). This is another example of a **union type** allowing for different valid structures depending on the notification `type`.
 
 By defining these types precisely, every part of our application that deals with notifications knows exactly what to expect from a `Notification` object, and TypeScript helps ensure that data always conforms to these rules.
 
 #### The Checker: `tsconfig.json`
 
-While the types are defined in `src/lib/types.ts`, it's the `tsconfig.json` file that tells the TypeScript compiler *how* to check our code and *where* to find these types.
+While the types are defined in `src/lib/types.ts`, it's the `tsconfig.json` file that tells the TypeScript compiler _how_ to check our code and _where_ to find these types.
 
 ```json
 // From tsconfig.json (simplified)
@@ -218,7 +221,7 @@ While the types are defined in `src/lib/types.ts`, it's the `tsconfig.json` file
     "jsx": "preserve",
     "incremental": true,
     "allowImportingTsExtensions": true,
-    "plugins": [ { "name": "next" } ],
+    "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"] // Allows us to use `@/lib/types` instead of `../../lib/types`
     }
@@ -236,11 +239,11 @@ While the types are defined in `src/lib/types.ts`, it's the `tsconfig.json` file
 
 In this chapter, you've learned about **Data Models & Types**, which are the fundamental blueprints for all information in the Unicorn Properties application. We covered:
 
-* The problem it solves: ensuring data consistency, preventing errors, and making code clear and reliable.
-* The concept of **Data Models** as architectural blueprints for data.
-* How **TypeScript** implements these models using `types` (and `interfaces`), allowing for strong type checking and developer assistance.
-* How `src/lib/types.ts` is the central hub for all our data definitions, including `Expense`, `User`, and `Notification`.
-* The role of `tsconfig.json` in configuring the TypeScript compiler to enforce these rules, especially with `"strict": true`.
+- The problem it solves: ensuring data consistency, preventing errors, and making code clear and reliable.
+- The concept of **Data Models** as architectural blueprints for data.
+- How **TypeScript** implements these models using `types` (and `interfaces`), allowing for strong type checking and developer assistance.
+- How `src/lib/types.ts` is the central hub for all our data definitions, including `Expense`, `User`, and `Notification`.
+- The role of `tsconfig.json` in configuring the TypeScript compiler to enforce these rules, especially with `"strict": true`.
 
 This strong foundation in data modeling is crucial for the stability and maintainability of Unicorn Properties, making sure that every piece of information flows through the app reliably, from the moment an expense is added ([Chapter 1](01_expense_management___logic_.md)) to its storage in Firestore ([Chapter 6](06_firestore_data_layer_.md)), and its display on the user interface ([Chapter 4](04_ui_component_system_.md)).
 

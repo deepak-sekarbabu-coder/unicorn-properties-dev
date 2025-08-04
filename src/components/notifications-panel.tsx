@@ -10,7 +10,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { Bell, BellOff, X } from 'lucide-react';
+import { Bell, BellOff } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 
@@ -20,6 +20,13 @@ import type { Notification } from '@/lib/types';
 
 import { NotificationItem } from '@/components/notification-item';
 import { Button, type ButtonProps } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NotificationsPanelProps {
@@ -180,75 +187,64 @@ export function NotificationsPanel({ className }: NotificationsPanelProps) {
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <Button
-        {...({
-          variant: 'ghost',
-          size: 'icon',
-          className: 'relative',
-          onClick: () => setIsOpen(!isOpen),
-        } as ButtonProps)}
-      >
-        {unreadCount > 0 ? (
-          <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
-            <span className="text-xs font-medium text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          </div>
-        ) : null}
-        <Bell className="h-5 w-5" />
-      </Button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 rounded-md border bg-background shadow-lg z-50">
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <h3 className="font-medium">Notifications</h3>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <Button
-                  {...({
-                    variant: 'ghost',
-                    size: 'sm',
-                    className: 'h-8 text-xs',
-                    onClick: markAllAsRead,
-                  } as ButtonProps)}
-                >
-                  Mark all as read
-                </Button>
-              )}
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          {...({
+            variant: 'ghost',
+            size: 'icon',
+            className: `relative ${className}`,
+          } as ButtonProps)}
+        >
+          {unreadCount > 0 ? (
+            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
+              <span className="text-xs font-medium text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            </div>
+          ) : null}
+          <Bell className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Notifications</DialogTitle>
+            {unreadCount > 0 && (
               <Button
                 {...({
                   variant: 'ghost',
-                  size: 'icon',
-                  className: 'h-8 w-8',
-                  onClick: () => setIsOpen(false),
+                  size: 'sm',
+                  className: 'h-8 text-xs px-2 sm:px-3',
+                  onClick: markAllAsRead,
                 } as ButtonProps)}
               >
-                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">Mark all as read</span>
+                <span className="sm:hidden">Mark all</span>
               </Button>
-            </div>
+            )}
           </div>
+        </DialogHeader>
 
-          {notifications.length > 0 ? (
-            <ScrollArea className="h-96">
-              <div className="p-2">
-                {notifications.map(notification => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    onMarkAsRead={markAsRead}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          ) : (
-            <div className="p-6 text-center text-muted-foreground">
-              <BellOff className="mx-auto h-8 w-8 mb-2 opacity-30" />
-              <p>No notifications yet</p>
+        {notifications.length > 0 ? (
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-2">
+              {notifications.map(notification => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onMarkAsRead={markAsRead}
+                />
+              ))}
             </div>
-          )}
-        </div>
-      )}
-    </div>
+          </ScrollArea>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-8">
+            <BellOff className="h-12 w-12 mb-4 opacity-30" />
+            <p className="text-sm">No notifications yet</p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

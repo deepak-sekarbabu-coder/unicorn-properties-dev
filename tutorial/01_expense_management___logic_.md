@@ -19,10 +19,10 @@ By the end of this chapter, you'll understand how our system handles this, from 
 
 Our Expense Management system is built on a few key ideas:
 
-1. **Automatic Bill Splitting:** When a shared bill is added, the system doesn't make you do any math. It instantly divides the total cost equally among all 7 apartments. But here's a smart twist: the apartment that *paid* the bill doesn't owe themselves a share!
-    * **Example:** If T2 pays ₹700, and there are 7 apartments, each apartment's share is ₹100 (₹700 / 7). T2 already paid, so they don't owe themselves. The other 6 apartments each owe ₹100. So, a total of ₹600 is outstanding.
+1. **Automatic Bill Splitting:** When a shared bill is added, the system doesn't make you do any math. It instantly divides the total cost equally among all 7 apartments. But here's a smart twist: the apartment that _paid_ the bill doesn't owe themselves a share!
+   - **Example:** If T2 pays ₹700, and there are 7 apartments, each apartment's share is ₹100 (₹700 / 7). T2 already paid, so they don't owe themselves. The other 6 apartments each owe ₹100. So, a total of ₹600 is outstanding.
 
-2. **Tracking Who Owes What:** The system keeps a clear record of every single payment. It knows exactly which apartments still need to pay their share for each expense. It even shows you a big, clear number on your screen telling you how much money is still owed *to you* (if you paid a bill).
+2. **Tracking Who Owes What:** The system keeps a clear record of every single payment. It knows exactly which apartments still need to pay their share for each expense. It even shows you a big, clear number on your screen telling you how much money is still owed _to you_ (if you paid a bill).
 
 3. **Marking Payments as Complete:** When an apartment pays back its share to the one who originally paid the bill, the system allows you to easily mark that payment as "done." As payments are marked, the outstanding amount automatically goes down.
 
@@ -36,15 +36,15 @@ Let's see how our system handles the example of Apartment T2 paying the ₹700 e
 
 When Apartment T2 adds the ₹700 electricity bill:
 
-* T2 logs into the system.
-* They create a new expense entry, typing in "Electricity Bill" for ₹700.
-* They choose "T2" as the apartment that paid.
+- T2 logs into the system.
+- They create a new expense entry, typing in "Electricity Bill" for ₹700.
+- They choose "T2" as the apartment that paid.
 
 Behind the scenes, the system immediately calculates:
 
-* **Per Apartment Share:** ₹100 (₹700 / 7 apartments)
-* **Owed By:** Apartments T1, T3, T4, T5, T6, T7 (all 6 of them!)
-* **Total Outstanding for T2:** ₹600 (6 apartments x ₹100)
+- **Per Apartment Share:** ₹100 (₹700 / 7 apartments)
+- **Owed By:** Apartments T1, T3, T4, T5, T6, T7 (all 6 of them!)
+- **Total Outstanding for T2:** ₹600 (6 apartments x ₹100)
 
 Here's a simplified look at how an expense is added, focusing on the data being sent to the system:
 
@@ -54,12 +54,12 @@ Here's a simplified look at how an expense is added, focusing on the data being 
 export async function POST(request) {
   const body = await request.json();
   const {
-    amount,          // e.g., 700
-    description,     // e.g., "Electricity Bill"
+    amount, // e.g., 700
+    description, // e.g., "Electricity Bill"
     paidByApartment, // e.g., "T2"
     owedByApartments, // e.g., ["T1", "T3", "T4", "T5", "T6", "T7"] (calculated by the app)
     perApartmentShare, // e.g., 100 (calculated by the app)
-    categoryId,      // e.g., "electricity"
+    categoryId, // e.g., "electricity"
   } = body;
 
   // ... (more checks and security) ...
@@ -210,96 +210,96 @@ The core logic for all calculations and updates lives in a file called `src/lib/
 Here are its key functions:
 
 1. **`calculateExpenseAmounts(expense)`:**
-    * **What it does:** This function takes an expense record and figures out how much is *still* outstanding for that particular expense. It also tells you which apartments have paid and which haven't.
-    * **Simplified Code Snippet:**
+   - **What it does:** This function takes an expense record and figures out how much is _still_ outstanding for that particular expense. It also tells you which apartments have paid and which haven't.
+   - **Simplified Code Snippet:**
 
-        ```typescript
-        // From src/lib/expense-utils.ts
-        export function calculateExpenseAmounts(expense) {
-          const { amount, owedByApartments = [], paidByApartments = [], perApartmentShare } = expense;
+     ```typescript
+     // From src/lib/expense-utils.ts
+     export function calculateExpenseAmounts(expense) {
+       const { amount, owedByApartments = [], paidByApartments = [], perApartmentShare } = expense;
 
-          // Find apartments that have NOT yet paid their share.
-          const unpaidApartments = owedByApartments.filter(
-            apartmentId => !paidByApartments.includes(apartmentId)
-          );
+       // Find apartments that have NOT yet paid their share.
+       const unpaidApartments = owedByApartments.filter(
+         apartmentId => !paidByApartments.includes(apartmentId)
+       );
 
-          // Calculate the total amount still owed for this expense.
-          const adjustedAmount = unpaidApartments.length * perApartmentShare;
+       // Calculate the total amount still owed for this expense.
+       const adjustedAmount = unpaidApartments.length * perApartmentShare;
 
-          return {
-            originalAmount: amount,
-            adjustedAmount, // This is the amount still outstanding for *this* expense
-            paidApartments: paidByApartments,
-            unpaidApartments,
-            perApartmentShare: perApartmentShare,
-          };
-        }
-        ```
+       return {
+         originalAmount: amount,
+         adjustedAmount, // This is the amount still outstanding for *this* expense
+         paidApartments: paidByApartments,
+         unpaidApartments,
+         perApartmentShare: perApartmentShare,
+       };
+     }
+     ```
 
-        This function is crucial for displaying the correct "Outstanding" amount for each individual expense item. It simply counts how many apartments *haven't* paid and multiplies by the per-apartment share.
+     This function is crucial for displaying the correct "Outstanding" amount for each individual expense item. It simply counts how many apartments _haven't_ paid and multiplies by the per-apartment share.
 
 2. **`calculateTotalOutstanding(expenses, payingApartmentId)`:**
-    * **What it does:** This function looks at *all* the expenses an apartment has paid for and then sums up how much money is still owed *to that apartment* across all those bills. This is what powers the big red alert on your dashboard.
-    * **Simplified Code Snippet:**
+   - **What it does:** This function looks at _all_ the expenses an apartment has paid for and then sums up how much money is still owed _to that apartment_ across all those bills. This is what powers the big red alert on your dashboard.
+   - **Simplified Code Snippet:**
 
-        ```typescript
-        // From src/lib/expense-utils.ts
-        export function calculateTotalOutstanding(expenses, payingApartmentId) {
-          // Filter for expenses that *this* apartment paid for.
-          return expenses
-            .filter(expense => expense.paidByApartment === payingApartmentId)
-            .reduce((total, expense) => {
-              // For each of these expenses, calculate its outstanding amount
-              const calculation = calculateExpenseAmounts(expense);
-              return total + calculation.totalOutstanding; // Add to the running total
-            }, 0); // Start total at 0
-        }
-        ```
+     ```typescript
+     // From src/lib/expense-utils.ts
+     export function calculateTotalOutstanding(expenses, payingApartmentId) {
+       // Filter for expenses that *this* apartment paid for.
+       return expenses
+         .filter(expense => expense.paidByApartment === payingApartmentId)
+         .reduce((total, expense) => {
+           // For each of these expenses, calculate its outstanding amount
+           const calculation = calculateExpenseAmounts(expense);
+           return total + calculation.totalOutstanding; // Add to the running total
+         }, 0); // Start total at 0
+     }
+     ```
 
-        This function iterates through all expenses where the current user was the one who paid. For each of these, it asks `calculateExpenseAmounts` (our previous function) how much is still owed, and then adds it all up.
+     This function iterates through all expenses where the current user was the one who paid. For each of these, it asks `calculateExpenseAmounts` (our previous function) how much is still owed, and then adds it all up.
 
 3. **`markApartmentAsPaid(expense, apartmentId)`:**
-    * **What it does:** This function updates an expense record to include a specific `apartmentId` in its `paidByApartments` list. This is how the system knows that an apartment's share has been paid.
-    * **Simplified Code Snippet:**
+   - **What it does:** This function updates an expense record to include a specific `apartmentId` in its `paidByApartments` list. This is how the system knows that an apartment's share has been paid.
+   - **Simplified Code Snippet:**
 
-        ```typescript
-        // From src/lib/expense-utils.ts
-        export function markApartmentAsPaid(expense, apartmentId) {
-          const paidByApartments = expense.paidByApartments || []; // Get current paid list
+     ```typescript
+     // From src/lib/expense-utils.ts
+     export function markApartmentAsPaid(expense, apartmentId) {
+       const paidByApartments = expense.paidByApartments || []; // Get current paid list
 
-          // If already paid, do nothing
-          if (paidByApartments.includes(apartmentId)) {
-            return expense;
-          }
+       // If already paid, do nothing
+       if (paidByApartments.includes(apartmentId)) {
+         return expense;
+       }
 
-          // Return a NEW expense object with the apartment added to the paid list.
-          return {
-            ...expense, // Copy all existing expense details
-            paidByApartments: [...paidByApartments, apartmentId], // Add the new apartment
-          };
-        }
-        ```
+       // Return a NEW expense object with the apartment added to the paid list.
+       return {
+         ...expense, // Copy all existing expense details
+         paidByApartments: [...paidByApartments, apartmentId], // Add the new apartment
+       };
+     }
+     ```
 
-        This function is called when you click "Mark Paid." It adds the apartment's ID to the list of apartments that have paid their share for that expense.
+     This function is called when you click "Mark Paid." It adds the apartment's ID to the list of apartments that have paid their share for that expense.
 
 4. **`markApartmentAsUnpaid(expense, apartmentId)`:**
-    * **What it does:** This function does the opposite of `markApartmentAsPaid`. It removes an `apartmentId` from the `paidByApartments` list, effectively marking it as outstanding again.
-    * **Simplified Code Snippet:**
+   - **What it does:** This function does the opposite of `markApartmentAsPaid`. It removes an `apartmentId` from the `paidByApartments` list, effectively marking it as outstanding again.
+   - **Simplified Code Snippet:**
 
-        ```typescript
-        // From src/lib/expense-utils.ts
-        export function markApartmentAsUnpaid(expense, apartmentId) {
-          const paidByApartments = expense.paidByApartments || []; // Get current paid list
+     ```typescript
+     // From src/lib/expense-utils.ts
+     export function markApartmentAsUnpaid(expense, apartmentId) {
+       const paidByApartments = expense.paidByApartments || []; // Get current paid list
 
-          // Return a NEW expense object with the apartment removed from the paid list.
-          return {
-            ...expense, // Copy all existing expense details
-            paidByApartments: paidByApartments.filter(id => id !== apartmentId), // Remove the apartment
-          };
-        }
-        ```
+       // Return a NEW expense object with the apartment removed from the paid list.
+       return {
+         ...expense, // Copy all existing expense details
+         paidByApartments: paidByApartments.filter(id => id !== apartmentId), // Remove the apartment
+       };
+     }
+     ```
 
-        This function is called when you click "Mark Unpaid," and it removes the apartment's ID from the paid list.
+     This function is called when you click "Mark Unpaid," and it removes the apartment's ID from the paid list.
 
 ---
 
@@ -307,11 +307,11 @@ Here are its key functions:
 
 In this chapter, you've learned about the "Expense Management & Logic" system, which acts as the financial calculator and meticulous accountant for Unicorn Properties. We covered:
 
-* The problem it solves: fairly splitting shared costs and tracking payments.
-* How it automatically splits bills among 7 apartments, excluding the payer's share.
-* How it tracks who owes what and allows you to mark payments.
-* The core "Expense" data structure.
-* The key functions in `src/lib/expense-utils.ts` that handle all the calculations and updates.
+- The problem it solves: fairly splitting shared costs and tracking payments.
+- How it automatically splits bills among 7 apartments, excluding the payer's share.
+- How it tracks who owes what and allows you to mark payments.
+- The core "Expense" data structure.
+- The key functions in `src/lib/expense-utils.ts` that handle all the calculations and updates.
 
 This system is crucial for keeping the financial side of the apartment complex organized and transparent.
 

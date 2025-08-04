@@ -1,6 +1,6 @@
 # Tutorial: unicorn-properties-dev
 
-Unicorn Properties Dev is a **web application** designed to simplify *shared living* in apartment complexes. It helps residents **manage common expenses** by automatically splitting bills, tracks who owes whom, and keeps everyone informed through a real-time *notification system*. Users sign in with specific roles that control their access and features.
+Unicorn Properties Dev is a **web application** designed to simplify _shared living_ in apartment complexes. It helps residents **manage common expenses** by automatically splitting bills, tracks who owes whom, and keeps everyone informed through a real-time _notification system_. Users sign in with specific roles that control their access and features.
 
 ## Visual Overview
 

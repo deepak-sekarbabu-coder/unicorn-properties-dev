@@ -54,13 +54,15 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
     <Card
       className={`mb-2 overflow-hidden ${!notification.isRead ? 'border-l-4 border-l-blue-500' : ''}`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5">{getIcon()}</div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">{notification.title}</h3>
-              <div className="flex items-center gap-2">
+      <CardContent className="p-3">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <div className="mt-0.5 flex-shrink-0">{getIcon()}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="font-medium text-sm leading-tight flex-1 break-words">
+                {notification.title}
+              </h3>
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <Badge variant="outline" className="text-xs">
                   {getTypeLabel()}
                 </Badge>
@@ -68,40 +70,40 @@ export function NotificationItem({ notification, onMarkAsRead }: NotificationIte
               </div>
             </div>
 
-            <p className="mt-1 text-sm text-muted-foreground">{notification.message}</p>
+            <p className="text-xs text-muted-foreground mb-2 break-words">{notification.message}</p>
 
             {notification.amount && (
-              <div className="mt-2">
-                <span className="text-lg font-semibold">
-                  {notification.currency || '₹'}
-                  {notification.amount.toFixed(2)}
-                </span>
-                {notification.dueDate && (
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    Due by {format(new Date(notification.dueDate), 'MMM d, yyyy')}
+              <div className="mb-2 p-2 bg-muted/30 rounded">
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-semibold">
+                    {notification.currency || '₹'}
+                    {notification.amount.toFixed(2)}
                   </span>
-                )}
+                  {notification.dueDate && (
+                    <span className="text-xs text-muted-foreground">
+                      Due {format(new Date(notification.dueDate), 'MMM d')}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(notification.createdAt), 'MMM d, yyyy • h:mm a')}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground truncate">
+                {format(new Date(notification.createdAt), 'MMM d • h:mm a')}
               </span>
 
-              <div className="flex gap-2">
-                {!notification.isRead && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-1 text-xs"
-                    onClick={handleMarkAsRead}
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only">Mark as Read</span>
-                  </Button>
-                )}
-              </div>
+              {!notification.isRead && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 text-xs px-2"
+                  onClick={handleMarkAsRead}
+                >
+                  <Check className="h-3 w-3" />
+                  <span className="hidden sm:inline">Read</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
