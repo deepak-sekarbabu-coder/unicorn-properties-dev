@@ -15,6 +15,8 @@
     "format:check": "prettier --check .",
     "format:staged": "prettier --write",
     "insert-apartments": "tsx scripts/insertApartments.ts",
+    "insert-categories": "tsx scripts/insertCategories.ts",
+    "insert-users": "tsx scripts/insertUsers.ts",
     "clean": "rimraf .next node_modules"
   },
   "dependencies": {
