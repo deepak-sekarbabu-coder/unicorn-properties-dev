@@ -19,6 +19,7 @@ import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { auth } from '@/lib/firebase';
 import { addUser, getUserByEmail } from '@/lib/firestore';
 import { User } from '@/lib/types';
+import log from '../lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -83,56 +84,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-          console.log(
-            '🔄 Auth state changed:',
-            firebaseUser ? 'User signed in' : 'User signed out'
-          );
-
+          // Only log errors below, remove debug logs
           if (firebaseUser && firebaseUser.email) {
             try {
-              console.log('🔍 Looking up user in Firestore:', firebaseUser.email);
               let appUser = await getUserByEmail(firebaseUser.email);
-
-              // If user doesn't exist in Firestore, create them with default role
               if (!appUser) {
-                console.log('👤 Creating new user in Firestore');
                 const newUser: Omit<User, 'id'> = {
                   name: firebaseUser.displayName || 'New User',
                   email: firebaseUser.email,
                   avatar: firebaseUser.photoURL || undefined,
-                  role: 'user', // Default authentication role for first-time users
+                  role: 'user',
                   propertyRole: undefined,
                   apartment: '',
                 };
                 appUser = await addUser(newUser);
-                console.log('✅ New user created:', appUser.id);
-              } else {
-                console.log('✅ Existing user found:', appUser.id);
               }
-
-              // Set user in context
               setUser(appUser);
-
-              // Set session cookie
               try {
                 await setSessionCookie(firebaseUser);
-                console.log('✅ Session cookie set successfully');
               } catch (sessionError) {
-                console.error('❌ Failed to set session cookie:', sessionError);
-
-                // For production deployments, try to continue without session cookie
-                // The dashboard will handle authentication verification
-                console.warn('⚠️ Continuing without session cookie - dashboard will verify auth');
-
-                // Only throw error if it's a critical authentication failure
+                // Only log error if critical
                 const errorMessage = (sessionError as Error).message;
                 if (errorMessage.includes('auth/') || errorMessage.includes('permission')) {
                   throw sessionError;
                 }
               }
-
-              // Redirect to dashboard
-              console.log('🚀 Redirecting to dashboard...');
               router.replace('/dashboard');
             } catch (error) {
               console.error('❌ Authentication error:', error);
@@ -140,7 +116,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setUser(null);
             }
           } else {
-            // User signed out
             setUser(null);
             await clearSessionCookie();
           }
@@ -166,12 +141,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
-      console.log('🔐 Attempting email/password login for:', email);
       await signInWithEmailAndPassword(auth, email, password);
-      console.log('✅ Firebase authentication successful');
-      // onAuthStateChanged will handle the rest
     } catch (error) {
-      console.error('❌ Firebase login error:', error);
+      log.error('❌ Firebase login error:', error);
       throw new Error('Invalid email or password.');
     }
   };
@@ -179,17 +151,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async (): Promise<void> => {
     const provider = new GoogleAuthProvider();
     try {
-      console.log('🔐 Attempting Google Sign-In...');
       await signInWithPopup(auth, provider);
-      console.log('✅ Google authentication successful');
-      // onAuthStateChanged will handle the rest
     } catch (error) {
       const errorCode = (error as { code?: string }).code;
       if (errorCode === 'auth/popup-closed-by-user') {
-        console.log('Google Sign-In popup closed by user.');
         return;
       }
-      console.error('❌ Google sign-in error:', error);
+      log.error('❌ Google sign-in error:', error);
       throw new Error('Failed to sign in with Google. Please try again.');
     }
   };

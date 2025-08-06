@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/auth-context';
 import { format, subMonths } from 'date-fns';
+import log from '@/lib/logger';
 
 import * as React from 'react';
 
@@ -148,8 +149,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   }, [user]);
 
   const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'date'>) => {
-    console.log('[handleAddExpense] Input:', newExpenseData);
-
+    // Only log errors below, remove debug logs
     if (!user?.apartment) {
       toast({
         title: 'Error',
@@ -158,71 +158,55 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       });
       return;
     }
-
     const payingApartmentId = user.apartment;
-
-    // Check if this is a cleaning expense - if so, don't split it
     const category = getCategoryById(newExpenseData.categoryId);
     const isCleaningExpense =
       category?.name && typeof category.name === 'string' && category.name.trim()
         ? category.name.toLowerCase() === 'cleaning'
         : false;
-
     let expenseWithApartmentDebts: Omit<Expense, 'id' | 'date'>;
     let successMessage: string;
-
     if (isCleaningExpense) {
-      // For cleaning expenses, only the paying apartment bears the cost
       expenseWithApartmentDebts = {
         ...newExpenseData,
         paidByApartment: payingApartmentId,
-        owedByApartments: [], // No other apartments owe anything
-        perApartmentShare: 0, // No sharing
-        paidByApartments: [], // Initialize as empty
+        owedByApartments: [],
+        perApartmentShare: 0,
+        paidByApartments: [],
       };
       successMessage = `₹${newExpenseData.amount} cleaning expense added. Only your apartment will bear this cost.`;
     } else {
-      // Get all unique apartment IDs (7 apartments total)
       const allApartmentIds = apartments.map(apt => apt.id);
-
-      // Calculate per-apartment share (divide by 7 apartments)
       const perApartmentShare = newExpenseData.amount / allApartmentIds.length;
-
-      // All other apartments owe money (excluding the paying apartment)
       const owingApartments = allApartmentIds.filter(id => id !== payingApartmentId);
-
-      console.log('[handleAddExpense] payingApartmentId:', payingApartmentId);
-      console.log('[handleAddExpense] allApartmentIds:', allApartmentIds);
-      console.log('[handleAddExpense] owingApartments:', owingApartments);
-      console.log('[handleAddExpense] perApartmentShare:', perApartmentShare);
-
-      // Create expense with apartment debts
       expenseWithApartmentDebts = {
         ...newExpenseData,
         paidByApartment: payingApartmentId,
         owedByApartments: owingApartments,
         perApartmentShare,
-        paidByApartments: [], // Initialize as empty - no one has paid yet
+        paidByApartments: [],
       };
-
-      // Show success message
       const totalOwedByOthers = owingApartments.length * perApartmentShare;
       successMessage = `₹${newExpenseData.amount} expense split among ${allApartmentIds.length} apartments. Your share: ₹${perApartmentShare.toFixed(2)}. You are owed ₹${totalOwedByOthers.toFixed(2)} from others.`;
     }
-
-    console.log('[handleAddExpense] expenseWithApartmentDebts:', expenseWithApartmentDebts);
-
-    const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
-    console.log('[handleAddExpense] newExpense from Firestore:', newExpense);
-    setExpenses(prev => {
-      const all = [newExpense, ...prev];
-      return Array.from(new Map(all.map(e => [e.id, e])).values());
-    });
-
-    toast({
-      title: 'Expense Added',
-      description: successMessage,
-    });
+    try {
+      const newExpense = await firestore.addExpense(expenseWithApartmentDebts);
+      setExpenses(prev => {
+        const all = [newExpense, ...prev];
+        return Array.from(new Map(all.map(e => [e.id, e])).values());
+      });
+      toast({
+        title: 'Expense Added',
+        description: successMessage,
+      });
+    } catch (error) {
+      log.error('Error adding expense:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add expense. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
