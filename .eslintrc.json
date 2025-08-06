@@ -1,9 +1,5 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript",
-    "@next/eslint-plugin-next/recommended"
-  ],
+  "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
     "react-hooks/exhaustive-deps": "warn",
     "@typescript-eslint/no-unused-vars": "error"

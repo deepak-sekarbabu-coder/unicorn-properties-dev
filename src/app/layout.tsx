@@ -3,8 +3,8 @@ import { ThemeProvider } from '@/context/theme-context';
 
 import type { Metadata } from 'next';
 
-import { ToastProvider } from '@/components/ui/toast-provider';
 import ServiceWorkerRegister from '@/components/ui/service-worker-register';
+import { ToastProvider } from '@/components/ui/toast-provider';
 
 import './globals.css';
 

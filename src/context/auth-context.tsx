@@ -15,7 +15,7 @@ import React, { ReactNode, createContext, useContext, useEffect, useState } from
 
 import { useRouter } from 'next/navigation';
 
-import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
+import { shouldClearSession } from '@/lib/auth-utils';
 import { auth } from '@/lib/firebase';
 import { addUser, getUserByEmail } from '@/lib/firestore';
 import { User } from '@/lib/types';
