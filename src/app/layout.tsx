@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/context/theme-context';
 import type { Metadata } from 'next';
 
 import { ToastProvider } from '@/components/ui/toast-provider';
+import ServiceWorkerRegister from '@/components/ui/service-worker-register';
 
 import './globals.css';
 
@@ -36,42 +37,18 @@ export default function RootLayout({
         <link rel="preconnect" href="https://firebase.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Google Fonts: Inter, font-display: swap for performance */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
         <link rel="preconnect" href="https://unicorndev-b532a.firebaseapp.com" />
         <link rel="dns-prefetch" href="https://unicorndev-b532a.firebaseapp.com" />
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="dns-prefetch" href="https://apis.google.com" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-              // navigator.serviceWorker.register('/sw.js')
-                .then((registration) => {
-                  console.log('SW registered: ', registration);
-
-                  // Update service worker when new version is available
-                  registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    if (newWorker) {
-                      newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                          // New service worker is available, prompt user to refresh
-                          console.log('New service worker available');
-                        }
-                      });
-                    }
-                  });
-                })
-                .catch((registrationError) => {
-                  console.log('SW registration failed: ', registrationError);
-                });
-            });
-          }
-        `,
-          }}
-        />
       </head>
       <body className="font-body antialiased">
+        <ServiceWorkerRegister />
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
