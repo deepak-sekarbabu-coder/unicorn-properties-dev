@@ -25,6 +25,7 @@ The project leverages a modern, type-safe, and component-based architecture.
   - **Database**: Firestore (NoSQL) for all application data.
   - **Authentication**: Firebase Authentication for user login and session management.
   - **Push Notifications**: Firebase Cloud Messaging (FCM).
+  - **Performance**: Firestore queries now use `.select()` for field selection and `.limit()` for result size, reducing bandwidth and improving load times.
 - **Deployment & CI/CD**:
   - **Platform**: Netlify
   - **Build Configuration**: `netlify.toml` and `next.config.ts`
@@ -58,7 +59,7 @@ To set up and run the project locally, follow these steps:
 
 The codebase is organized logically, separating concerns and promoting maintainability.
 
-```
+```typescript
 /
 ├── src/
 │   ├── app/           # Core of the Next.js App Router: contains all pages, layouts, and API routes.
@@ -66,7 +67,7 @@ The codebase is organized logically, separating concerns and promoting maintaina
 │   │   ├── ui/        # Base UI components from ShadCN (Button, Card, etc.).
 │   │   └── ...        # Feature-specific components (e.g., expense lists, dialogs).
 │   ├── lib/           # Central hub for core business logic and utilities.
-│   │   ├── firestore.ts # All Firestore CRUD operations are centralized here.
+│   │   ├── firestore.ts # All Firestore CRUD operations are centralized here. Queries use .select() and .limit() for performance.
 │   │   ├── types.ts     # Global TypeScript type definitions for entities like User, Expense, etc.
 │   │   ├── auth.ts      # Authentication logic and utilities.
 │   │   └── expense-utils.ts # Logic for expense division and payment calculations.
@@ -89,6 +90,7 @@ The codebase is organized logically, separating concerns and promoting maintaina
   - The user who paid the expense is excluded from their share of the cost.
   - Payment status is tracked on a per-apartment basis for each expense.
   - Core logic is located in `src/lib/expense-utils.ts` and `src/lib/firestore.ts`.
+  - Firestore queries for expenses use `.select()` and `.limit()` for efficient data retrieval.
 - **Authentication & Roles**:
   - Uses Firebase Auth for email/password login.
   - A new user undergoes an onboarding flow to select their apartment and `propertyRole` (Tenant/Owner).
@@ -113,3 +115,7 @@ The `package.json` file defines several scripts for common development tasks:
 ## 7. Deployment
 
 The application is configured for continuous deployment on **Netlify**. The `netlify.toml` file and the `@netlify/plugin-nextjs` package handle the build and deployment process. Pushing to the main branch will trigger a new deployment.
+
+## 8. Performance Optimization
+
+- **Firestore Query Optimization**: All Firestore queries for apartments, users, categories, expenses, and faults now use `.select()` and `.limit()` to minimize bandwidth and speed up dashboard and list views.

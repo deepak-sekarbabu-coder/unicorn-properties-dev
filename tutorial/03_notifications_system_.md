@@ -335,29 +335,32 @@ importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
 // Initialize Firebase with your project's settings
-fetch('/firebase-config.json')
-  .then(response => response.json())
-  .then(firebaseConfig => {
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+const firebaseConfig = {
+  apiKey: 'AIzaSyCWYkxlDLpUny-WVpOsd6EcfQ3sU67A2Wc',
+  authDomain: 'unicorndev-b532a.firebaseapp.com',
+  projectId: 'unicorndev-b532a',
+  storageBucket: 'unicorndev-b532a.appspot.com',
+  messagingSenderId: '338329622668',
+  appId: '1:338329622668:web:37d896dbd78089bd2c03a9',
+  measurementId: '<YOUR_MEASUREMENT_ID>' // Optional
+};
 
-    // This function runs when a background message is received
-    messaging.onBackgroundMessage(payload => {
-      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
 
-      const notificationTitle = payload.notification.title;
-      const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/icon-192x192.png', // Icon for the push notification
-      };
+// This function runs when a background message is received
+messaging.onBackgroundMessage(payload => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-      // Show the notification to the user
-      self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-  })
-  .catch(error => {
-    console.error('Failed to load Firebase config:', error);
-  });
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/icon-192x192.png', // Icon for the push notification
+  };
+
+  // Show the notification to the user
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
 ```
 
 This is the heart of push notifications. This `serviceWorker.js` file, which is registered by the `requestNotificationPermission` function, waits in the background. When FCM sends a message for your device, this service worker "wakes up" and uses `self.registration.showNotification` to display the pop-up notification on your screen, even if your browser tab for Unicorn Properties is closed!
