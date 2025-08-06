@@ -62,7 +62,7 @@ Let's trace how a user from Apartment T2 logs in and navigates the app, seeing h
 When you first open the app, it usually starts at the very root (`/`). This page's job is simple: check if you're logged in and send you to the right place.
 
 ```typescript
-// From src/app/page.tsx (simplified)
+
 'use client';
 
 import { useAuth } from '@/context/auth-context';
@@ -72,17 +72,6 @@ import { useEffect } from 'react';
 // Checks login status
 import { useRouter } from 'next/navigation';
 
-// From src/app/page.tsx (simplified)
-
-// From src/app/page.tsx (simplified)
-
-// From src/app/page.tsx (simplified)
-
-// From src/app/page.tsx (simplified)
-
-// From src/app/page.tsx (simplified)
-
-// From src/app/page.tsx (simplified)
 
 export default function Home() {
   const { user, loading } = useAuth(); // Get user and loading status
@@ -151,20 +140,6 @@ import * as React from 'react';
 // Get current user
 import * as firestore from '@/lib/firestore';
 import type { Apartment, Category, Expense, User, View } from '@/lib/types';
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
-
-// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 
 export function UnicornPropertiesApp({ initialCategories }) {
   const { user, logout, updateUser: updateAuthUser } = useAuth(); // User info and auth actions

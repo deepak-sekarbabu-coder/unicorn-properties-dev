@@ -47,7 +47,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="dns-prefetch" href="https://apis.google.com" />
       </head>
-      <body className="font-body antialiased">
+      <body>
         <ServiceWorkerRegister />
         <ThemeProvider>
           <AuthProvider>
