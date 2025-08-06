@@ -5,6 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import React, { useState } from 'react';
 
 import { addFault } from '@/lib/firestore';
+import { uploadImage } from '@/lib/storage';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,21 +21,23 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const fileReaders: Promise<string>[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      fileReaders.push(
-        new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        })
-      );
+    setUploading(true);
+    setError('');
+    try {
+      const uploadPromises = Array.from(files).map(async file => {
+        const path = `faults/${Date.now()}_${file.name}`;
+        return await uploadImage(file, path);
+      });
+      const urls = await Promise.all(uploadPromises);
+      setImages(prev => [...prev, ...urls]);
+    } catch (err) {
+      setError('Image upload failed.');
+    } finally {
+      setUploading(false);
     }
-    Promise.all(fileReaders).then(imgs => setImages([...images, ...imgs]));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +91,13 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
           </div>
           <div>
             <label className="block font-medium mb-1">Attach Images</label>
-            <Input type="file" accept="image/*" multiple onChange={handleImageChange} />
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              disabled={uploading}
+            />
             <div className="flex flex-wrap gap-2 mt-2">
               {images.map((img, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
