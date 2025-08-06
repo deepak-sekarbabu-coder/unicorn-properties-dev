@@ -19,6 +19,7 @@ import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { auth } from '@/lib/firebase';
 import { addUser, getUserByEmail } from '@/lib/firestore';
 import { User } from '@/lib/types';
+
 import log from '../lib/logger';
 
 interface AuthContextType {
@@ -44,7 +45,7 @@ async function setSessionCookie(firebaseUser: FirebaseUser) {
     const errorData = await response
       .json()
       .catch(() => ({ message: 'Failed to parse error response from server.' }));
-    console.error('Error setting session cookie:', errorData);
+    log.error('Error setting session cookie:', errorData);
     throw new Error(errorData.message || 'An unknown error occurred while setting the session.');
   }
 }
@@ -53,17 +54,16 @@ async function clearSessionCookie() {
   try {
     await fetch('/api/auth/session', { method: 'DELETE' });
   } catch (error) {
-    console.error('Error clearing session cookie:', error);
+    log.error('Error clearing session cookie:', error);
   }
 }
 
 // Helper function to handle authentication errors and cleanup
 async function handleAuthError(error: unknown, firebaseUser: FirebaseUser | null) {
-  console.error('Authentication error:', error);
+  log.error('Authentication error:', error);
 
   // Use the utility function to determine if we should clear the session
   if (shouldClearSession(error)) {
-    console.log('🧹 Clearing invalid authentication state:', getAuthErrorMessage(error));
     await clearSessionCookie();
     if (firebaseUser) {
       await signOut(auth);
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }
               router.replace('/dashboard');
             } catch (error) {
-              console.error('❌ Authentication error:', error);
+              log.error('Authentication error:', error);
               await handleAuthError(error, firebaseUser);
               setUser(null);
             }
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         return unsubscribe;
       } catch (error) {
-        console.error('Error setting auth persistence:', error);
+        log.error('Error setting auth persistence:', error);
         setLoading(false);
       }
     };
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      log.error('❌ Firebase login error:', error);
+      log.error('Firebase login error:', error);
       throw new Error('Invalid email or password.');
     }
   };
@@ -157,7 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (errorCode === 'auth/popup-closed-by-user') {
         return;
       }
-      log.error('❌ Google sign-in error:', error);
+      log.error('Google sign-in error:', error);
       throw new Error('Failed to sign in with Google. Please try again.');
     }
   };

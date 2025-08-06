@@ -2,13 +2,13 @@
 
 import { useAuth } from '@/context/auth-context';
 import { format, subMonths } from 'date-fns';
-import log from '@/lib/logger';
 
 import * as React from 'react';
 
 import dynamic from 'next/dynamic';
 
 import * as firestore from '@/lib/firestore';
+import log from '@/lib/logger';
 import { requestNotificationPermission } from '@/lib/push-notifications';
 import type { Apartment, Category, Expense, User } from '@/lib/types';
 import type { View } from '@/lib/types';
@@ -305,7 +305,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
 
       setFilteredExpenses(filtered);
     } catch (error) {
-      console.error('Error filtering expenses:', error);
+      log.error('Error filtering expenses:', error);
       setFilteredExpenses([]);
     }
   }, [expenses, expenseSearch, filterCategory, filterPaidBy, filterMonth]);
@@ -350,7 +350,7 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         return userName.includes(searchTerm) || userEmail.includes(searchTerm);
       });
     } catch (error) {
-      console.error('Error in filteredUsers:', error, { users, userSearch });
+      log.error('Error in filteredUsers:', error, { users, userSearch });
       return [];
     }
   }, [users, userSearch]);
@@ -580,36 +580,6 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   // Get current user's apartment ID
   const currentUserApartment = user?.apartment;
 
-  // Debug function to log expense calculations
-  const debugExpenseCalculations = React.useCallback(() => {
-    console.log('=== EXPENSE CALCULATION DEBUG ===');
-    expenses.forEach((expense, index) => {
-      const unpaidApartments =
-        expense.owedByApartments?.filter(
-          apartmentId => !expense.paidByApartments?.includes(apartmentId)
-        ) || [];
-
-      console.log(`Expense ${index + 1}:`, {
-        description: expense.description,
-        amount: expense.amount,
-        paidByApartment: expense.paidByApartment,
-        owedByApartments: expense.owedByApartments,
-        paidByApartments: expense.paidByApartments || [],
-        unpaidApartments,
-        perApartmentShare: expense.perApartmentShare,
-        totalStillOwed: unpaidApartments.length * expense.perApartmentShare,
-        isCurrentUserPaying: expense.paidByApartment === currentUserApartment,
-        isCurrentUserOwing: currentUserApartment
-          ? expense.owedByApartments?.includes(currentUserApartment)
-          : false,
-        hasCurrentUserPaid: currentUserApartment
-          ? expense.paidByApartments?.includes(currentUserApartment)
-          : false,
-      });
-    });
-    console.log('=== END DEBUG ===');
-  }, [expenses, currentUserApartment]);
-
   // Calculate apartment balances
   const apartmentBalances = React.useMemo(() => {
     const balances: Record<
@@ -682,15 +652,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       });
     });
 
-    // Debug the calculations
-    if (process.env.NODE_ENV === 'development') {
-      debugExpenseCalculations();
-      console.log('Calculated apartment balances:', balances);
-      console.log('Current user apartment:', currentUserApartment);
-    }
-
     return balances;
-  }, [expenses, apartments, debugExpenseCalculations, currentUserApartment]);
+  }, [expenses, apartments]);
 
   const handleDeleteExpense = async (expenseId: string) => {
     try {

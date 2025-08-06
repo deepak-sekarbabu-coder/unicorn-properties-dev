@@ -77,7 +77,7 @@ export function CurrentFaultsList() {
                   <div className="mb-1">{fault.location}</div>
                   <div className="font-semibold">Description:</div>
                   <div className="mb-1">{fault.description}</div>
-                  <div className="text-xs text-gray-500 mb-2">
+                  <div className="text-xs text-gray-500 mb-2" suppressHydrationWarning={true}>
                     Reported at: {new Date(fault.reportedAt).toLocaleString()}
                   </div>
                   {user?.role === 'admin' && (

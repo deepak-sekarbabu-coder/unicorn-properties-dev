@@ -18,16 +18,25 @@ const ToastContext = React.createContext<ToastContextType | undefined>(undefined
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<Toast[]>([]);
+  const [isClient, setIsClient] = React.useState(false);
 
-  const toast = React.useCallback((props: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts(currentToasts => [...currentToasts, { id, ...props }]);
-
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-      setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
-    }, 5000);
+  React.useEffect(() => {
+    setIsClient(true);
   }, []);
+
+  const toast = React.useCallback(
+    (props: Omit<Toast, 'id'>) => {
+      if (!isClient) return;
+      const id = Math.random().toString(36).substring(2, 9);
+      setToasts(currentToasts => [...currentToasts, { id, ...props }]);
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
+      }, 5000);
+    },
+    [isClient]
+  );
 
   const dismissToast = React.useCallback((id: string) => {
     setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));

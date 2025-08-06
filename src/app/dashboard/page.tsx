@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 import { getAuthErrorMessage, shouldClearSession } from '@/lib/auth-utils';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 import { getCategories, getUserByEmail } from '@/lib/firestore';
-
 import log from '@/lib/logger';
 
 import { UnicornPropertiesApp } from '@/components/unicorn-properties-app';

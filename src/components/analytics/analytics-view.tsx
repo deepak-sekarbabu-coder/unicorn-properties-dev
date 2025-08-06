@@ -250,6 +250,7 @@ export function AnalyticsView({
                                 textAnchor="middle"
                                 fill="#888"
                                 fontSize="11"
+                                suppressHydrationWarning={true}
                               >
                                 {month}
                               </text>

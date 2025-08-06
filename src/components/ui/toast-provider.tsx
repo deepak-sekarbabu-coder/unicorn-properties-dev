@@ -2,7 +2,14 @@
 
 import { AlertCircle, Check, Info, X } from 'lucide-react';
 
-import React, { ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import React, {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -33,6 +40,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const dismiss = useCallback((id: string) => {
     setToasts(current => current.filter(toast => toast.id !== id));
@@ -40,6 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const toast = useCallback(
     (title: string, options: ToastOptions = {}) => {
+      if (!isClient) return '';
       const id = Math.random().toString(36).substring(2, 9);
       const variant = options.variant || 'default';
       const description = options.description;
@@ -62,7 +75,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
       return id;
     },
-    [dismiss]
+    [dismiss, isClient]
   );
 
   const success = useCallback(
