@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 const loginSchema = z.object({
@@ -111,9 +112,14 @@ export function LoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={isLoading || isGoogleLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign In with Email
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Spinner className="w-4 h-4" /> Logging in...
+              </span>
+            ) : (
+              'Login'
+            )}
           </Button>
         </form>
       </Form>

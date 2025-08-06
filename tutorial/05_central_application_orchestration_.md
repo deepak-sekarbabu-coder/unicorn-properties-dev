@@ -141,6 +141,12 @@ import type { Apartment, Category, Expense, User, View } from '@/lib/types';
 
 // From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
+
 export function UnicornPropertiesApp({ initialCategories }) {
   const { user, logout, updateUser: updateAuthUser } = useAuth(); // User info and auth actions
   const [view, setView] = React.useState<View>('dashboard'); // Controls which main section is shown

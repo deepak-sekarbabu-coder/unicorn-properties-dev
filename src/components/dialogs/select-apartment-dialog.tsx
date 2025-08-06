@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -34,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 const onboardingSchema = z.object({
@@ -146,9 +146,14 @@ export function SelectApartmentDialog({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={isSaving} className="w-full">
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save and Continue
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" /> Saving...
+                  </span>
+                ) : (
+                  'Save'
+                )}
               </Button>
             </DialogFooter>
           </form>

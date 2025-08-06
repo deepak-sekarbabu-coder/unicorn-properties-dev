@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -35,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 import { useApartments } from '@/hooks/use-apartments';
@@ -206,8 +206,13 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add User
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" /> Adding...
+                  </span>
+                ) : (
+                  'Add User'
+                )}
               </Button>
             </DialogFooter>
           </form>

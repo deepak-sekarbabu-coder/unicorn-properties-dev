@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KeyRound, Loader2 } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -299,8 +300,14 @@ export function EditUserDialog({ children, user, onUpdateUser }: EditUserDialogP
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
+                  {isSaving ? (
+                    <span className="flex items-center gap-2">
+                      <Spinner className="w-4 h-4" />
+                      Saving...
+                    </span>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </Button>
               </div>
             </DialogFooter>

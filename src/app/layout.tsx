@@ -46,6 +46,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://unicorndev-b532a.firebaseapp.com" />
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="dns-prefetch" href="https://apis.google.com" />
+        {/*
+          Next.js warning: Custom fonts not added in `pages/_document.js` will only load for a single page.
+          This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font
+          In the App Router, use the new `next/font` system for best results.
+        */}
       </head>
       <body>
         <ServiceWorkerRegister />

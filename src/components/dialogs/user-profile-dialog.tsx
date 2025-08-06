@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KeyRound, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -37,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -139,14 +139,6 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
     });
     setIsSaving(false);
     setOpen(false);
-  };
-
-  const handleResetPassword = () => {
-    // In a real app, this would trigger a password reset flow.
-    // Here, we just notify the user what the password is.
-    toast('Password Reset', {
-      description: `Your password has been reset to "password".`,
-    });
   };
 
   return (
@@ -277,32 +269,17 @@ export function UserProfileDialog({ children, user, onUpdateUser }: UserProfileD
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex flex-col gap-2">
-              <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1 bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500"
-                >
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
-                </Button>
-                <Button
-                  type="button"
-                  className="flex-1 bg-white text-gray-900 border border-gray-300 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-gray-400"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  className="flex-1 bg-gray-900 text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-gray-900"
-                  onClick={handleResetPassword}
-                >
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  Reset Password
-                </Button>
-              </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" />
+                    Saving...
+                  </span>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 
 import { useToast } from '@/hooks/use-toast';
 
@@ -73,6 +74,7 @@ export function AddExpenseDialog({
   currentUser,
 }: AddExpenseDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
@@ -87,41 +89,44 @@ export function AddExpenseDialog({
   const fileRef = form.register('receipt');
 
   const onSubmit = async (data: ExpenseFormValues) => {
-    let receiptDataUrl: string | undefined = undefined;
-    if (data.receipt && data.receipt.length > 0) {
-      const file = data.receipt[0];
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      receiptDataUrl = await new Promise(resolve => {
-        reader.onload = () => resolve(reader.result as string);
-      });
-    }
-
-    if (!currentUser.apartment) {
+    setLoading(true);
+    try {
+      let receiptDataUrl: string | undefined = undefined;
+      if (data.receipt && data.receipt.length > 0) {
+        const file = data.receipt[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        receiptDataUrl = await new Promise(resolve => {
+          reader.onload = () => resolve(reader.result as string);
+        });
+      }
+      if (!currentUser.apartment) {
+        toast({
+          title: 'Error',
+          description: 'You must belong to an apartment to add an expense.',
+        });
+        setLoading(false);
+        return;
+      }
+      const expenseData: Omit<Expense, 'id' | 'date'> = {
+        description: data.description,
+        amount: data.amount,
+        paidByApartment: currentUser.apartment,
+        categoryId: data.categoryId,
+        receipt: receiptDataUrl,
+        owedByApartments: [],
+        perApartmentShare: 0,
+      };
+      onAddExpense(expenseData);
       toast({
-        title: 'Error',
-        description: 'You must belong to an apartment to add an expense.',
+        title: 'Expense Added!',
+        description: `"${data.description}" for $${data.amount} has been logged.`,
       });
-      return;
+      setOpen(false);
+      form.reset();
+    } finally {
+      setLoading(false);
     }
-
-    const expenseData: Omit<Expense, 'id' | 'date'> = {
-      description: data.description,
-      amount: data.amount,
-      paidByApartment: currentUser.apartment, // Use current user's apartment
-      categoryId: data.categoryId,
-      receipt: receiptDataUrl,
-      owedByApartments: [], // Will be calculated in handleAddExpense
-      perApartmentShare: 0, // Will be calculated in handleAddExpense
-    };
-
-    onAddExpense(expenseData);
-    toast({
-      title: 'Expense Added!',
-      description: `"${data.description}" for 9${data.amount} has been logged.`,
-    });
-    setOpen(false);
-    form.reset();
   };
 
   return (
@@ -199,20 +204,15 @@ export function AddExpenseDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex flex-col gap-2">
-              <Button type="submit" className="w-full">
-                Add Expense
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                className="w-full"
-                onClick={() => {
-                  setOpen(false);
-                  form.reset();
-                }}
-              >
-                Cancel
+            <DialogFooter>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" /> Adding...
+                  </span>
+                ) : (
+                  'Add Expense'
+                )}
               </Button>
             </DialogFooter>
           </form>

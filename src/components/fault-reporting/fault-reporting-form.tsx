@@ -9,6 +9,7 @@ import { addFault } from '@/lib/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
@@ -101,8 +102,14 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
             </div>
           </div>
           {error && <div className="text-red-500 text-sm">{error}</div>}
-          <Button type="submit" className="w-full" disabled={uploading}>
-            {uploading ? 'Submitting...' : 'Submit Fault'}
+          <Button type="submit" disabled={uploading} className="w-full">
+            {uploading ? (
+              <span className="flex items-center gap-2 justify-center">
+                <Spinner className="w-4 h-4" /> Reporting...
+              </span>
+            ) : (
+              'Report Fault'
+            )}
           </Button>
         </form>
       </CardContent>

@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -29,6 +28,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast-provider';
 
 const categorySchema = z.object({
@@ -135,8 +135,13 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add Category
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" /> Adding...
+                  </span>
+                ) : (
+                  'Add Category'
+                )}
               </Button>
             </DialogFooter>
           </form>
