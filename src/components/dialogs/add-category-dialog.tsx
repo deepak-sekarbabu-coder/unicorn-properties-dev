@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/components/ui/toast-provider';
+import { useToast } from '@/hooks/use-toast'; // Updated import path
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -62,7 +62,8 @@ export function AddCategoryDialog({ children, onAddCategory }: AddCategoryDialog
     // Simulate API call
     setTimeout(() => {
       onAddCategory(data);
-      toast('Category Added', {
+      toast({
+        title: 'Category Added',
         description: `The "${data.name}" category has been created.`,
       });
       setIsSaving(false);

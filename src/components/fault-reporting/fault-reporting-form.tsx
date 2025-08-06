@@ -12,6 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+
+const MAX_FILE_SIZE_MB = 2;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; // 2MB
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
   const { user } = useAuth();
@@ -20,21 +25,51 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-    setUploading(true);
+    if (!files || files.length === 0) return;
+
     setError('');
+    setUploading(true);
+
+    const uploadPromises: Promise<string>[] = [];
+    const newErrors: string[] = [];
+
+    for (const file of Array.from(files)) {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        newErrors.push(`File "${file.name}" is not a supported image type.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        newErrors.push(`File "${file.name}" exceeds the ${MAX_FILE_SIZE_MB}MB limit.`);
+        continue;
+      }
+      const path = `faults/${Date.now()}_${file.name}`;
+      uploadPromises.push(uploadImage(file, path));
+    }
+
+    if (newErrors.length > 0) {
+      setError(newErrors.join('\n'));
+      setUploading(false);
+      return;
+    }
+
     try {
-      const uploadPromises = Array.from(files).map(async file => {
-        const path = `faults/${Date.now()}_${file.name}`;
-        return await uploadImage(file, path);
-      });
       const urls = await Promise.all(uploadPromises);
       setImages(prev => [...prev, ...urls]);
+      toast({
+        title: 'Image Uploaded',
+        description: 'Your image(s) have been successfully uploaded.',
+      });
     } catch (err) {
-      setError('Image upload failed.');
+      setError('Image upload failed. Please try again.');
+      toast({
+        title: 'Upload Failed',
+        description: 'There was an error uploading your image(s).',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
     }
@@ -47,6 +82,7 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
     try {
       if (!user) throw new Error('Not authenticated');
       if (!location.trim() || !description.trim()) throw new Error('All fields required');
+      
       await addFault({
         images,
         location,
@@ -56,9 +92,18 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
       setLocation('');
       setDescription('');
       setImages([]);
+      toast({
+        title: 'Fault Reported',
+        description: 'Your fault report has been submitted successfully.',
+      });
       if (onReport) onReport();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to report fault');
+      toast({
+        title: 'Report Failed',
+        description: 'There was an error submitting your fault report.',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
     }
@@ -90,10 +135,12 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Attach Images</label>
+            <label className="block font-medium mb-1">
+              Attach Images <span className="text-xs text-muted-foreground">(Max {MAX_FILE_SIZE_MB}MB per image, .jpg, .jpeg, .png, .webp)</span>
+            </label>
             <Input
               type="file"
-              accept="image/*"
+              accept={ACCEPTED_IMAGE_TYPES.join(',')}
               multiple
               onChange={handleImageChange}
               disabled={uploading}

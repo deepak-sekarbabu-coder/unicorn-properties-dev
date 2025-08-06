@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/components/ui/toast-provider';
+import { useToast } from '@/hooks/use-toast'; // Updated import path
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -55,7 +55,8 @@ export function LoginForm() {
       await login(data.email, data.password);
       // Don't manually redirect - let the auth context handle it
     } catch (error) {
-      toast('Login Failed', {
+      toast({
+        title: 'Login Failed',
         description: (error as Error).message,
       });
       setIsLoading(false);
@@ -68,7 +69,8 @@ export function LoginForm() {
       await loginWithGoogle();
       // Don't manually redirect - let the auth context handle it
     } catch (error) {
-      toast('Google Sign-In Failed', {
+      toast({
+        title: 'Google Sign-In Failed',
         description: (error as Error).message,
       });
       setIsGoogleLoading(false);

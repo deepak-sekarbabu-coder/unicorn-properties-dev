@@ -28,16 +28,12 @@ interface NavigationMenuProps {
 
 export function NavigationMenu({ user, view, setView, role }: NavigationMenuProps) {
   const { setOpenMobile, isMobile } = useSidebar();
-  const [isClient, setIsClient] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // Removed isClient state and useEffect as role is already available from props
 
   const handleNavigation = (newView: View) => {
     setView(newView);
     // Close mobile sidebar when navigating
-    if (isClient && isMobile) {
+    if (isMobile) {
       setOpenMobile(false);
     }
   };
@@ -45,7 +41,7 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
   const handleLogoNavigation = () => {
     if (user) {
       setView('dashboard');
-      if (isClient && isMobile) {
+      if (isMobile) {
         setOpenMobile(false);
       }
     }
@@ -139,7 +135,7 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
               Current Faults
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {isClient && role === 'admin' && (
+          {role === 'admin' && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => handleNavigation('admin')}

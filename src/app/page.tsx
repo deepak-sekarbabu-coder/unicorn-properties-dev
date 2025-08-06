@@ -1,40 +1,63 @@
-'use client';
+import { getAuth } from 'firebase-admin/auth';
 
-import { useAuth } from '@/context/auth-context';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
+import { shouldClearSession } from '@/lib/auth-utils';
+import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+import { getUserByEmail } from '@/lib/firestore';
+import log from '@/lib/logger';
 
-import { useRouter } from 'next/navigation';
+// Server-side function to get authenticated user
+async function getAuthenticatedUser() {
+  const cookieStore = await cookies(); // Await the cookies() function
+  const sessionCookie = cookieStore.get('session')?.value;
+  const userRoleCookie = cookieStore.get('user-role')?.value; // Used for dev fallback
 
-import { Skeleton } from '@/components/ui/skeleton';
+  if (!sessionCookie) {
+    return null;
+  }
 
-export default function Home() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Wait until the loading state is settled
-    if (!loading) {
-      // If there is a user, go to the dashboard
-      if (user) {
-        router.replace('/dashboard');
-      } else {
-        // If there is no user, go to the login page
-        router.replace('/login');
-      }
+  try {
+    const adminApp = getFirebaseAdminApp();
+    const decodedToken = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
+    const user = await getUserByEmail(decodedToken.email || '');
+    if (!user) {
+      return null;
     }
-  }, [user, loading, router]);
+    return user;
+  } catch (error: unknown) {
+    log.error('? Server-side session verification failed:', error);
+    if (shouldClearSession(error)) {
+      const cookieStore = await cookies(); // Await the cookies() function
+      cookieStore.delete('session');
+      cookieStore.delete('user-role');
+      return null;
+    }
+    // Development fallback: if session verification fails but a user-role cookie exists (from dev mode)
+    if (process.env.NODE_ENV === 'development' && userRoleCookie) {
+      log.warn('Using development fallback for server-side authentication.');
+      return {
+        id: 'dev-user',
+        name: 'Development User',
+        email: 'dev@example.com',
+        role: userRoleCookie as 'admin' | 'user',
+        apartment: 'dev-apartment',
+      };
+    }
+    return null;
+  }
+}
 
-  // Display a loading skeleton while we determine the auth status
-  return (
-    <div className="flex h-screen w-full items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
-        </div>
-      </div>
-    </div>
-  );
+export default async function Home() {
+  const user = await getAuthenticatedUser();
+
+  if (user) {
+    redirect('/dashboard');
+  } else {
+    redirect('/login');
+  }
+
+  // This component will not render anything as it always redirects
+  return null;
 }

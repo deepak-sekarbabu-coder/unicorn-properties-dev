@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -11,17 +11,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
-    }
-    return 'light';
-  });
+  // Initialize theme to 'light' on both server and client for consistent SSR.
+  // The actual theme from localStorage will be applied in useEffect.
+  const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    // This effect runs only on the client after hydration.
+    const storedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+    if (storedTheme) {
+      setThemeState(storedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      // Set initial theme based on system preference if no stored theme
+      setThemeState('dark');
+    }
+  }, []); // Run once on mount
+
+  useEffect(() => {
+    // Apply the theme class to the document element
+    document.documentElement.classList.remove('light', 'dark'); // Remove existing classes
+    document.documentElement.classList.add(theme);
     localStorage.setItem('theme', theme);
-  }, [theme]);
+  }, [theme]); // Re-run when theme state changes
 
   const setTheme = (t: 'light' | 'dark') => setThemeState(t);
   const toggleTheme = () => setThemeState(prev => (prev === 'light' ? 'dark' : 'light'));

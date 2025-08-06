@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/components/ui/toast-provider';
+import { useToast } from '@/hooks/use-toast'; // Updated import path
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -76,7 +76,8 @@ export function EditCategoryDialog({
     setTimeout(() => {
       const updatedCategory = { ...category, name: data.name, icon: data.icon };
       onUpdateCategory(updatedCategory);
-      toast('Category Updated', {
+      toast({
+        title: 'Category Updated',
         description: `The category has been updated.`,
       });
       setIsSaving(false);

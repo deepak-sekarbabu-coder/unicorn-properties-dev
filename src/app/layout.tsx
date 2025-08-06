@@ -1,22 +1,21 @@
+"use client";
+
 import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 
-import type { Metadata } from 'next';
+import { Inter } from 'next/font/google'; // Import Inter from next/font/google
 
 import ServiceWorkerRegister from '@/components/ui/service-worker-register';
 import { ToastProvider } from '@/components/ui/toast-provider';
 
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Unicorn Properties',
-  description: 'Manage and track property expenses seamlessly.',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
-};
+// Configure the Inter font
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter', // Define a CSS variable for the font
+  display: 'swap', // Use swap for better performance
+});
 
 export default function RootLayout({
   children,
@@ -24,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#ffffff" />
@@ -35,24 +34,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://firestore.googleapis.com" />
         <link rel="preconnect" href="https://www.gstatic.com" />
         <link rel="preconnect" href="https://firebase.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Google Fonts: Inter, font-display: swap for performance */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
+        {/* Removed manual Google Fonts link - now handled by next/font */}
         <link rel="preconnect" href="https://unicorndev-b532a.firebaseapp.com" />
         <link rel="dns-prefetch" href="https://unicorndev-b532a.firebaseapp.com" />
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="dns-prefetch" href="https://apis.google.com" />
-        {/*
-          Next.js warning: Custom fonts not added in `pages/_document.js` will only load for a single page.
-          This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font
-          In the App Router, use the new `next/font` system for best results.
-        */}
       </head>
-      <body>
+      <body className={inter.className}>
         <ServiceWorkerRegister />
         <ThemeProvider>
           <AuthProvider>

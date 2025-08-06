@@ -35,7 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/components/ui/toast-provider';
+import { useToast } from '@/hooks/use-toast'; // Updated import path
 
 import { useApartments } from '@/hooks/use-apartments';
 
@@ -77,7 +77,8 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     // Simulate API call
     setTimeout(() => {
       onAddUser(data);
-      toast('User Added', {
+      toast({
+        title: 'User Added',
         description: `An account for ${data.name} has been created.`,
       });
       setIsSaving(false);
