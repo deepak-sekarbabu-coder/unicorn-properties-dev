@@ -342,7 +342,7 @@ const firebaseConfig = {
   storageBucket: 'unicorndev-b532a.appspot.com',
   messagingSenderId: '338329622668',
   appId: '1:338329622668:web:37d896dbd78089bd2c03a9',
-  measurementId: '<YOUR_MEASUREMENT_ID>' // Optional
+  measurementId: '<YOUR_MEASUREMENT_ID>', // Optional
 };
 
 firebase.initializeApp(firebaseConfig);

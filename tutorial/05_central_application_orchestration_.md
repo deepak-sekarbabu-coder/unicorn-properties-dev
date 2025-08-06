@@ -80,6 +80,10 @@ import { useRouter } from 'next/navigation';
 
 // From src/app/page.tsx (simplified)
 
+// From src/app/page.tsx (simplified)
+
+// From src/app/page.tsx (simplified)
+
 export default function Home() {
   const { user, loading } = useAuth(); // Get user and loading status
   const router = useRouter();
@@ -147,6 +151,10 @@ import * as React from 'react';
 // Get current user
 import * as firestore from '@/lib/firestore';
 import type { Apartment, Category, Expense, User, View } from '@/lib/types';
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
+
+// From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 
 // From src/components/unicorn-properties-app.tsx (simplified - state & data fetching)
 

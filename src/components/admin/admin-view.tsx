@@ -1,4 +1,4 @@
-import { PlusCircle, Search, Trash2 } from 'lucide-react';
+import { Pencil, PlusCircle, Search, Trash2 } from 'lucide-react';
 
 import type { Category, PollOption, User } from '@/lib/types';
 
@@ -99,53 +99,59 @@ export function AdminView({
         </CardHeader>
         <CardContent>
           {/* Mobile Card Layout */}
-          <div className="block md:hidden space-y-4">
+          <div className="block md:hidden space-y-4 overflow-x-hidden">
             {filteredUsers.map(u => (
-              <Card key={u.id} className="p-4">
-                <div className="flex items-start justify-between gap-4">
+              <Card key={u.id} className="p-3 rounded-xl shadow-sm">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 flex-shrink-0">
                       <AvatarImage src={u.avatar} alt={u.name} />
-                      <AvatarFallback>
+                      <AvatarFallback suppressHydrationWarning={true}>
                         {u.name && typeof u.name === 'string' && u.name.length > 0
                           ? u.name.charAt(0)
                           : '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{u.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="font-medium truncate text-base leading-tight">{u.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
                         {u.apartment || 'N/A'}
                       </p>
-                      <p className="text-sm text-muted-foreground truncate">{u.phone || 'N/A'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{u.phone || 'N/A'}</p>
                       <div className="flex gap-1 flex-wrap mt-2">
                         <Badge
                           variant={u.role === 'admin' ? 'default' : 'secondary'}
-                          className="capitalize text-xs"
+                          className="capitalize text-xs px-2 py-1"
                         >
                           {u.role}
                         </Badge>
                         {u.propertyRole && (
-                          <Badge variant="outline" className="capitalize text-xs">
+                          <Badge variant="outline" className="capitalize text-xs px-2 py-1">
                             {u.propertyRole}
                           </Badge>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
+                  <div className="flex flex-row gap-2 justify-end items-center w-full mt-2">
                     <EditUserDialog user={u} onUpdateUser={onUpdateUser}>
-                      <Button variant="ghost" size="sm" className="h-8 px-2">
-                        Edit
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border font-medium text-xs px-2 py-1 flex items-center justify-center transition-colors duration-150 hover:bg-primary/10 focus:ring-2 focus:ring-primary"
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </EditUserDialog>
                     {u.isApproved ? (
-                      <Badge variant="default">Approved</Badge>
+                      <Badge variant="default" className="text-xs px-2 py-1">
+                        Approved
+                      </Badge>
                     ) : (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs px-2 py-1"
                         onClick={() => onUpdateUser({ ...u, isApproved: true })}
                       >
                         Approve
@@ -156,7 +162,7 @@ export function AdminView({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive h-8 px-2"
+                          className="text-destructive hover:text-destructive flex items-center justify-center"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -206,7 +212,7 @@ export function AdminView({
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={u.avatar} alt={u.name} />
-                          <AvatarFallback>
+                          <AvatarFallback suppressHydrationWarning={true}>
                             {u.name && typeof u.name === 'string' && u.name.length > 0
                               ? u.name.charAt(0)
                               : '?'}
@@ -351,10 +357,14 @@ export function AdminView({
                     <CategoryIcon name={cat.icon as keyof typeof Icons} className="flex-shrink-0" />
                     <span className="truncate">{cat.name}</span>
                   </div>
-                  <div className="flex items-center gap-2 sm:flex-shrink-0">
+                  <div className="flex flex-row gap-2 justify-end items-center w-full sm:w-auto mt-2 sm:mt-0">
                     <EditCategoryDialog category={cat} onUpdateCategory={onUpdateCategory}>
-                      <Button variant="ghost" size="sm" className="flex-1 sm:flex-initial">
-                        Edit
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border font-medium text-xs px-2 py-1 flex items-center justify-center transition-colors duration-150 hover:bg-primary/10 focus:ring-2 focus:ring-primary"
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </EditCategoryDialog>
                     <AlertDialog>
@@ -362,7 +372,7 @@ export function AdminView({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive flex-1 sm:flex-initial"
+                          className="text-destructive hover:text-destructive flex items-center justify-center"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

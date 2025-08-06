@@ -4,7 +4,6 @@
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
-
 const firebaseConfig = {
   apiKey: 'AIzaSyCWYkxlDLpUny-WVpOsd6EcfQ3sU67A2Wc',
   authDomain: 'unicorndev-b532a.firebaseapp.com',
