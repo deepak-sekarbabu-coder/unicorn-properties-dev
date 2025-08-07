@@ -1,6 +1,8 @@
-"use client";
+'use client';
 
-import { Toaster } from "@/components/ui/toaster"; // Assuming this is the ShadCN Toaster component
+import { Toaster } from '@/components/ui/toaster';
+
+// Assuming this is the ShadCN Toaster component
 // The useToast hook is not directly used in the provider, but by components that trigger toasts.
 
 interface ToastProviderProps {

@@ -1,6 +1,6 @@
 import { Pencil, PlusCircle, Search, Trash2 } from 'lucide-react';
 
-import type { Category, PollOption, User } from '@/lib/types';
+import type { Category, Payment, PollOption, User } from '@/lib/types';
 
 import { AddCategoryDialog } from '@/components/dialogs/add-category-dialog';
 import { AddUserDialog } from '@/components/dialogs/add-user-dialog';
@@ -52,6 +52,10 @@ interface AdminViewProps {
 
   onAddPoll: (data: { question: string; options: PollOption[]; expiresAt?: string }) => void;
   getUserById: (id: string) => User | undefined;
+
+  payments?: Payment[];
+  onApprovePayment?: (paymentId: string) => void;
+  onRejectPayment?: (paymentId: string) => void;
 }
 
 export function AdminView({
@@ -68,6 +72,10 @@ export function AdminView({
   onDeleteCategory,
 
   onAddPoll,
+  payments = [],
+  onApprovePayment,
+  onRejectPayment,
+  getUserById,
 }: AdminViewProps) {
   return (
     <div className="grid gap-6">
@@ -401,6 +409,80 @@ export function AdminView({
               ))}
             </ul>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Pending Payments</CardTitle>
+              <CardDescription>Review and approve user-initiated payments.</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Payer</TableHead>
+                <TableHead>Payee</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Receipt</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payments
+                .filter(p => p.status === 'pending')
+                .map(payment => {
+                  const payer = getUserById(payment.payerId);
+                  const payee = getUserById(payment.payeeId);
+                  return (
+                    <TableRow key={payment.id}>
+                      <TableCell>{payer ? payer.name : payment.payerId}</TableCell>
+                      <TableCell>{payee ? payee.name : payment.payeeId}</TableCell>
+                      <TableCell>{payment.amount}</TableCell>
+                      <TableCell>
+                        {payment.receiptURL ? (
+                          <a
+                            href={payment.receiptURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">No receipt</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">Pending</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => onApprovePayment && onApprovePayment(payment.id)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => onRejectPayment && onRejectPayment(payment.id)}
+                          className="ml-2"
+                        >
+                          Reject
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

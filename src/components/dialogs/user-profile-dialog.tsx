@@ -37,7 +37,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/hooks/use-toast'; // Updated import path
+
+import { useToast } from '@/hooks/use-toast';
+
+// Updated import path
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];

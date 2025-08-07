@@ -4,7 +4,7 @@ export type User = {
   avatar?: string;
   email?: string;
   phone?: string;
-  role?: 'user' | 'admin'; // Authentication role (system permissions)
+  role?: 'user' | 'admin' | 'incharge'; // Authentication role (system permissions)
   propertyRole?: 'tenant' | 'owner'; // Property relationship role
   fcmToken?: string; // For push notifications
   apartment: string; // Apartment is now required
@@ -126,4 +126,28 @@ export type View =
   | 'analytics'
   | 'community'
   | 'fault-reporting'
-  | 'current-faults';
+  | 'current-faults'
+  | 'ledger';
+
+export type Payment = {
+  id: string;
+  payerId: string; // User ID who paid
+  payeeId: string; // User ID to receive payment
+  amount: number;
+  expenseId?: string; // Linked expense (optional)
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string; // ISO date string
+  approvedBy?: string; // Admin user ID
+  approvedByName?: string; // Admin user name
+  receiptURL?: string; // Uploaded receipt URL
+  monthYear: string; // Format: YYYY-MM
+};
+
+export type BalanceSheet = {
+  apartmentId: string;
+  monthYear: string; // Format: YYYY-MM
+  openingBalance: number;
+  totalIncome: number;
+  totalExpenses: number;
+  closingBalance: number;
+};

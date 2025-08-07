@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
 import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 
-import { Inter } from 'next/font/google'; // Import Inter from next/font/google
+import { Inter } from 'next/font/google';
+
+// Import Inter from next/font/google
 
 import ServiceWorkerRegister from '@/components/ui/service-worker-register';
 import { ToastProvider } from '@/components/ui/toast-provider';

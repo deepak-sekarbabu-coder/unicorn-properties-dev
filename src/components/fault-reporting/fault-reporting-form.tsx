@@ -12,86 +12,89 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+
 import { useToast } from '@/hooks/use-toast';
 
 const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; // 2MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
 
 export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
   const { user } = useAuth();
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setError('');
-    setUploading(true);
-
-    const uploadPromises: Promise<string>[] = [];
     const newErrors: string[] = [];
+    const validFiles: File[] = [];
 
     for (const file of Array.from(files)) {
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        newErrors.push(`File "${file.name}" is not a supported image type.`);
+      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+        newErrors.push(`File "${file.name}" is not a supported type.`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE_BYTES) {
         newErrors.push(`File "${file.name}" exceeds the ${MAX_FILE_SIZE_MB}MB limit.`);
         continue;
       }
-      const path = `faults/${Date.now()}_${file.name}`;
-      uploadPromises.push(uploadImage(file, path));
+      validFiles.push(file);
     }
 
     if (newErrors.length > 0) {
       setError(newErrors.join('\n'));
-      setUploading(false);
       return;
     }
 
-    try {
-      const urls = await Promise.all(uploadPromises);
-      setImages(prev => [...prev, ...urls]);
-      toast({
-        title: 'Image Uploaded',
-        description: 'Your image(s) have been successfully uploaded.',
-      });
-    } catch (err) {
-      setError('Image upload failed. Please try again.');
-      toast({
-        title: 'Upload Failed',
-        description: 'There was an error uploading your image(s).',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+    
+    // Create preview URLs for display
+    const previewUrls = validFiles.map(file => URL.createObjectURL(file));
+    setUploadedUrls(prev => [...prev, ...previewUrls]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
     setError('');
+    
     try {
       if (!user) throw new Error('Not authenticated');
       if (!location.trim() || !description.trim()) throw new Error('All fields required');
-      
+
+      // Upload files to Firebase Storage
+      const uploadPromises = selectedFiles.map((file, index) => {
+        const path = `faults/${Date.now()}_${index}_${file.name}`;
+        return uploadImage(file, path);
+      });
+
+      let imageUrls: string[] = [];
+      if (uploadPromises.length > 0) {
+        imageUrls = await Promise.all(uploadPromises);
+      }
+
       await addFault({
-        images,
+        images: imageUrls,
         location,
         description,
         reportedBy: user.id,
       });
+      
+      // Clean up preview URLs
+      uploadedUrls.forEach(url => URL.revokeObjectURL(url));
+      
       setLocation('');
       setDescription('');
-      setImages([]);
+      setSelectedFiles([]);
+      setUploadedUrls([]);
       toast({
         title: 'Fault Reported',
         description: 'Your fault report has been submitted successfully.',
@@ -136,24 +139,23 @@ export function FaultReportingForm({ onReport }: { onReport?: () => void }) {
           </div>
           <div>
             <label className="block font-medium mb-1">
-              Attach Images <span className="text-xs text-muted-foreground">(Max {MAX_FILE_SIZE_MB}MB per image, .jpg, .jpeg, .png, .webp)</span>
+              Attach Files{' '}
+              <span className="text-xs text-muted-foreground">
+                (Max {MAX_FILE_SIZE_MB}MB per file, .jpg, .jpeg, .png, .webp, .pdf)
+              </span>
             </label>
             <Input
               type="file"
-              accept={ACCEPTED_IMAGE_TYPES.join(',')}
+              accept={ACCEPTED_FILE_TYPES.join(',')}
               multiple
-              onChange={handleImageChange}
+              onChange={handleFileChange}
               disabled={uploading}
             />
             <div className="flex flex-wrap gap-2 mt-2">
-              {images.map((img, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={i}
-                  src={img}
-                  alt="Fault preview"
-                  className="w-16 h-16 object-cover rounded border"
-                />
+              {uploadedUrls.map((fileUrl, i) => (
+                fileUrl.includes('.pdf') || selectedFiles[i]?.type === 'application/pdf'
+                  ? <a key={i} href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline">PDF {i+1}</a>
+                  : <img key={i} src={fileUrl} alt="Fault preview" className="w-16 h-16 object-cover rounded border" />
               ))}
             </div>
           </div>

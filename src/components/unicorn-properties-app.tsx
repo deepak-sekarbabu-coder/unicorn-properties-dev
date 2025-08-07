@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic';
 import * as firestore from '@/lib/firestore';
 import log from '@/lib/logger';
 import { requestNotificationPermission } from '@/lib/push-notifications';
-import type { Apartment, Category, Expense, User } from '@/lib/types';
+import type { Apartment, BalanceSheet, Category, Expense, Payment, User } from '@/lib/types';
 import type { View } from '@/lib/types';
 
 import { CommunityView } from '@/components/community/community-view';
@@ -27,6 +27,11 @@ import { Sidebar, SidebarFooter, SidebarInset, SidebarProvider } from '@/compone
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useToast } from '@/hooks/use-toast';
+
+const LedgerView = dynamic(
+  () => import('@/components/ledger/ledger-view').then(mod => mod.default),
+  { ssr: false }
+);
 
 const AdminView = dynamic(() => import('@/components/admin/admin-view').then(mod => mod.default), {
   ssr: false,
@@ -78,6 +83,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [apartments, setApartments] = React.useState<Apartment[]>([]);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
+  const [balanceSheets, setBalanceSheets] = React.useState<BalanceSheet[]>([]);
 
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
@@ -115,6 +122,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     let unsubscribeExpenses: (() => void) | null = null;
     let unsubscribeUsers: (() => void) | null = null;
     let unsubscribeCategories: (() => void) | null = null;
+    let unsubscribePayments: (() => void) | null = null;
+    let unsubscribeBalanceSheets: (() => void) | null = null;
 
     const fetchApartments = async () => {
       const allApartments = await firestore.getApartments();
@@ -127,9 +136,16 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
     if (user?.role === 'admin' || !user?.apartment) {
       unsubscribeUsers = firestore.subscribeToUsers(setSafeUsers);
       unsubscribeExpenses = firestore.subscribeToExpenses(setExpenses);
+      unsubscribePayments = firestore.subscribeToPayments(setPayments);
+      unsubscribeBalanceSheets = firestore.subscribeToBalanceSheets(setBalanceSheets);
     } else {
       unsubscribeUsers = firestore.subscribeToUsers(setSafeUsers, user.apartment);
       unsubscribeExpenses = firestore.subscribeToRelevantExpenses(setExpenses, user.apartment);
+      unsubscribePayments = firestore.subscribeToPayments(setPayments, user.apartment);
+      unsubscribeBalanceSheets = firestore.subscribeToBalanceSheets(
+        setBalanceSheets,
+        user.apartment
+      );
     }
 
     setIsLoadingData(false);
@@ -137,6 +153,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
       if (unsubscribeExpenses) unsubscribeExpenses();
       if (unsubscribeUsers) unsubscribeUsers();
       if (unsubscribeCategories) unsubscribeCategories();
+      if (unsubscribePayments) unsubscribePayments();
+      if (unsubscribeBalanceSheets) unsubscribeBalanceSheets();
     };
   }, [user, showApartmentDialog, toast, setSafeUsers]);
 
@@ -515,6 +533,25 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
                 isActive: true,
               });
             }}
+            payments={payments}
+            onApprovePayment={async (paymentId: string) => {
+              // Find payment
+              const payment = payments.find(p => p.id === paymentId);
+              if (!payment) return;
+              // Set status to approved and approvedBy to admin name
+              const approvedBy = user?.name || user?.email || user?.id || 'admin';
+              await firestore.updatePayment(paymentId, { status: 'approved', approvedBy });
+              setPayments(prev => prev.map(p => p.id === paymentId ? { ...p, status: 'approved', approvedBy } : p));
+              toast({ title: 'Payment Approved', description: `Payment of ₹${payment.amount} approved.` });
+            }}
+            onRejectPayment={async (paymentId: string) => {
+              // Find payment
+              const payment = payments.find(p => p.id === paymentId);
+              if (!payment) return;
+              await firestore.updatePayment(paymentId, { status: 'rejected' });
+              setPayments(prev => prev.map(p => p.id === paymentId ? { ...p, status: 'rejected' } : p));
+              toast({ title: 'Payment Rejected', description: `Payment of ₹${payment.amount} rejected.` });
+            }}
           />
         );
       case 'expenses':
@@ -559,6 +596,8 @@ export function UnicornPropertiesApp({ initialCategories }: UnicornPropertiesApp
         return <FaultReportingForm onReport={() => setView('current-faults')} />;
       case 'current-faults':
         return <CurrentFaultsList />;
+      case 'ledger':
+        return <LedgerView payments={payments} balanceSheets={balanceSheets} users={users} />;
 
       default:
         return (

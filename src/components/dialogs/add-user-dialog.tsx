@@ -35,9 +35,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/hooks/use-toast'; // Updated import path
+
+// Updated import path
 
 import { useApartments } from '@/hooks/use-apartments';
+import { useToast } from '@/hooks/use-toast';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Full name is required'),

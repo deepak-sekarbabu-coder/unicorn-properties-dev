@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Home, LineChart, PieChart, Settings, Wrench } from 'lucide-react';
+import { AlertTriangle, BookOpen, Home, LineChart, PieChart, Settings, Wrench } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -133,6 +133,16 @@ export function NavigationMenu({ user, view, setView, role }: NavigationMenuProp
             >
               <Wrench />
               Current Faults
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleNavigation('ledger')}
+              isActive={view === 'ledger'}
+              tooltip="Ledger"
+            >
+              <BookOpen />
+              Ledger
             </SidebarMenuButton>
           </SidebarMenuItem>
           {role === 'admin' && (

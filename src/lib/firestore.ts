@@ -14,7 +14,16 @@ import {
 } from 'firebase/firestore';
 
 import { db } from './firebase';
-import type { Apartment, Category, Expense, Fault, Poll, User } from './types';
+import type {
+  Apartment,
+  BalanceSheet,
+  Category,
+  Expense,
+  Fault,
+  Payment,
+  Poll,
+  User,
+} from './types';
 
 const removeUndefined = (obj: Record<string, unknown>) => {
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
@@ -313,6 +322,132 @@ export const updateFault = async (id: string, fault: Partial<Fault>): Promise<vo
 export const deleteFault = async (id: string): Promise<void> => {
   const faultDoc = doc(db, 'faults', id);
   await deleteDoc(faultDoc);
+};
+
+// --- Payments ---
+export const getPayments = async (apartmentId?: string, monthYear?: string): Promise<Payment[]> => {
+  let paymentsQuery = query(collection(db, 'payments'));
+  if (apartmentId) {
+    paymentsQuery = query(paymentsQuery, where('payerId', '==', apartmentId));
+  }
+  if (monthYear) {
+    paymentsQuery = query(paymentsQuery, where('monthYear', '==', monthYear));
+  }
+  const paymentSnapshot = await getDocs(paymentsQuery);
+  return paymentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Payment);
+};
+
+export const addPayment = async (payment: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> => {
+  const paymentsCol = collection(db, 'payments');
+  const newPayment = {
+    ...payment,
+    createdAt: new Date().toISOString(),
+  };
+  const docRef = await addDoc(paymentsCol, newPayment);
+  return { id: docRef.id, ...newPayment } as Payment;
+};
+
+export const updatePayment = async (id: string, payment: Partial<Payment>): Promise<void> => {
+  const paymentDoc = doc(db, 'payments', id);
+  await updateDoc(paymentDoc, payment);
+};
+
+export const deletePayment = async (id: string): Promise<void> => {
+  const paymentDoc = doc(db, 'payments', id);
+  await deleteDoc(paymentDoc);
+};
+
+export const subscribeToPayments = (
+  callback: (payments: Payment[]) => void,
+  apartmentId?: string,
+  monthYear?: string
+) => {
+  let paymentsQuery = query(collection(db, 'payments'));
+  if (apartmentId) {
+    paymentsQuery = query(paymentsQuery, where('payerId', '==', apartmentId));
+  }
+  if (monthYear) {
+    paymentsQuery = query(paymentsQuery, where('monthYear', '==', monthYear));
+  }
+  return onSnapshot(paymentsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Payment);
+    callback(payments);
+  });
+};
+
+// --- Balance Sheets ---
+export const getBalanceSheets = async (
+  apartmentId?: string,
+  monthYear?: string
+): Promise<BalanceSheet[]> => {
+  let sheetsQuery = query(collection(db, 'balanceSheets'));
+  if (apartmentId) {
+    sheetsQuery = query(sheetsQuery, where('apartmentId', '==', apartmentId));
+  }
+  if (monthYear) {
+    sheetsQuery = query(sheetsQuery, where('monthYear', '==', monthYear));
+  }
+  const sheetSnapshot = await getDocs(sheetsQuery);
+  return sheetSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      apartmentId: data.apartmentId,
+      monthYear: data.monthYear,
+      openingBalance: data.openingBalance,
+      totalIncome: data.totalIncome,
+      totalExpenses: data.totalExpenses,
+      closingBalance: data.closingBalance,
+    } as BalanceSheet;
+  });
+};
+
+export const addBalanceSheet = async (sheet: Omit<BalanceSheet, 'id'>): Promise<BalanceSheet> => {
+  const sheetsCol = collection(db, 'balanceSheets');
+  const docRef = await addDoc(sheetsCol, sheet);
+  return { id: docRef.id, ...sheet } as BalanceSheet;
+};
+
+export const updateBalanceSheet = async (
+  id: string,
+  sheet: Partial<BalanceSheet>
+): Promise<void> => {
+  const sheetDoc = doc(db, 'balanceSheets', id);
+  await updateDoc(sheetDoc, sheet);
+};
+
+export const deleteBalanceSheet = async (id: string): Promise<void> => {
+  const sheetDoc = doc(db, 'balanceSheets', id);
+  await deleteDoc(sheetDoc);
+};
+
+export const subscribeToBalanceSheets = (
+  callback: (sheets: BalanceSheet[]) => void,
+  apartmentId?: string,
+  monthYear?: string
+) => {
+  let sheetsQuery = query(collection(db, 'balanceSheets'));
+  if (apartmentId) {
+    sheetsQuery = query(sheetsQuery, where('apartmentId', '==', apartmentId));
+  }
+  if (monthYear) {
+    sheetsQuery = query(sheetsQuery, where('monthYear', '==', monthYear));
+  }
+  return onSnapshot(sheetsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+    const sheets = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        apartmentId: data.apartmentId,
+        monthYear: data.monthYear,
+        openingBalance: data.openingBalance,
+        totalIncome: data.totalIncome,
+        totalExpenses: data.totalExpenses,
+        closingBalance: data.closingBalance,
+      } as BalanceSheet;
+    });
+    callback(sheets);
+  });
 };
 
 // --- Caching & Real-time Listeners ---

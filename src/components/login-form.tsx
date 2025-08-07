@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/hooks/use-toast'; // Updated import path
+
+import { useToast } from '@/hooks/use-toast';
+
+// Updated import path
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

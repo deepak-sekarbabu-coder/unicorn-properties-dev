@@ -34,7 +34,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/hooks/use-toast'; // Updated import path
+
+import { useToast } from '@/hooks/use-toast';
+
+// Updated import path
 
 const onboardingSchema = z.object({
   apartment: z.string().min(1, 'Please select an apartment.'),
